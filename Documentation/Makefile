@@ -123,6 +123,7 @@ ifndef PERL_PATH
 	PERL_PATH = /usr/bin/perl
 endif
 
+include ../config.mak.uname
 -include ../config.mak.autogen
 -include ../config.mak
 
