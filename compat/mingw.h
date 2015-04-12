@@ -398,6 +398,7 @@ int mingw_offset_1st_component(const char *path);
 #ifndef __MINGW64_VERSION_MAJOR
 #define PRIuMAX "I64u"
 #define PRId64 "I64d"
+#define SCNuMAX PRIuMAX
 #else
 #include <inttypes.h>
 #endif

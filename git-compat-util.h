@@ -256,6 +256,10 @@ extern char *gitbasename(char *);
 #define PRIo32 "o"
 #endif
 
+#ifndef SCNuMAX
+#define SCNuMAX PRIuMAX
+#endif
+
 #ifndef PATH_SEP
 #define PATH_SEP ':'
 #endif
