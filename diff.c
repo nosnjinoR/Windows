@@ -128,10 +128,18 @@ static int parse_dirstat_params(struct diff_options *options, const char *params
 
 static int parse_submodule_params(struct diff_options *options, const char *value)
 {
-	if (!strcmp(value, "log"))
+	if (!strcmp(value, "log")) {
 		DIFF_OPT_SET(options, SUBMODULE_LOG);
-	else if (!strcmp(value, "short"))
+		DIFF_OPT_CLR(options, SUBMODULE_FULL_LOG);
+	}
+	else if (!strcmp(value, "full-log")) {
+		DIFF_OPT_SET(options, SUBMODULE_FULL_LOG);
 		DIFF_OPT_CLR(options, SUBMODULE_LOG);
+	}
+	else if (!strcmp(value, "short")) {
+		DIFF_OPT_CLR(options, SUBMODULE_LOG);
+		DIFF_OPT_CLR(options, SUBMODULE_FULL_LOG);
+	}
 	else
 		return -1;
 	return 0;
@@ -2240,7 +2248,7 @@ static void builtin_diff(const char *name_a,
 	struct strbuf header = STRBUF_INIT;
 	const char *line_prefix = diff_line_prefix(o);
 
-	if (DIFF_OPT_TST(o, SUBMODULE_LOG) &&
+	if ((DIFF_OPT_TST(o, SUBMODULE_LOG) || DIFF_OPT_TST(o, SUBMODULE_FULL_LOG)) &&
 			(!one->mode || S_ISGITLINK(one->mode)) &&
 			(!two->mode || S_ISGITLINK(two->mode))) {
 		const char *del = diff_get_color_opt(o, DIFF_FILE_OLD);
@@ -2248,7 +2256,7 @@ static void builtin_diff(const char *name_a,
 		show_submodule_summary(o->file, one->path ? one->path : two->path,
 				line_prefix,
 				one->sha1, two->sha1, two->dirty_submodule,
-				meta, del, add, reset);
+				meta, del, add, reset, DIFF_OPT_TST(o, SUBMODULE_FULL_LOG));
 		return;
 	}
 

@@ -290,14 +290,14 @@ void handle_ignore_submodules_arg(struct diff_options *diffopt,
 
 static int prepare_submodule_summary(struct rev_info *rev, const char *path,
 		struct commit *left, struct commit *right,
-		int *fast_forward, int *fast_backward)
+		int *fast_forward, int *fast_backward, unsigned full_log)
 {
 	struct commit_list *merge_bases, *list;
 
 	init_revisions(rev, NULL);
 	setup_revisions(0, NULL, rev, NULL);
 	rev->left_right = 1;
-	rev->first_parent_only = 1;
+	rev->first_parent_only = full_log ? 0 : 1;
 	left->object.flags |= SYMMETRIC_LEFT;
 	add_pending_object(rev, &left->object, path);
 	add_pending_object(rev, &right->object, path);
@@ -363,7 +363,8 @@ void show_submodule_summary(FILE *f, const char *path,
 		const char *line_prefix,
 		unsigned char one[20], unsigned char two[20],
 		unsigned dirty_submodule, const char *meta,
-		const char *del, const char *add, const char *reset)
+		const char *del, const char *add, const char *reset,
+		unsigned full_log)
 {
 	struct rev_info rev;
 	struct commit *left = NULL, *right = NULL;
@@ -381,7 +382,7 @@ void show_submodule_summary(FILE *f, const char *path,
 		 !(right = lookup_commit_reference(two)))
 		message = "(commits not present)";
 	else if (prepare_submodule_summary(&rev, path, left, right,
-					   &fast_forward, &fast_backward))
+					   &fast_forward, &fast_backward, full_log))
 		message = "(revision walker failed)";
 
 	if (dirty_submodule & DIRTY_SUBMODULE_UNTRACKED)
