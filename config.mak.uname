@@ -330,6 +330,7 @@ endif
 ifeq ($(uname_S),Windows)
 	GIT_VERSION := $(GIT_VERSION).MSVC
 	pathsep = ;
+	sysconfdir = /etc
 	HAVE_ALLOCA_H = YesPlease
 	NO_PREAD = YesPlease
 	NEEDS_CRYPTO_WITH_SSL = YesPlease
@@ -484,6 +485,7 @@ ifeq ($(uname_S),NONSTOP_KERNEL)
 endif
 ifneq (,$(findstring MINGW,$(uname_S)))
 	pathsep = ;
+	sysconfdir = /etc
 	HAVE_ALLOCA_H = YesPlease
 	NO_PREAD = YesPlease
 	NEEDS_CRYPTO_WITH_SSL = YesPlease
@@ -534,6 +536,10 @@ ifneq (,$(findstring MINGW,$(uname_S)))
 ifneq (,$(wildcard ../THIS_IS_MSYSGIT))
 	htmldir = doc/git/html/
 	prefix =
+	# prevent conversion to Windows path on MSys1 (see
+	# http://www.mingw.org/wiki/Posix_path_conversion)
+	ETC_GITCONFIG = //etc\gitconfig
+	ETC_GITATTRIBUTES = //etc\gitattributes
 	INSTALL = /bin/install
 	EXTLIBS += /mingw/lib/libz.a
 	NO_R_TO_GCC_LINKER = YesPlease

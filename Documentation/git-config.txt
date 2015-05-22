@@ -123,6 +123,8 @@ See also <<FILES>>.
 For reading options: read only from system-wide `/etc/gitconfig`
 rather than from all available files.
 +
+On Windows, the system-wide config file is `%PROGRAMDATA%\Git\gitconfig`.
++
 See also <<FILES>>.
 
 --local::
@@ -231,7 +233,7 @@ $(prefix)/etc/gitconfig::
 	(e.g. 'help.format=html' if the installation only includes html pages).
 
 /etc/gitconfig::
-	System-wide configuration file.
+	System-wide configuration file (`%PROGRAMDATA%\Git\gitconfig` on Windows).
 +
 If git was built with relative `$(sysconfdir)`, this file will not be
 used, and the '--system' option refers to the installation-specific
