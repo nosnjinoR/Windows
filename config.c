@@ -1147,12 +1147,30 @@ static int git_config_from_blob_ref(config_fn_t fn,
 	return git_config_from_blob_sha1(fn, name, sha1, data);
 }
 
+static const char *etc_gitconfig = ETC_GITCONFIG;
+
 const char *git_etc_gitconfig(void)
 {
 	static const char *system_wide;
 	if (!system_wide)
-		system_wide = system_path(ETC_GITCONFIG);
+		system_wide = system_path(etc_gitconfig);
 	return system_wide;
+}
+
+static const char *git_inst_gitconfig(void)
+{
+	static const char *installation_defaults;
+	if (!installation_defaults) {
+		/*
+		 * if ETC_GITCONFIG as configured in the Makefile is an absolute path,
+		 * also load installation-specific defaults (relative to $(prefix))
+		 */
+		if (is_dir_sep(*etc_gitconfig))
+			installation_defaults = system_path(etc_gitconfig + 1);
+		else
+			installation_defaults = "";
+	}
+	return *installation_defaults ? installation_defaults : NULL;
 }
 
 /*
@@ -1205,8 +1223,10 @@ int git_config_early(config_fn_t fn, void *data, const char *repo_config)
 
 	home_config_paths(&user_config, &xdg_config, "config");
 
-	if (git_config_system())
+	if (git_config_system()) {
+		cnt = config_early_helper(fn, git_inst_gitconfig(), data, 0, cnt);
 		cnt = config_early_helper(fn, git_etc_gitconfig(), data, 0, cnt);
+	}
 
 	cnt = config_early_helper(fn, xdg_config, data, ACCESS_EACCES_OK, cnt);
 	cnt = config_early_helper(fn, user_config, data, ACCESS_EACCES_OK, cnt);
