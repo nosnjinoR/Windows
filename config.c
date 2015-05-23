@@ -1182,34 +1182,36 @@ int git_config_system(void)
 	return !git_env_bool("GIT_CONFIG_NOSYSTEM", 0);
 }
 
+static inline int config_early_helper(config_fn_t fn, const char *filename,
+		void *data, unsigned access_flags, int count) {
+	if (!filename || access_or_die(filename, R_OK, access_flags))
+		/* no file: return unchanged */
+		return count;
+
+	if (git_config_from_file(fn, filename, data))
+		/* error: decrement or start counting errors at -1 */
+		return count < 0 ? count - 1 : -1;
+	else
+		/* ok: increment unless we had errors before */
+		return count < 0 ? count : count + 1;
+}
+
 int git_config_early(config_fn_t fn, void *data, const char *repo_config)
 {
-	int ret = 0, found = 0;
+	/* count loaded files (> 0) or errors (< 0) */
+	int cnt = 0;
 	char *xdg_config = NULL;
 	char *user_config = NULL;
 
 	home_config_paths(&user_config, &xdg_config, "config");
 
-	if (git_config_system() && !access_or_die(git_etc_gitconfig(), R_OK, 0)) {
-		ret += git_config_from_file(fn, git_etc_gitconfig(),
-					    data);
-		found += 1;
-	}
+	if (git_config_system())
+		cnt = config_early_helper(fn, git_etc_gitconfig(), data, 0, cnt);
 
-	if (xdg_config && !access_or_die(xdg_config, R_OK, ACCESS_EACCES_OK)) {
-		ret += git_config_from_file(fn, xdg_config, data);
-		found += 1;
-	}
+	cnt = config_early_helper(fn, xdg_config, data, ACCESS_EACCES_OK, cnt);
+	cnt = config_early_helper(fn, user_config, data, ACCESS_EACCES_OK, cnt);
 
-	if (user_config && !access_or_die(user_config, R_OK, ACCESS_EACCES_OK)) {
-		ret += git_config_from_file(fn, user_config, data);
-		found += 1;
-	}
-
-	if (repo_config && !access_or_die(repo_config, R_OK, 0)) {
-		ret += git_config_from_file(fn, repo_config, data);
-		found += 1;
-	}
+	cnt = config_early_helper(fn, repo_config, data, 0, cnt);
 
 	switch (git_config_from_parameters(fn, data)) {
 	case -1: /* error */
@@ -1218,13 +1220,14 @@ int git_config_early(config_fn_t fn, void *data, const char *repo_config)
 	case 0: /* found nothing */
 		break;
 	default: /* found at least one item */
-		found++;
+		if (cnt >= 0)
+			cnt++;
 		break;
 	}
 
 	free(xdg_config);
 	free(user_config);
-	return ret == 0 ? found : ret;
+	return cnt;
 }
 
 int git_config_with_options(config_fn_t fn, void *data,
