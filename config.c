@@ -1166,12 +1166,30 @@ static int git_config_from_blob_ref(config_fn_t fn,
 	return git_config_from_blob_sha1(fn, name, sha1, data);
 }
 
+static const char *etc_gitconfig = ETC_GITCONFIG;
+
 const char *git_etc_gitconfig(void)
 {
 	static const char *system_wide;
 	if (!system_wide)
-		system_wide = system_path(ETC_GITCONFIG);
+		system_wide = system_path(etc_gitconfig);
 	return system_wide;
+}
+
+static const char *git_inst_gitconfig(void)
+{
+	static const char *installation_defaults;
+	if (!installation_defaults) {
+		/*
+		 * if ETC_GITCONFIG as configured in the Makefile is an absolute path,
+		 * also load installation-specific defaults (relative to $(prefix))
+		 */
+		if (is_dir_sep(*etc_gitconfig))
+			installation_defaults = system_path(etc_gitconfig + 1);
+		else
+			installation_defaults = "";
+	}
+	return *installation_defaults ? installation_defaults : NULL;
 }
 
 /*
@@ -1201,41 +1219,38 @@ int git_config_system(void)
 	return !git_env_bool("GIT_CONFIG_NOSYSTEM", 0);
 }
 
+static inline int config_early_helper(config_fn_t fn, const char *filename,
+		void *data, unsigned access_flags, int count) {
+	if (!filename || access_or_die(filename, R_OK, access_flags))
+		/* no file: return unchanged */
+		return count;
+
+	if (git_config_from_file(fn, filename, data))
+		/* error: decrement or start counting errors at -1 */
+		return count < 0 ? count - 1 : -1;
+	else
+		/* ok: increment unless we had errors before */
+		return count < 0 ? count : count + 1;
+}
+
 int git_config_early(config_fn_t fn, void *data, const char *repo_config)
 {
-	int ret = 0, found = 0;
-	const char *super_config = git_super_config();
+	/* count loaded files (> 0) or errors (< 0) */
+	int cnt = 0;
 	char *xdg_config = NULL;
 	char *user_config = NULL;
 
 	home_config_paths(&user_config, &xdg_config, "config");
 
-	if (super_config && git_config_system() &&
-			!access(super_config, R_OK)) {
-		ret += git_config_from_file(fn, super_config, data);
-		found += 1;
+	if (git_config_system()) {
+		cnt = config_early_helper(fn, git_inst_gitconfig(), data, 0, cnt);
+		cnt = config_early_helper(fn, git_etc_gitconfig(), data, 0, cnt);
 	}
 
-	if (git_config_system() && !access_or_die(git_etc_gitconfig(), R_OK, 0)) {
-		ret += git_config_from_file(fn, git_etc_gitconfig(),
-					    data);
-		found += 1;
-	}
+	cnt = config_early_helper(fn, xdg_config, data, ACCESS_EACCES_OK, cnt);
+	cnt = config_early_helper(fn, user_config, data, ACCESS_EACCES_OK, cnt);
 
-	if (xdg_config && !access_or_die(xdg_config, R_OK, ACCESS_EACCES_OK)) {
-		ret += git_config_from_file(fn, xdg_config, data);
-		found += 1;
-	}
-
-	if (user_config && !access_or_die(user_config, R_OK, ACCESS_EACCES_OK)) {
-		ret += git_config_from_file(fn, user_config, data);
-		found += 1;
-	}
-
-	if (repo_config && !access_or_die(repo_config, R_OK, 0)) {
-		ret += git_config_from_file(fn, repo_config, data);
-		found += 1;
-	}
+	cnt = config_early_helper(fn, repo_config, data, 0, cnt);
 
 	switch (git_config_from_parameters(fn, data)) {
 	case -1: /* error */
@@ -1244,13 +1259,14 @@ int git_config_early(config_fn_t fn, void *data, const char *repo_config)
 	case 0: /* found nothing */
 		break;
 	default: /* found at least one item */
-		found++;
+		if (cnt >= 0)
+			cnt++;
 		break;
 	}
 
 	free(xdg_config);
 	free(user_config);
-	return ret == 0 ? found : ret;
+	return cnt;
 }
 
 int git_config_with_options(config_fn_t fn, void *data,
@@ -1932,6 +1948,24 @@ out_free_ret_1:
 	return -CONFIG_INVALID_KEY;
 }
 
+
+static int lock_config_file(const char *config_filename,
+		struct lock_file **result)
+{
+	int fd;
+	/* make sure the parent directory exists */
+	if (safe_create_leading_directories_const(config_filename)) {
+		error("could not create parent directory of %s", config_filename);
+		return -1;
+	}
+	*result = xcalloc(1, sizeof(struct lock_file));
+	fd = hold_lock_file_for_update(*result, config_filename, 0);
+	if (fd < 0)
+		error("could not lock config file %s: %s", config_filename,
+				strerror(errno));
+	return fd;
+}
+
 /*
  * If value==NULL, unset in (remove from) config,
  * if value_regex!=NULL, disregard key/value pairs where value does not match.
@@ -1980,10 +2014,8 @@ int git_config_set_multivar_in_file(const char *config_filename,
 	 * The lock serves a purpose in addition to locking: the new
 	 * contents of .git/config will be written into it.
 	 */
-	lock = xcalloc(1, sizeof(struct lock_file));
-	fd = hold_lock_file_for_update(lock, config_filename, 0);
+	fd = lock_config_file(config_filename, &lock);
 	if (fd < 0) {
-		error("could not lock config file %s: %s", config_filename, strerror(errno));
 		free(store.key);
 		ret = CONFIG_NO_LOCK;
 		goto out_free;
@@ -2251,12 +2283,9 @@ int git_config_rename_section_in_file(const char *config_filename,
 	if (!config_filename)
 		config_filename = filename_buf = git_pathdup("config");
 
-	lock = xcalloc(1, sizeof(struct lock_file));
-	out_fd = hold_lock_file_for_update(lock, config_filename, 0);
-	if (out_fd < 0) {
-		ret = error("could not lock config file %s", config_filename);
+	out_fd = lock_config_file(config_filename, &lock);
+	if (out_fd < 0)
 		goto out;
-	}
 
 	if (!(config_file = fopen(config_filename, "rb"))) {
 		/* no config file means nothing to rename, no error */

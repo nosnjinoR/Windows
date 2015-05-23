@@ -117,11 +117,13 @@ See also <<FILES>>.
 
 --system::
 	For writing options: write to system-wide
-	`$(prefix)/etc/gitconfig` rather than the repository
+	`/etc/gitconfig` rather than the repository
 	`.git/config`.
 +
-For reading options: read only from system-wide `$(prefix)/etc/gitconfig`
+For reading options: read only from system-wide `/etc/gitconfig`
 rather than from all available files.
++
+On Windows, the system-wide config file is `%PROGRAMDATA%\Git\gitconfig`.
 +
 See also <<FILES>>.
 
@@ -221,11 +223,21 @@ See also <<FILES>>.
 FILES
 -----
 
-If not set explicitly with '--file', there are four files where
+If not set explicitly with '--file', there are five files where
 'git config' will search for configuration options:
 
 $(prefix)/etc/gitconfig::
-	System-wide configuration file.
+	Installation-specific configuration file, where '$(prefix)' is the
+	installation root directory specified via 'make prefix=...'. This allows
+	software distributions to provide installation-specific default values
+	(e.g. 'help.format=html' if the installation only includes html pages).
+
+/etc/gitconfig::
+	System-wide configuration file (`%PROGRAMDATA%\Git\gitconfig` on Windows).
++
+If git was built with relative `$(sysconfdir)`, this file will not be
+used, and the '--system' option refers to the installation-specific
+`$(prefix)/etc/gitconfig` instead.
 
 $XDG_CONFIG_HOME/git/config::
 	Second user-specific configuration file. If $XDG_CONFIG_HOME is not set
@@ -268,11 +280,11 @@ ENVIRONMENT
 GIT_CONFIG::
 	Take the configuration from the given file instead of .git/config.
 	Using the "--global" option forces this to ~/.gitconfig. Using the
-	"--system" option forces this to $(prefix)/etc/gitconfig.
+	"--system" option forces this to /etc/gitconfig.
 
 GIT_CONFIG_NOSYSTEM::
-	Whether to skip reading settings from the system-wide
-	$(prefix)/etc/gitconfig file. See linkgit:git[1] for details.
+	Whether to skip reading settings from the installation-specific	and
+	system-wide /etc/gitconfig files. See linkgit:git[1] for details.
 
 See also <<FILES>>.
 
