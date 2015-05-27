@@ -15,8 +15,24 @@ char *system_path(const char *path)
 #endif
 	struct strbuf d = STRBUF_INIT;
 
-	if (is_absolute_path(path))
+	if (is_absolute_path(path)) {
+#ifdef _WIN32
+		/*
+		 * On Windows (all variants), replace '/etc/' with '%PROGRAMDATA%/Git/'
+		 * (or '%ALLUSERSPROFILE%/Git' in case of Windows XP)
+		 */
+		if (!strncmp(path, "/etc/", 5)) {
+			const char *sysconfdir = getenv("PROGRAMDATA");
+			if (!sysconfdir)
+				sysconfdir = getenv("ALLUSERSPROFILE");
+			if (sysconfdir) {
+				strbuf_addf(&d, "%s/Git/%s", sysconfdir, path + 5);
+				return strbuf_detach(&d, NULL);
+			}
+		}
+#endif
 		return xstrdup(path);
+	}
 
 #ifdef RUNTIME_PREFIX
 	assert(argv0_path);
