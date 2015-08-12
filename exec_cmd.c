@@ -15,8 +15,10 @@ char *system_path(const char *path)
 #endif
 	struct strbuf d = STRBUF_INIT;
 
+#ifndef __MINGW32__
 	if (is_absolute_path(path))
 		return xstrdup(path);
+#endif
 
 #ifdef RUNTIME_PREFIX
 	assert(argv0_path);
@@ -31,7 +33,19 @@ char *system_path(const char *path)
 				"but prefix computation failed.  "
 				"Using static fallback '%s'.\n", prefix);
 	}
+#ifdef __MINGW32__
+#ifdef __MINGW64__
+#define PKGPREFIX "mingw64"
+#else
+#define PKGPREFIX "mingw32"
 #endif
+	char *slash = strrchr(prefix, '\\');
+	if (slash && !strcmp(slash, "\\usr")) {
+	    char *nprefix = strip_path_suffix(prefix, "usr");
+	    strbuf_addf(&d, "%s/"PKGPREFIX"/%s", nprefix, path);
+	} else
+#endif /* !__MINGW32__ */
+#endif /* !RUNTIME_PREFIX */
 
 	strbuf_addf(&d, "%s/%s", prefix, path);
 	return strbuf_detach(&d, NULL);
