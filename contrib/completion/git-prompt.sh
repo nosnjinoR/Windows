@@ -431,7 +431,10 @@ __git_ps1 ()
 		else
 			local head=""
 			head="$(cat $g/HEAD)"
-
+                       if [ -z "$head" ]; then
+                           return $exit
+                       fi
+                        
 			# is it a symbolic ref?
 			b="${head#ref: }"
 			if [ "$head" = "$b" ]; then
