@@ -542,11 +542,22 @@ else
 	ifeq ($(shell expr "$(uname_R)" : '2\.'),2)
 		# MSys2
 		prefix = /usr/
+		# Enable DEP
+		BASIC_LDFLAGS += -Wl,--nxcompat
+		# Enable ASLR
+		BASIC_LDFLAGS += -Wl,--dynamicbase
 		ifeq (MINGW32,$(MSYSTEM))
 			prefix = /mingw32
+			BASIC_LDFLAGS += -Wl,--pic-executable,-e,_mainCRTStartup
 		endif
 		ifeq (MINGW64,$(MSYSTEM))
 			prefix = /mingw64
+			# Don't let ld strip relocations
+			BASIC_LDFLAGS += -Wl,--pic-executable,-e,mainCRTStartup
+			# Enable ASLR^2 aka High-Entropy ASLR
+			BASIC_LDFLAGS += -Wl,--high-entropy-va
+			# Set image base >4GB for extra entropy with High Entropy ASLR
+			BASIC_LDFLAGS += -Wl,--image-base,0x140000000
 		else
 			COMPAT_CFLAGS += -D_USE_32BIT_TIME_T
 			BASIC_LDFLAGS += -Wl,--large-address-aware
