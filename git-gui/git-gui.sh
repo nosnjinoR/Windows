@@ -270,10 +270,15 @@ proc is_Windows {} {
 proc is_Cygwin {} {
 	global _iscygwin
 	if {$_iscygwin eq {}} {
-		if {$::tcl_platform(platform) eq {windows} &&
-				(![info exists ::env(MSYSTEM)] ||
-				 $::env(MSYSTEM) ne {MSYS})} {
-			set _iscygwin 1
+		# force flag to non cygwin environment, it's a heavy hack / workaround
+		set _iscygwin 0
+		# or combine the previous and the current solution somehow like this?
+		if {[is_Windows] && (![info exists ::env(MSYSTEM)] || $::env(MSYSTEM) ne {MSYS})} {
+			if {[catch {set p [exec cygpath --windir]} err]} {
+ 				set _iscygwin 0
+ 			} else {
+ 				set _iscygwin 1
+ 			}
 		} else {
 			set _iscygwin 0
 		}
@@ -1274,6 +1279,7 @@ apply_config
 # v1.7.0 introduced --show-toplevel to return the canonical work-tree
 if {[package vcompare $_git_version 1.7.0] >= 0} {
 	if { [is_Cygwin] } {
+		# codepage conversion happens here TODO?
 		catch {set _gitworktree [exec cygpath --windows [git rev-parse --show-toplevel]]}
 	} else {
 		set _gitworktree [git rev-parse --show-toplevel]
