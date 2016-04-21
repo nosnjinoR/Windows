@@ -26,6 +26,7 @@ static __inline int strcasecmp (const char *s1, const char *s2)
 
 #ifdef _MSC_VER
 typedef int sigset_t;
+#define O_ACCMODE     _O_RDWR  /* open for reading and writing (not in fcntl.h) */
 #endif
 
 #include "compat/mingw.h"
