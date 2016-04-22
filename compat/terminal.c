@@ -1,6 +1,10 @@
-#include <inttypes.h>
 #include "git-compat-util.h"
 #include "run-command.h"
+#if defined(_MSC_VER) && _MSC_VER<=1500
+
+#else
+#include <inttypes.h>
+#endif
 #include "compat/terminal.h"
 #include "sigchain.h"
 #include "strbuf.h"
