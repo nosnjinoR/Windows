@@ -2287,7 +2287,7 @@ int symlink(const char *target, const char *link)
 	return 0;
 }
 
-#ifndef _WINNT_H
+#if !defined(_WINNT_H) && !defined(_MSC_VER)
 /*
  * The REPARSE_DATA_BUFFER structure is defined in the Windows DDK (in
  * ntifs.h) and in MSYS1's winnt.h (which defines _WINNT_H). So define
