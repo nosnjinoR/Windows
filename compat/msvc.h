@@ -6,6 +6,9 @@
 #include <malloc.h>
 #include <io.h>
 
+#pragma warning(disable: 4018) /* signed/unsigned comparison */
+#pragma warning(disable: 4075) /* linker ignoring option due another specification */
+
 /* porting function */
 #define inline __inline
 #define __inline__ __inline
