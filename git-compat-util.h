@@ -145,6 +145,12 @@
 #define _NETBSD_SOURCE 1
 #define _SGI_SOURCE 1
 
+/* Not all versions of all compilers can cleanly determine
+ * if a variable either has been, or needs to be, initialized.
+ * Such variables can be initialized to this value so the
+ * developer does not need to reason about why the value is chosen*/
+#define SUPPRESS_UNINITIALIZD_WARNINGS 0
+
 #if defined(WIN32) && !defined(__CYGWIN__) /* Both MinGW and MSVC */
 # if defined (_MSC_VER) && !defined(_WIN32_WINNT)
 #  define _WIN32_WINNT 0x0502
