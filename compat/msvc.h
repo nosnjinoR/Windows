@@ -32,6 +32,17 @@ static __inline int strcasecmp (const char *s1, const char *s2)
 typedef int sigset_t;
 #define O_ACCMODE     _O_RDWR  /* open for reading and writing (not in fcntl.h) */
 
+/* http://thompsonng.blogspot.co.uk/2011/09/vs2010-fseeko.html */
+#ifdef _WIN32
+#    ifdef __MINGW32__
+#        define fseeko fseeko64
+#        define ftello ftello64
+#    else
+#        define fseeko _fseeki64
+#        define ftello _ftelli64
+#    endif
+#endif
+
 /* https://msdn.microsoft.com/en-us/library/ff552012.aspx */
 typedef struct _REPARSE_DATA_BUFFER {
   ULONG  ReparseTag;
