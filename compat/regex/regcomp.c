@@ -18,7 +18,11 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301 USA.  */
 
+#if defined(_MSC_VER) && _MSC_VER<=1500
+
+#else
 #include <stdint.h>
+#endif
 
 static reg_errcode_t re_compile_internal (regex_t *preg, const char * pattern,
 					  size_t length, reg_syntax_t syntax);

@@ -6,6 +6,14 @@ typedef _sigset_t sigset_t;
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
+#pragma comment(lib, "Ws2_32.lib")  
+/* add the MS linker for winsock2 when compiling on Visual Studio
+ https://msdn.microsoft.com/en-us/library/windows/desktop/ms737629%28v=vs.85%29.aspx*/
+
+#pragma comment(lib, "wldap32.lib")
+/* some ()https://curl.haxx.se/mail/lib-2007-11/0297.html) report that this clears the 
+unresolved external symbol __imp__curl_* errors */
+
 /* MinGW-w64 reports to have flockfile, but it does not actually have it. */
 #ifdef __MINGW64_VERSION_MAJOR
 #undef _POSIX_THREAD_SAFE_FUNCTIONS

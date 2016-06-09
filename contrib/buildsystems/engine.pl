@@ -12,6 +12,7 @@ use File::Basename;
 use File::Spec;
 use Cwd;
 use Generators;
+use Text::ParseWords;
 
 my (%build_structure, %compile_options, @makedry);
 my $out_dir = getcwd();
@@ -40,6 +41,7 @@ EOM
 # Parse command-line options
 while (@ARGV) {
     my $arg = shift @ARGV;
+	#print "Arg: $arg \n";
     if ("$arg" eq "-h" || "$arg" eq "--help" || "$arg" eq "-?") {
 	showUsage();
 	exit(0);
@@ -72,7 +74,13 @@ Running GNU Make to figure out build structure...
 EOM
 
 # Pipe a make --dry-run into a variable, if not already loaded from file
-@makedry = `cd $git_dir && make -n MSVC=1 V=1 2>/dev/null` if !@makedry;
+# Capture the make dry stderr to file for review (will be empty for a release build).
+
+my $ErrsFile = "msvc-build-makedryerrors.txt";
+#@makedry = `cd $git_dir && make -n MSVC=1 V=1 1>makedry.txt 2>$ErrsFile`; # capture the dry run as a text file
+@makedry = `cd $git_dir && make -n MSVC=1 V=1 2>$ErrsFile` if !@makedry;
+# test for an empty Errors file and remove it
+unlink $ErrsFile if -f $ErrsFile && -z _;
 
 # Parse the make output into usable info
 parseMakeOutput();
@@ -122,6 +130,7 @@ sub parseMakeOutput
     print "Parsing GNU Make output to figure out build structure...\n";
     my $line = 0;
     while (my $text = shift @makedry) {
+		#print "Make: $text\n"; # show the makedry line
         my $ate_next;
         do {
             $ate_next = 0;
@@ -137,6 +146,12 @@ sub parseMakeOutput
 
         if ($text =~ /^test /) {
             # options to test (eg -o) may be mistaken for linker options
+            next;
+        }
+
+        if ($text =~ /^(mkdir|msgfmt) /) {
+            # options to the Portable Object translations
+            # the line "mkdir ... && msgfmt ..." contains no linker options
             next;
         }
 
@@ -231,7 +246,7 @@ sub removeDuplicates
 sub handleCompileLine
 {
     my ($line, $lineno) = @_;
-    my @parts = split(' ', $line);
+    my @parts = shellwords($line);
     my $sourcefile;
     shift(@parts); # ignore cmd
     while (my $part = shift @parts) {
@@ -250,6 +265,7 @@ sub handleCompileLine
         } elsif ($part =~ /\.(c|cc|cpp)$/) {
             $sourcefile = $part;
         } else {
+            print "full line: $line\n";
             die "Unhandled compiler option @ line $lineno: $part";
         }
     }
@@ -265,7 +281,7 @@ sub handleLibLine
     my (@objfiles, @lflags, $libout, $part);
     # kill cmd and rm 'prefix'
     $line =~ s/^rm -f .* && .* rcs //;
-    my @parts = split(' ', $line);
+    my @parts = shellwords($line);
     while ($part = shift @parts) {
         if ($part =~ /^-/) {
             push(@lflags, $part);
@@ -275,6 +291,7 @@ sub handleLibLine
             $libout = $part;
             $libout =~ s/\.a$//;
         } else {
+            print "full line: $line\n";
             die "Unhandled lib option @ line $lineno: $part";
         }
     }
@@ -306,7 +323,7 @@ sub handleLinkLine
 {
     my ($line, $lineno) = @_;
     my (@objfiles, @lflags, @libs, $appout, $part);
-    my @parts = split(' ', $line);
+    my @parts = shellwords($line);
     shift(@parts); # ignore cmd
     while ($part = shift @parts) {
         if ($part =~ /^-IGNORE/) {
@@ -317,10 +334,12 @@ sub handleLinkLine
             $appout = shift @parts;
         } elsif ("$part" eq "-lz") {
             push(@libs, "zlib.lib");
-	} elsif ("$part" eq "-lcrypto") {
+        } elsif ("$part" eq "-lcrypto") {
             push(@libs, "libeay32.lib");
         } elsif ("$part" eq "-lssl") {
             push(@libs, "ssleay32.lib");
+        } elsif ("$part" eq "-lcurl") {
+            push(@libs, "libcurl.lib");
         } elsif ($part =~ /^-/) {
             push(@lflags, $part);
         } elsif ($part =~ /\.(a|lib)$/) {
@@ -333,7 +352,7 @@ sub handleLinkLine
         } elsif ($part =~ /\.obj$/) {
             # do nothing, 'make' should not be producing .obj, only .o files
         } else {
-            die "Unhandled lib option @ line $lineno: $part";
+            die "Unhandled link option @ line $lineno: $part";
         }
     }
 #    print "AppOut: '$appout'\nLFlags: @lflags\nLibs  : @libs\nOfiles: @objfiles\n";

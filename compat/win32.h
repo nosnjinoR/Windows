@@ -67,9 +67,11 @@ static inline void *get_proc_addr(struct proc_addr *proc)
 	/* only do this once */
 	if (!proc->initialized) {
 		proc->initialized = 1;
-		HANDLE hnd = LoadLibraryA(proc->dll);
+		{
+		HMODULE hnd = LoadLibraryA(proc->dll);
 		if (hnd)
 			proc->pfunction = GetProcAddress(hnd, proc->function);
+		}
 	}
 	/* set ENOSYS if DLL or function was not found */
 	if (!proc->pfunction)
