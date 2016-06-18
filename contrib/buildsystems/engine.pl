@@ -166,6 +166,10 @@ sub parseMakeOutput
         } elsif ($text =~ /\.o / && $text =~ /\.a /) {
             # libifying
             handleLibLine($text, $line);
+
+        } elsif ($text =~ /^cp /) {
+            # Post-Build
+            handlePostBuild($text, $line);
 #
 #        } elsif ($text =~ /^cp /) {
 #            # copy file around
@@ -243,6 +247,11 @@ sub removeDuplicates
     @cflags = keys %dupHash;
 }
 
+sub handlePostBuild
+{
+    my ($line, $lineno) = @_;
+    my @parts = split(' ', $line);
+}
 sub handleCompileLine
 {
     my ($line, $lineno) = @_;
