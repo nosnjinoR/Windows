@@ -38,7 +38,7 @@ extern void help_unknown_ref(const char *ref, const char *cmd, const char *error
  * identify build platform
  */
 #ifndef GIT_BUILD_PLATFORM
-	#if defined __x86__ || defined __i386__ || defined __i586__ || defined __i686__
+	#if defined __x86__ || defined __i386__
 		#define GIT_BUILD_PLATFORM "x86";
 	#elif defined __x86_64__
 		#define GIT_BUILD_PLATFORM "x86_64";
