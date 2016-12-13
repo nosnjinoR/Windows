@@ -462,7 +462,7 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
   if (timeout != INFTIM)
     {
       orig_timeout = timeout;
-      start = GetTickCount();
+      start = GetTickCount64();
     }
 
   if (!hEvent)
@@ -611,7 +611,7 @@ restart:
 
   if (!rc && orig_timeout && timeout != INFTIM)
     {
-      elapsed = GetTickCount() - start;
+      elapsed = GetTickCount64() - start;
       timeout = elapsed >= orig_timeout ? 0 : orig_timeout - elapsed;
     }
 
