@@ -424,12 +424,7 @@ static struct cmd_struct commands[] = {
 	{ "diff-files", cmd_diff_files, RUN_SETUP | NEED_WORK_TREE },
 	{ "diff-index", cmd_diff_index, RUN_SETUP },
 	{ "diff-tree", cmd_diff_tree, RUN_SETUP },
-	/*
-	 * NEEDSWORK: Once the redirection to git-legacy-difftool.perl in
-	 * builtin/difftool.c has been removed, this entry should be changed to
-	 * RUN_SETUP | NEED_WORK_TREE
-	 */
-	{ "difftool", cmd_difftool },
+	{ "difftool", cmd_difftool, RUN_SETUP | NEED_WORK_TREE },
 	{ "fast-export", cmd_fast_export, RUN_SETUP },
 	{ "fetch", cmd_fetch, RUN_SETUP },
 	{ "fetch-pack", cmd_fetch_pack, RUN_SETUP },
@@ -440,7 +435,7 @@ static struct cmd_struct commands[] = {
 	{ "fsck-objects", cmd_fsck, RUN_SETUP },
 	{ "gc", cmd_gc, RUN_SETUP },
 	{ "get-tar-commit-id", cmd_get_tar_commit_id },
-	{ "grep", cmd_grep, RUN_SETUP_GENTLY },
+	{ "grep", cmd_grep, RUN_SETUP_GENTLY | SUPPORT_SUPER_PREFIX },
 	{ "hash-object", cmd_hash_object },
 	{ "help", cmd_help },
 	{ "index-pack", cmd_index_pack, RUN_SETUP_GENTLY },
@@ -477,7 +472,7 @@ static struct cmd_struct commands[] = {
 	{ "prune-packed", cmd_prune_packed, RUN_SETUP },
 	{ "pull", cmd_pull, RUN_SETUP | NEED_WORK_TREE },
 	{ "push", cmd_push, RUN_SETUP },
-	{ "read-tree", cmd_read_tree, RUN_SETUP },
+	{ "read-tree", cmd_read_tree, RUN_SETUP | SUPPORT_SUPER_PREFIX},
 	{ "rebase--helper", cmd_rebase__helper, RUN_SETUP | NEED_WORK_TREE },
 	{ "receive-pack", cmd_receive_pack },
 	{ "reflog", cmd_reflog, RUN_SETUP },
@@ -500,7 +495,7 @@ static struct cmd_struct commands[] = {
 	{ "stage", cmd_add, RUN_SETUP | NEED_WORK_TREE },
 	{ "status", cmd_status, RUN_SETUP | NEED_WORK_TREE },
 	{ "stripspace", cmd_stripspace },
-	{ "submodule--helper", cmd_submodule__helper, RUN_SETUP },
+	{ "submodule--helper", cmd_submodule__helper, RUN_SETUP | SUPPORT_SUPER_PREFIX},
 	{ "symbolic-ref", cmd_symbolic_ref, RUN_SETUP },
 	{ "tag", cmd_tag, RUN_SETUP },
 	{ "unpack-file", cmd_unpack_file, RUN_SETUP },
@@ -633,16 +628,16 @@ static int run_argv(int *argcp, const char ***argv)
 			struct argv_array args = ARGV_ARRAY_INIT;
 			int i;
 
+			if (get_super_prefix())
+				die("%s doesn't support --super-prefix", **argv);
+
+			if (use_pager == -1)
+				use_pager = check_pager_config(**argv);
+			commit_pager_choice();
+
 			argv_array_push(&args, "git");
 			for (i = 0; i < *argcp; i++)
 				argv_array_push(&args, (*argv)[i]);
-
-			if (get_super_prefix())
-				die("%s doesn't support --super-prefix", args.argv[0]);
-
-			if (use_pager == -1)
-				use_pager = check_pager_config(args.argv[0]);
-			commit_pager_choice();
 
 			trace_argv_printf(args.argv, "trace: exec:");
 
@@ -650,10 +645,11 @@ static int run_argv(int *argcp, const char ***argv)
 			 * if we fail because the command is not found, it is
 			 * OK to return. Otherwise, we just pass along the status code.
 			 */
-			i = run_command_v_opt(args.argv, RUN_SILENT_EXEC_FAILURE | RUN_CLEAN_ON_EXIT);
+			i = run_command_v_opt(args.argv, RUN_SILENT_EXEC_FAILURE |
+					      RUN_CLEAN_ON_EXIT);
 			if (i >= 0 || errno != ENOENT)
 				exit(i);
-			die("could not execute builtin %s", args.argv[1]);
+			die("could not execute builtin %s", **argv);
 		}
 
 		/* .. then try the external ones */
