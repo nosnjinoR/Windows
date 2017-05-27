@@ -272,6 +272,16 @@ int mingw_core_config(const char *var, const char *value)
 
 DECLARE_PROC_ADDR(kernel32.dll, BOOL, CreateSymbolicLinkW, LPCWSTR, LPCWSTR, DWORD);
 
+#ifndef SYMBOLIC_LINK_FLAG_DIRECTORY
+#define SYMBOLIC_LINK_FLAG_DIRECTORY 0x1
+#endif
+
+#ifndef SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE
+#define SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE 0x2
+#endif
+
+static int has_unprivileged_symlinks = 0;
+
 enum phantom_symlink_result {
 	PHANTOM_SYMLINK_RETRY,
 	PHANTOM_SYMLINK_DONE,
@@ -286,6 +296,7 @@ static enum phantom_symlink_result process_phantom_symlink(
 		const wchar_t *wtarget, const wchar_t *wlink) {
 	HANDLE hnd;
 	BY_HANDLE_FILE_INFORMATION fdata;
+	DWORD symlink_flags = SYMBOLIC_LINK_FLAG_DIRECTORY;
 
 	/* check that wlink is still a file symlink */
 	if ((GetFileAttributesW(wlink)
@@ -313,8 +324,13 @@ static enum phantom_symlink_result process_phantom_symlink(
 	if (!(fdata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 		return PHANTOM_SYMLINK_DONE;
 
+	/* Permit creating symlink as an unprivileged user if supported */
+	if (has_unprivileged_symlinks == 1) {
+		symlink_flags |= SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+	}
+
 	/* otherwise recreate the symlink with directory flag */
-	if (DeleteFileW(wlink) && CreateSymbolicLinkW(wlink, wtarget, 1))
+	if (DeleteFileW(wlink) && CreateSymbolicLinkW(wlink, wtarget, symlink_flags))
 		return PHANTOM_SYMLINK_DIRECTORY;
 
 	errno = err_win_to_posix(GetLastError());
@@ -2639,6 +2655,7 @@ int symlink(const char *target, const char *link)
 {
 	wchar_t wtarget[MAX_LONG_PATH], wlink[MAX_LONG_PATH];
 	int len;
+	DWORD symlink_flags = 0;
 
 	/* fail if symlinks are disabled or API is not supported (WinXP) */
 	if (!has_symlinks || !INIT_PROC_ADDR(CreateSymbolicLinkW)) {
@@ -2655,8 +2672,13 @@ int symlink(const char *target, const char *link)
 		if (wtarget[len] == '/')
 			wtarget[len] = '\\';
 
+	/* Permit creating symlink as an unprivileged user if supported */
+	if (has_unprivileged_symlinks == 1) {
+		symlink_flags |= SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE;
+	}
+
 	/* create file symlink */
-	if (!CreateSymbolicLinkW(wlink, wtarget, 0)) {
+	if (!CreateSymbolicLinkW(wlink, wtarget, symlink_flags)) {
 		errno = err_win_to_posix(GetLastError());
 		return -1;
 	}
@@ -3020,6 +3042,18 @@ static void setup_windows_environment(void)
 	 */
 	if (!(tmp = getenv("MSYS")) || !strstr(tmp, "winsymlinks:nativestrict"))
 		has_symlinks = 0;
+
+	/* Check if this release of Windows supports creating symbolic links as an
+	 * unprivileged user. The underlying API support was introduced in the
+	 * Windows 10 Creators Update (v1703). Older releases of Windows don't
+	 * understand the new flag to the CreateSymbolicLink family of functions.
+	 */
+	struct utsname winver;
+	if (uname(&winver) == 0) {
+		if (atoi(winver.version) >= 15063) {
+			has_unprivileged_symlinks = 1;
+		}
+	}
 
 	if (!getenv("LC_ALL") && !getenv("LC_CTYPE") && !getenv("LANG"))
 		setenv("LC_CTYPE", "C", 1);
