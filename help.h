@@ -38,10 +38,38 @@ extern void help_unknown_ref(const char *ref, const char *cmd, const char *error
  * identify build platform
  */
 #ifndef GIT_BUILD_PLATFORM
-	#if defined __x86__ || defined __i386__ || defined __i586__ || defined __i686__
+	#if defined __x86__ || defined __i386__
 		#define GIT_BUILD_PLATFORM "x86";
 	#elif defined __x86_64__
 		#define GIT_BUILD_PLATFORM "x86_64";
+	#elif defined __alpha__
+		#define GIT_BUILD_PLATFORM "alpha";
+	#elif defined __arm__
+		#define GIT_BUILD_PLATFORM "arm";
+	#elif defined __aarch64__
+		#define GIT_BUILD_PLATFORM "arm64";
+	#elif defined __BFIN__
+		#define GIT_BUILD_PLATFORM "blackfin";
+	#elif defined __convex__
+		#define GIT_BUILD_PLATFORM "convex";
+	#elif defined __hppa__
+		#define GIT_BUILD_PLATFORM "hppa";
+	#elif defined __ia64__
+		#define GIT_BUILD_PLATFORM "ia64";
+	#elif defined __m68k__
+		#define GIT_BUILD_PLATFORM "m68k";
+	#elif defined __mips__
+		#define GIT_BUILD_PLATFORM "mips";
+	#elif defined __ppc64__
+		#define GIT_BUILD_PLATFORM "ppc64";
+	#elif defined __powerpc__
+		#define GIT_BUILD_PLATFORM "powerpc";
+	#elif defined __sparc__
+		#define GIT_BUILD_PLATFORM "sparc";
+	#elif defined __sh__
+		#define GIT_BUILD_PLATFORM "sh";
+	#elif defined __s390__
+		#define GIT_BUILD_PLATFORM "s390";
 	#else
 		#define GIT_BUILD_PLATFORM "unknown";
 	#endif
