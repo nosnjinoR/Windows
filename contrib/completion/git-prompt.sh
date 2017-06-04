@@ -431,9 +431,11 @@ __git_ps1 ()
 			b="$(git symbolic-ref HEAD 2>/dev/null)"
 		else
 			local head=""
-			if ! __git_eread "$g/HEAD" head; then
-				return $exit
-			fi
+			head="$(cat $g/HEAD)"
+                       if [ -z "$head" ]; then
+                           return $exit
+                       fi
+                        
 			# is it a symbolic ref?
 			b="${head#ref: }"
 			if [ "$head" = "$b" ]; then
