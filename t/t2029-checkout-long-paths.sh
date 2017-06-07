@@ -17,6 +17,13 @@ test_expect_success setup '
 	p=$p$p$p$p$p && # -> 50
 	p=$p$p$p$p$p && # -> 250
 
+	# The base path (w/o filename) should be smaller than 260, but longer
+	# than 248 to show limitation of WinAPI that for creation of directories
+	# we need to expand the path even above 248. Hence value 250.
+	bp=$(echo $(pwd)) &&
+	let "len = 250 - ${#bp}" &&
+	p=${p:0:$len} &&
+
 	path=${p}/longtestfile && # -> 263 (MAX_PATH = 260)
 
 	blob=$(echo foobar | git hash-object -w --stdin) &&

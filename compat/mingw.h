@@ -531,6 +531,14 @@ extern const char *program_data_config(void);
 #define MAX_LONG_PATH 4096
 
 /**
+ * By default MAX_PATH is of size 260, but when used for directory creation
+ * maximum chars allowed is 248. For simplicity sake we treat every path as
+ * directory (so all file paths in range 248-259 will be expanded but they
+ * not need to be).
+ */
+#define TRUE_MAX_PATH 248
+
+/**
  * Handles paths that would exceed the MAX_PATH limit of Windows Unicode APIs.
  *
  * With expand == false, the function checks for over-long paths and fails
@@ -546,8 +554,7 @@ extern const char *program_data_config(void);
  * Parameters:
  * path: path to check and / or convert
  * len: size of path on input (number of wide chars without \0)
- * max_path: max short path length to check (usually MAX_PATH = 260, but just
- * 248 for CreateDirectoryW)
+ * max_path: max short path length to check
  * expand: false to only check the length, true to expand the path to a
  * '\\?\'-prefixed absolute path
  *
@@ -641,7 +648,7 @@ static inline int xutftowcs_path_ex(wchar_t *wcs, const char *utf,
  */
 static inline int xutftowcs_path(wchar_t *wcs, const char *utf)
 {
-	return xutftowcs_path_ex(wcs, utf, MAX_PATH, -1, MAX_PATH, 0);
+	return xutftowcs_path_ex(wcs, utf, MAX_PATH, -1, TRUE_MAX_PATH, 0);
 }
 
 /**
@@ -653,7 +660,7 @@ static inline int xutftowcs_path(wchar_t *wcs, const char *utf)
  */
 static inline int xutftowcs_long_path(wchar_t *wcs, const char *utf)
 {
-	return xutftowcs_path_ex(wcs, utf, MAX_LONG_PATH, -1, MAX_PATH,
+	return xutftowcs_path_ex(wcs, utf, MAX_LONG_PATH, -1, TRUE_MAX_PATH,
 			core_long_paths);
 }
 
