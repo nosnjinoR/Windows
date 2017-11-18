@@ -1246,6 +1246,7 @@ BUILTIN_OBJS += builtin/write-tree.o
 # upstream unnecessarily (making merging in future changes easier).
 THIRD_PARTY_SOURCES += compat/inet_ntop.c
 THIRD_PARTY_SOURCES += compat/inet_pton.c
+THIRD_PARTY_SOURCES += compat/libbacktrace/%
 THIRD_PARTY_SOURCES += compat/nedmalloc/%
 THIRD_PARTY_SOURCES += compat/obstack.%
 THIRD_PARTY_SOURCES += compat/poll/%
@@ -1617,6 +1618,15 @@ endif
 ifdef OPEN_RETURNS_EINTR
 	COMPAT_CFLAGS += -DOPEN_RETURNS_EINTR
 	COMPAT_OBJS += compat/open.o
+endif
+ifneq (,$(DEBUG_FILE_LOCKS))
+	BACKTRACE_SOURCES := $(patsubst %,compat/libbacktrace/%,atomic.c \
+		alloc.c dwarf.c state.c fileline.c posix.c pecoff.c sort.c \
+		read.c)
+	BACKTRACE_OBJS := $(patsubst %.c,%.o,$(BACKTRACE_SOURCES))
+	COMPAT_OBJS += $(BACKTRACE_OBJS)
+$(BACKTRACE_OBJS): EXTRA_CPPFLAGS = -I compat/libbacktrace
+	COMPAT_CFLAGS += -DDEBUG_FILE_LOCKS
 endif
 ifdef NO_SYMLINK_HEAD
 	BASIC_CFLAGS += -DNO_SYMLINK_HEAD
