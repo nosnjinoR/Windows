@@ -171,6 +171,15 @@ static int remove_dirs(struct strbuf *path, const char *prefix, int force_flag,
 		goto out;
 	}
 
+	/* first try the simple approach, recursion may not be needed if empty dir, symlink, junction, etc. */
+	res = dry_run ? 0 : unlink(path->buf);
+	if (res == 0) {
+		printf(dry_run ?  _(msg_would_remove) : _(msg_remove), path->buf);
+		ret = res;
+		goto out;
+	}
+
+	/* failure of simple approach needs no message, begin the walk through contents of directory */
 	dir = opendir(path->buf);
 	if (!dir) {
 		/* an empty dir could be removed even if it is unreadble */
