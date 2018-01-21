@@ -1276,6 +1276,8 @@ static inline int is_missing_file_error(int errno_)
  */
 #ifndef enable_fscache
 #define enable_fscache(x) /* noop */
+#define enable_explicit_fscache(x) /* noop */
+#define fscache_lstat lstat
 #endif
 
 #ifndef is_fscache_enabled

@@ -5,6 +5,7 @@
 #include "submodule.h"
 #include "progress.h"
 #include "fsmonitor.h"
+#include "git-compat-util.h"
 
 static void create_directories(const char *path, int path_len,
 			       const struct checkout *state)
@@ -395,7 +396,7 @@ static int check_path(const char *path, int len, struct stat *st, int skiplen)
 		errno = ENOENT;
 		return -1;
 	}
-	return lstat(path, st);
+	return fscache_lstat(path, st);
 }
 
 /*
