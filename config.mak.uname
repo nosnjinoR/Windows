@@ -428,8 +428,6 @@ else
 endif
 	BASIC_CFLAGS += $(sdk_libs) $(msvc_libs)
 
-	# Optionally enable memory leak reporting.
-	# BASIC_CLFAGS += -DUSE_MSVC_CRTDBG
 	BASIC_CFLAGS += -DPROTECT_NTFS_DEFAULT=1
 	# Always give "-Zi" to the compiler and "-debug" to linker (even in
 	# release mode) to force a PDB to be generated (like RelWithDebInfo).
@@ -446,6 +444,11 @@ ifndef DEBUG
 	AR += -LTCG
 else
 	BASIC_CFLAGS += -MDd -DDEBUG -D_DEBUG
+ifdef CRTDBG
+	# Optionally enable memory leak reporting using:
+	#    make MSVC=1 DEBUG=1 CRTDBG=1
+	BASIC_CFLAGS += -DUSE_MSVC_CRTDBG=1
+endif
 endif
 	X = .exe
 

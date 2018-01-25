@@ -3246,6 +3246,68 @@ static void adjust_symlink_flags(void)
 
 #ifdef _DEBUG
 #include <crtdbg.h>
+
+#ifdef USE_MSVC_CRTDBG
+static struct trace_key crtdbg_key = TRACE_KEY_INIT(CRTDBG);
+
+static void _crtdbg_atexit(void)
+{
+	if (trace_want(&crtdbg_key)) {
+		int leaks_found;
+		int mode = _CRTDBG_MODE_DEBUG | _CRTDBG_MODE_FILE;
+		HANDLE h = (HANDLE)_get_osfhandle(crtdbg_key.fd);
+
+		/*
+		 * Route the memory leak dump to the trace file *AND* to the VS
+		 * debugger Output window.
+		 */
+		_CrtSetReportMode(_CRT_ASSERT, mode);
+		_CrtSetReportMode(_CRT_WARN, mode);
+		_CrtSetReportMode(_CRT_ERROR, mode);
+
+		_CrtSetReportFile(_CRT_ASSERT, h);
+		_CrtSetReportFile(_CRT_WARN, h);
+		_CrtSetReportFile(_CRT_ERROR, h);
+
+		leaks_found = _CrtDumpMemoryLeaks();
+
+		trace_printf_key(&crtdbg_key, "_crtdbg_atexit [%d]", leaks_found);
+	} else {
+		/*
+		 * Route the memory leak dump to just the VS debugger Output
+		 * window.
+		 */
+		_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+		_CrtSetReportMode(_CRT_WARN,   _CRTDBG_MODE_DEBUG);
+		_CrtSetReportMode(_CRT_ERROR,  _CRTDBG_MODE_DEBUG);
+
+		_CrtDumpMemoryLeaks();
+	}
+}
+
+static void _crtdbg_setup(void)
+{
+	/*
+	 * Enable leak detection in the CRT.
+	 * Enable delayed freeing by the CRT (overwriting to-be-freed memory
+	 * with 0xDD and not let memory be re-used for a while).
+	 *
+	 * But don't force an automatic dump, because we want to control it
+	 * in our atexit routine.
+	 */
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_DELAY_FREE_MEM_DF);
+
+	atexit(_crtdbg_atexit);
+
+	/*
+	 * If they also want to dump to a file, force a real trace message
+	 * to the dump file as a delimiter.  This should help when runing
+	 * the test suites.
+	 */
+	if (trace_want(&crtdbg_key))
+		trace_printf_key(&crtdbg_key, "_crtdbg_setup");
+}
+#endif
 #endif
 
 /*
@@ -3274,10 +3336,9 @@ int msc_startup(int argc, wchar_t **w_argv, wchar_t **w_env)
 
 #ifdef _DEBUG
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
-#endif
-
 #ifdef USE_MSVC_CRTDBG
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_crtdbg_setup();
+#endif
 #endif
 
 	fsync_object_files = 1;

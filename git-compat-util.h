@@ -6,8 +6,11 @@
  * For these to work they must appear very early in each
  * file -- before most of the standard header files.
  */
+#define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#undef getcwd /* don't complain about mapping to mingw_getcwd() */
+#undef free /* don't collide with structure fields named "free" */
 #endif
 
 #define _FILE_OFFSET_BITS 64
