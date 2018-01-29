@@ -41,6 +41,14 @@
 #define obstack_chunk_alloc xmalloc
 #define obstack_chunk_free free
 
+#ifdef USE_MSVC_CRTDBG
+#undef xmalloc
+static void *xmalloc(size_t size)
+{
+	return crtdbg_xmalloc(size, "kwset.c", -1);
+}
+#endif
+
 #define U(c) ((unsigned char) (c))
 
 /* Balanced tree of edges and labels leaving a given trie node. */

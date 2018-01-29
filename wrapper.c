@@ -4,6 +4,39 @@
 #include "cache.h"
 #include "config.h"
 
+#ifdef USE_MSVC_CRTDBG
+#undef strdup         /* cancel definitions from crtdbg.h because they hard */
+#undef calloc         /* code __FILE__ and __LINE__ */
+#undef malloc
+#undef realloc
+
+#define strdup(s)     (_strdup_dbg((s),       _NORMAL_BLOCK, caller_fn, caller_ln))
+#define calloc(n, s)  (_calloc_dbg((n), (s),  _NORMAL_BLOCK, caller_fn, caller_ln))
+#define malloc(s)     (_malloc_dbg((s),       _NORMAL_BLOCK, caller_fn, caller_ln))
+#define realloc(p, s) (_realloc_dbg((p), (s), _NORMAL_BLOCK, caller_fn, caller_ln))
+
+#define do_xmalloc(s, g)   (crtdbg_do_xmalloc((s), (g), caller_fn, caller_ln))
+#define do_xmallocz(s, g)  (crtdbg_do_xmallocz((s), (g), caller_fn, caller_ln))
+
+#define DCL_1(f, arg1)       crtdbg_##f(arg1,       const char *caller_fn, int caller_ln)
+#define DCL_2(f, arg1, arg2) crtdbg_##f(arg1, arg2, const char *caller_fn, int caller_ln)
+#else
+#define DCL_1(f, arg1)       f(arg1)
+#define DCL_2(f, arg1, arg2) f(arg1, arg2)
+#endif
+
+#define DCL_XSTRDUP(arg1)            DCL_1(xstrdup, arg1)
+#define DCL_XMALLOC(arg1)            DCL_1(xmalloc, arg1)
+#define DCL_XMALLOCZ(arg1)           DCL_1(xmallocz, arg1)
+#define DCL_XMALLOCZ_GENTLY(arg1)    DCL_1(xmallocz_gently, arg1)
+#define DCL_XMEMDUPZ(arg1, arg2)     DCL_2(xmemdupz, arg1, arg2)
+#define DCL_XSTRNDUP(arg1, arg2)     DCL_2(xstrndup, arg1, arg2)
+#define DCL_XREALLOC(arg1, arg2)     DCL_2(xrealloc, arg1, arg2)
+#define DCL_XCALLOC(arg1, arg2)      DCL_2(xcalloc, arg1, arg2)
+
+#define DCL_DO_XMALLOC(arg1, arg2)   DCL_2(do_xmalloc, arg1, arg2)
+#define DCL_DO_XMALLOCZ(arg1, arg2)  DCL_2(do_xmallocz, arg1, arg2)
+
 static void do_nothing(size_t size)
 {
 }
@@ -39,7 +72,7 @@ try_to_free_t set_try_to_free_routine(try_to_free_t routine)
 	return old;
 }
 
-char *xstrdup(const char *str)
+char *DCL_XSTRDUP(const char *str)
 {
 	char *ret = strdup(str);
 	if (!ret) {
@@ -51,7 +84,7 @@ char *xstrdup(const char *str)
 	return ret;
 }
 
-static void *do_xmalloc(size_t size, int gentle)
+static void *DCL_DO_XMALLOC(size_t size, int gentle)
 {
 	void *ret;
 
@@ -82,12 +115,12 @@ static void *do_xmalloc(size_t size, int gentle)
 	return ret;
 }
 
-void *xmalloc(size_t size)
+void *DCL_XMALLOC(size_t size)
 {
 	return do_xmalloc(size, 0);
 }
 
-static void *do_xmallocz(size_t size, int gentle)
+static void *DCL_DO_XMALLOCZ(size_t size, int gentle)
 {
 	void *ret;
 	if (unsigned_add_overflows(size, 1)) {
@@ -103,12 +136,12 @@ static void *do_xmallocz(size_t size, int gentle)
 	return ret;
 }
 
-void *xmallocz(size_t size)
+void *DCL_XMALLOCZ(size_t size)
 {
 	return do_xmallocz(size, 0);
 }
 
-void *xmallocz_gently(size_t size)
+void *DCL_XMALLOCZ_GENTLY(size_t size)
 {
 	return do_xmallocz(size, 1);
 }
@@ -119,18 +152,18 @@ void *xmallocz_gently(size_t size)
  * and returns a pointer to the allocated memory. If the allocation fails,
  * the program dies.
  */
-void *xmemdupz(const void *data, size_t len)
+void *DCL_XMEMDUPZ(const void *data, size_t len)
 {
 	return memcpy(xmallocz(len), data, len);
 }
 
-char *xstrndup(const char *str, size_t len)
+char *DCL_XSTRNDUP(const char *str, size_t len)
 {
 	char *p = memchr(str, '\0', len);
 	return xmemdupz(str, p ? p - str : len);
 }
 
-void *xrealloc(void *ptr, size_t size)
+void *DCL_XREALLOC(void *ptr, size_t size)
 {
 	void *ret;
 
@@ -149,7 +182,7 @@ void *xrealloc(void *ptr, size_t size)
 	return ret;
 }
 
-void *xcalloc(size_t nmemb, size_t size)
+void *DCL_XCALLOC(size_t nmemb, size_t size)
 {
 	void *ret;
 

@@ -9,8 +9,26 @@
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
-#undef getcwd /* don't complain about mapping to mingw_getcwd() */
-#undef free /* don't collide with structure fields named "free" */
+#undef getcwd       /* don't complain about mapping to mingw_getcwd() */
+#undef free         /* don't collide with structure fields named "free" */
+
+#define xstrdup(s)           crtdbg_xstrdup((s), __FILE__, __LINE__)
+#define xmalloc(s)           crtdbg_xmalloc((s), __FILE__, __LINE__)
+#define xmallocz(s)          crtdbg_xmallocz((s), __FILE__, __LINE__)
+#define xmallocz_gently(s)   crtdbg_xmallocz_gently((s), __FILE__, __LINE__)
+#define xmemdupz(s, l)       crtdbg_xmemdupz((s), (l), __FILE__, __LINE__)
+#define xstrndup(s, l)       crtdbg_xstrndup((s), (l), __FILE__, __LINE__)
+#define xrealloc(p, s)       crtdbg_xrealloc((p), (s), __FILE__, __LINE__)
+#define xcalloc(n, s)        crtdbg_xcalloc((n), (s), __FILE__, __LINE__)
+
+extern char *crtdbg_xstrdup(const char *str, const char *fn, int ln);
+extern void *crtdbg_xmalloc(size_t size, const char *fn, int ln);
+extern void *crtdbg_xmallocz(size_t size, const char *fn, int ln);
+extern void *crtdbg_xmallocz_gently(size_t size, const char *fn, int ln);
+extern void *crtdbg_xmemdupz(const void *data, size_t len, const char *fn, int ln);
+extern char *crtdbg_xstrndup(const char *str, size_t len, const char *fn, int ln);
+extern void *crtdbg_xrealloc(void *ptr, size_t size, const char *fn, int ln);
+extern void *crtdbg_xcalloc(size_t nmemb, size_t size, const char *fn, int ln);
 #endif
 
 #define _FILE_OFFSET_BITS 64
@@ -883,6 +901,7 @@ static inline size_t st_sub(size_t a, size_t b)
 # define xalloca(size)      (xmalloc(size))
 # define xalloca_free(p)    (free(p))
 #endif
+#ifndef USE_MSVC_CRTDBG
 extern char *xstrdup(const char *str);
 extern void *xmalloc(size_t size);
 extern void *xmallocz(size_t size);
@@ -891,6 +910,7 @@ extern void *xmemdupz(const void *data, size_t len);
 extern char *xstrndup(const char *str, size_t len);
 extern void *xrealloc(void *ptr, size_t size);
 extern void *xcalloc(size_t nmemb, size_t size);
+#endif
 extern void *xmmap(void *start, size_t length, int prot, int flags, int fd, off_t offset);
 extern void *xmmap_gently(void *start, size_t length, int prot, int flags, int fd, off_t offset);
 extern int xopen(const char *path, int flags, ...);
