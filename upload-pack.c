@@ -1032,6 +1032,23 @@ static int upload_pack_config(const char *var, const char *value, void *unused)
 	return parse_hide_refs_config(var, value, "uploadpack");
 }
 
+/* On Windows, closing a socket destroys its OS-allocated buffer
+ * even when the latter still contains the last chunk of the data to be sent.
+ * Therefore, we cannot close the socket immediately
+ * after sending the pack via the TCP socket associated with stdout.
+ * To ensure that all data is received by the client,
+ * we wait until the client disconnects.
+ */
+static void wait_for_client_disconnect()
+{
+	int timeout_seconds = 30;
+
+	struct pollfd pfd;
+	pfd.fd = 1;
+	pfd.events = POLLIN;
+	poll(&pfd, 1, timeout_seconds * 1000);
+}
+
 int cmd_main(int argc, const char **argv)
 {
 	const char *dir;
@@ -1080,6 +1097,7 @@ int cmd_main(int argc, const char **argv)
 		/* fallthrough */
 	case protocol_v0:
 		upload_pack();
+		wait_for_client_disconnect();
 		break;
 	case protocol_unknown_version:
 		BUG("unknown protocol version");
