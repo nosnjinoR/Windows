@@ -2300,7 +2300,7 @@ static void socket_cleanup(void)
 	ipv6_getnameinfo = getnameinfo_stub;
 }
 
-static void ensure_socket_initialization(void)
+static void ensure_winsock_initialized(void)
 {
 	WSADATA wsa;
 	static int initialized = 0;
@@ -2349,14 +2349,14 @@ static void ensure_socket_initialization(void)
 #undef gethostname
 int mingw_gethostname(char *name, int namelen)
 {
-    ensure_socket_initialization();
+    ensure_winsock_initialized();
     return gethostname(name, namelen);
 }
 
 #undef gethostbyname
 struct hostent *mingw_gethostbyname(const char *host)
 {
-	ensure_socket_initialization();
+	ensure_winsock_initialized();
 	return gethostbyname(host);
 }
 
@@ -2368,7 +2368,7 @@ void mingw_freeaddrinfo(struct addrinfo *res)
 int mingw_getaddrinfo(const char *node, const char *service,
 		      const struct addrinfo *hints, struct addrinfo **res)
 {
-	ensure_socket_initialization();
+	ensure_winsock_initialized();
 	return ipv6_getaddrinfo(node, service, hints, res);
 }
 
@@ -2376,7 +2376,7 @@ int mingw_getnameinfo(const struct sockaddr *sa, socklen_t salen,
 		      char *host, DWORD hostlen, char *serv, DWORD servlen,
 		      int flags)
 {
-	ensure_socket_initialization();
+	ensure_winsock_initialized();
 	return ipv6_getnameinfo(sa, salen, host, hostlen, serv, servlen, flags);
 }
 
@@ -2385,7 +2385,7 @@ int mingw_socket(int domain, int type, int protocol)
 	int sockfd;
 	SOCKET s;
 
-	ensure_socket_initialization();
+	ensure_winsock_initialized();
 	s = WSASocket(domain, type, protocol, NULL, 0, 0);
 	if (s == INVALID_SOCKET) {
 		/*
