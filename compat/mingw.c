@@ -2300,7 +2300,7 @@ static void socket_cleanup(void)
 	ipv6_getnameinfo = getnameinfo_stub;
 }
 
-static void ensure_winsock_initialized(void)
+void ensure_winsock_initialized(void)
 {
 	WSADATA wsa;
 	static int initialized = 0;
