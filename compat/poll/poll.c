@@ -42,6 +42,7 @@
 #  define _WIN32_WINNT 0x0502
 # endif
 # include <winsock2.h>
+# include "compat/win32/winsock-helper.h"
 # include <windows.h>
 # include <io.h>
 # include <stdio.h>
@@ -485,6 +486,8 @@ poll (struct pollfd *pfd, nfds_t nfd, int timeout)
 
   if (!hEvent)
     hEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
+
+  ensure_winsock_initialized();
 
 restart:
   handle_array[0] = hEvent;
