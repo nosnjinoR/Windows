@@ -329,6 +329,7 @@ static void show_files(struct repository *repo, struct dir_struct *dir)
 		}
 	}
 	if (show_deleted || show_modified) {
+		enable_fscache(1);
 		for (i = 0; i < repo->index->cache_nr; i++) {
 			const struct cache_entry *ce = repo->index->cache[i];
 			struct stat st;
@@ -349,6 +350,7 @@ static void show_files(struct repository *repo, struct dir_struct *dir)
 			if (show_modified && ie_modified(repo->index, ce, &st, 0))
 				show_ce(repo, dir, ce, fullname.buf, tag_modified);
 		}
+		enable_fscache(0);
 	}
 
 	strbuf_release(&fullname);
