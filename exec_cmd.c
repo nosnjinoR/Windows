@@ -7,49 +7,62 @@
 static const char *argv_exec_path;
 
 #ifdef RUNTIME_PREFIX
-static const char *argv0_path;
+static const char *system_prefix;
 
-static const char *system_prefix(void)
+// TODO: move method implementation to proper place,
+// in such a way that different platforms can provide
+// their own implementation.
+const char* get_executable_path()
 {
-	static const char *prefix;
+	int max_length;
+	char *executable_path;
 
-	assert(argv0_path);
-	assert(is_absolute_path(argv0_path));
-
-	if (!prefix &&
-	    !(prefix = strip_path_suffix(argv0_path, GIT_EXEC_PATH)) &&
-	    !(prefix = strip_path_suffix(argv0_path, BINDIR)) &&
-	    !(prefix = strip_path_suffix(argv0_path, "git"))) {
-		prefix = FALLBACK_RUNTIME_PREFIX;
-		trace_printf("RUNTIME_PREFIX requested, "
-				"but prefix computation failed.  "
-				"Using static fallback '%s'.\n", prefix);
-	}
-	return prefix;
+	max_length = 3*wcslen(_wpgmptr)+1;
+	executable_path = xmallocz(max_length);
+	xwcstoutf(executable_path, _wpgmptr, max_length);
+	return executable_path;
 }
 
-void git_extract_argv0_path(const char *argv0)
+void setup_system_prefix()
 {
+	const char *executable_path;
+	const char *executable_dir;
 	const char *slash;
 
-	if (!argv0 || !*argv0)
-		return;
+	executable_path = get_executable_path();
 
-	slash = find_last_dir_sep(argv0);
+	slash = find_last_dir_sep(executable_path);
+	if (!slash)
+		die("invalid executable path");
 
-	if (slash)
-		argv0_path = xstrndup(argv0, slash - argv0);
+	executable_dir = xstrndup(executable_path, slash - executable_path);
+
+	if (!(system_prefix = strip_path_suffix(executable_dir, GIT_EXEC_PATH)) &&
+		!(system_prefix = strip_path_suffix(executable_dir, BINDIR)) &&
+		!(system_prefix = strip_path_suffix(executable_dir, "git"))) {
+		system_prefix = FALLBACK_RUNTIME_PREFIX;
+		trace_printf("RUNTIME_PREFIX requested, "
+			"but prefix computation failed.  "
+			"Using static fallback '%s'.\n", system_prefix);
+	}
+
+	free(executable_path);
+	free(executable_dir);
+}
+
+static const char *get_system_prefix(void)
+{
+	if (!system_prefix)
+		setup_system_prefix();
+
+	return system_prefix;
 }
 
 #else
 
-static const char *system_prefix(void)
+static const char *get_system_prefix(void)
 {
 	return FALLBACK_RUNTIME_PREFIX;
-}
-
-void git_extract_argv0_path(const char *argv0)
-{
 }
 
 #endif /* RUNTIME_PREFIX */
@@ -61,7 +74,7 @@ char *system_path(const char *path)
 	if (is_absolute_path(path))
 		return xstrdup(path);
 
-	strbuf_addf(&d, "%s/%s", system_prefix(), path);
+	strbuf_addf(&d, "%s/%s", get_system_prefix(), path);
 	return strbuf_detach(&d, NULL);
 }
 
