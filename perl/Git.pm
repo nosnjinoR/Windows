@@ -1607,15 +1607,11 @@ sub _command_common_pipe {
 		# ActiveState Perl
 		#defined $opts{STDERR} and
 		#	warn 'ignoring STDERR option - running w/ ActiveState';
-		$direction eq '-|' or
-			die 'input pipe for ActiveState not implemented';
-		# the strange construction with *ACPIPE is just to
-		# explain the tie below that we want to bind to
-		# a handle class, not scalar. It is not known if
-		# it is something specific to ActiveState Perl or
-		# just a Perl quirk.
-		tie (*ACPIPE, 'Git::activestate_pipe', $cmd, @args);
-		$fh = *ACPIPE;
+		my $cmdline = make_windows_commandline('git', $cmd, @args);
+		my $pid = open($fh, $direction, $cmdline);
+		if (not defined $pid) {
+			throw Error::Simple("open failed: $!");
+		}
 
 	} else {
 		my $pid = open($fh, $direction);
@@ -1685,42 +1681,6 @@ sub DESTROY {
 	$self->_close_cat_blob();
 }
 
-
-# Pipe implementation for ActiveState Perl.
-
-package Git::activestate_pipe;
-
-sub TIEHANDLE {
-	my ($class, @params) = @_;
-	my $cmdline = make_windows_commandline('git', @params);
-	my @data = qx{$cmdline};
-	bless { i => 0, data => \@data }, $class;
-}
-
-sub READLINE {
-	my $self = shift;
-	if ($self->{i} >= scalar @{$self->{data}}) {
-		return undef;
-	}
-	my $i = $self->{i};
-	if (wantarray) {
-		$self->{i} = $#{$self->{'data'}} + 1;
-		return splice(@{$self->{'data'}}, $i);
-	}
-	$self->{i} = $i + 1;
-	return $self->{'data'}->[ $i ];
-}
-
-sub CLOSE {
-	my $self = shift;
-	delete $self->{data};
-	delete $self->{i};
-}
-
-sub EOF {
-	my $self = shift;
-	return ($self->{i} >= scalar @{$self->{data}});
-}
 
 sub make_windows_commandline {
 	my $cmdline = join ' ', unescape_windows_commandline_args(@_);

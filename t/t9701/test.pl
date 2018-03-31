@@ -28,7 +28,7 @@ plan skip_all => 'Test requires Microsoft Windows' if $^O ne 'MSWin32';
 require_ok('Git');
 
 foreach (@tests) {
-	my $cmdline = Git::activestate_pipe::make_windows_commandline($^X, '-e', 'print $ARGV[0]', $_);
+	my $cmdline = Git::make_windows_commandline($^X, '-e', 'print $ARGV[0]', $_);
 	is qx{$cmdline}, $_, $cmdline;
 }
 
