@@ -1692,12 +1692,8 @@ package Git::activestate_pipe;
 
 sub TIEHANDLE {
 	my ($class, @params) = @_;
-	# FIXME: This is probably horrible idea and the thing will explode
-	# at the moment you give it arguments that require some quoting,
-	# but I have no ActiveState clue... --pasky
-	# Let's just hope ActiveState Perl does at least the quoting
-	# correctly.
-	my @data = qx{git @params};
+	my $cmdline = make_windows_commandline('git', @params);
+	my @data = qx{$cmdline};
 	bless { i => 0, data => \@data }, $class;
 }
 
@@ -1724,6 +1720,36 @@ sub CLOSE {
 sub EOF {
 	my $self = shift;
 	return ($self->{i} >= scalar @{$self->{data}});
+}
+
+sub make_windows_commandline {
+	my $cmdline = join ' ', unescape_windows_commandline_args(@_);
+
+	# The set of meta-characters, as determined by Perl, was found in
+	# has_shell_metachars() in perl5/win32/win32.c
+	return unescape_cmd_commandline($cmdline) if $cmdline =~ m/[<>|%]/;
+	return $cmdline;
+}
+
+# See https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
+sub unescape_windows_commandline_args {
+	my @out;
+	foreach (@_) {
+		my $value = $_;
+		$value =~ s{(\\*)"}{$1$1\\"}g;
+		if ($value =~ m/\W/) {
+			$value =~ s{(\\+)$}{$1$1};
+			$value = "\"$value\"";
+		}
+		push @out, $value;
+	}
+	return @out;
+}
+
+sub unescape_cmd_commandline {
+	my ($cmdline) = @_;
+	$cmdline =~ s{([()%!^"<>&|])}{^$1}g;
+	return $cmdline;
 }
 
 
