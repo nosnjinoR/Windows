@@ -3381,8 +3381,8 @@ int msc_startup(int argc, wchar_t **w_argv, wchar_t **w_env)
 	adjust_symlink_flags();
 
 	/* determine size of argv conversion buffer */
-	maxlen = wcslen(_wpgmptr);
-	for (k = 1; k < argc; k++)
+	maxlen = 0;
+	for (k = 0; k < argc; k++)
 		maxlen = max(maxlen, wcslen(w_argv[k]));
 
 	/* allocate buffer (wchar_t encodes to max 3 UTF-8 bytes) */
@@ -3396,8 +3396,7 @@ int msc_startup(int argc, wchar_t **w_argv, wchar_t **w_env)
 	 */
 	ALLOC_ARRAY(my_utf8_argv, argc + 1);
 	ALLOC_ARRAY(save, argc + 1);
-	save[0] = my_utf8_argv[0] = wcstoutfdup_startup(buffer, _wpgmptr, maxlen);
-	for (k = 1; k < argc; k++)
+	for (k = 0; k < argc; k++)
 		save[k] = my_utf8_argv[k] = wcstoutfdup_startup(buffer, w_argv[k], maxlen);
 	save[k] = my_utf8_argv[k] = NULL;
 
@@ -3454,8 +3453,8 @@ void mingw_startup(void)
 		die_startup();
 
 	/* determine size of argv and environ conversion buffer */
-	maxlen = wcslen(_wpgmptr);
-	for (i = 1; i < argc; i++)
+	maxlen = 0;
+	for (i = 0; i < argc; i++)
 		maxlen = max(maxlen, wcslen(wargv[i]));
 	for (i = 0; wenv[i]; i++)
 		maxlen = max(maxlen, wcslen(wenv[i]));
@@ -3474,8 +3473,7 @@ void mingw_startup(void)
 	buffer = malloc_startup(maxlen);
 
 	/* convert command line arguments and environment to UTF-8 */
-	__argv[0] = wcstoutfdup_startup(buffer, _wpgmptr, maxlen);
-	for (i = 1; i < argc; i++)
+	for (i = 0; i < argc; i++)
 		__argv[i] = wcstoutfdup_startup(buffer, wargv[i], maxlen);
 	for (i = 0; wenv[i]; i++)
 		environ[i] = wcstoutfdup_startup(buffer, wenv[i], maxlen);
