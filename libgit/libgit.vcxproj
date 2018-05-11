@@ -83,8 +83,9 @@
       <ManifestFile>..\compat\win32\git.manifest</ManifestFile>
       <SubSystem>Console</SubSystem>
     </Link>
-    <PreBuildEvent Condition="!Exists('..\compat\vcbuild\vcpkg')">
+    <PreBuildEvent Condition="!Exists('..\compat\vcbuild\vcpkg') OR (!Exists('..\compat\vcbuild\vcpkg\installed\x64-windows\include\openssl\ssl.h') AND !Exists('..\compat\vcbuild\vcpkg\installed\x86-windows\include\openssl\ssl.h'))">
       <Message>Initialize VCPKG</Message>
+      <Command>del "..\compat\vcbuild\vcpkg"</Command>
       <Command>call "..\compat\vcbuild\vcpkg_install.bat" </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
