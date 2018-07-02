@@ -418,3 +418,9 @@ potentially interested reviewers.
 ```
 git send-email --to=git@vger.kernel.org --cc=<email1> --cc=<email2> [dir with patches]/*.patch
 ```
+
+To submit a nth version patch (say version 3):
+
+```
+git send-email --to=git@vger.kernel.org --cc=<email1> --cc=<email2> --in-reply-to=<the message id of cover letter of patch v2> [dir with patches]/*.patch
+```
