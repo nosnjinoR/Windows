@@ -9,7 +9,8 @@ int cmd__iconv(int argc, const char **argv)
 {
 	struct strbuf buf = STRBUF_INIT;
 	char *from = NULL, *to = NULL, *p;
-	int len, ret = 0;
+	size_t len;
+	int ret = 0;
 	const char * const iconv_usage[] = {
 		N_("test-helper --iconv [<options>]"),
 		NULL
@@ -36,7 +37,8 @@ int cmd__iconv(int argc, const char **argv)
 	if (!p)
 		die_errno("Could not reencode");
 	if (write(1, p, len) < 0)
-		ret = !!error_errno("Could not write %d bytes", len);
+		ret = !!error_errno("Could not write %"PRIuMAX" bytes",
+				    (uintmax_t)len);
 
 	strbuf_release(&buf);
 	free(p);

@@ -3,6 +3,7 @@
 #include "progress.h"
 #include "parse-options.h"
 #include "packfile.h"
+#include "object-store.h"
 #include "config.h"
 
 static const char * const prune_packed_usage[] = {

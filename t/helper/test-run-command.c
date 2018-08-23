@@ -197,7 +197,7 @@ static int inherit_handle(const char *argv0)
 	int tmp;
 
 	/* First, open an inheritable handle */
-	sprintf(path, "out-XXXXXX");
+	xsnprintf(path, sizeof(path), "out-XXXXXX");
 	tmp = xmkstemp(path);
 
 	argv_array_pushl(&cp.args,

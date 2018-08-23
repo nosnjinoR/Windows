@@ -1,6 +1,7 @@
 #include "builtin.h"
 #include "tag.h"
 #include "replace-object.h"
+#include "object-store.h"
 #include "config.h"
 
 /*

@@ -1,3 +1,4 @@
+#include "builtin.h"
 #include "cache.h"
 #include "pack.h"
 #include "config.h"
@@ -5,7 +6,7 @@
 static const char show_index_usage[] =
 "git show-index";
 
-int cmd_main(int argc, const char **argv)
+int cmd_show_index(int argc, const char **argv, const char *prefix)
 {
 	int i;
 	unsigned nr;
