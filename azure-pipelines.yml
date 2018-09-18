@@ -12,8 +12,12 @@ phases:
   - bash: |
        test -z "$GITFILESHAREPWD" || ci/mount-fileshare.sh //gitfileshare.file.core.windows.net/test-cache gitfileshare "$GITFILESHAREPWD" "$HOME/test-cache" || exit 1
 
-       sudo apt-get update
-       sudo apt-get -y install git gcc make libssl-dev libcurl4-openssl-dev libexpat-dev tcl tk gettext git-email zlib1g-dev apache2-bin
+       sudo apt-get update || echo "apt update failed"
+       sudo lsof /var/lib/dpkg/lock
+       ps -e | grep -e apt | grep -v grep
+       systemctl status apt-daily.service
+       systemctl status apt-daily.timer 
+       sudo apt-get -y install git gcc make libssl-dev libcurl4-openssl-dev libexpat-dev tcl tk gettext git-email zlib1g-dev apache2-bin || echo "apt-get failed"
 
        export CC=clang
 
@@ -45,8 +49,12 @@ phases:
   - bash: |
        test -z "$GITFILESHAREPWD" || ci/mount-fileshare.sh //gitfileshare.file.core.windows.net/test-cache gitfileshare "$GITFILESHAREPWD" "$HOME/test-cache" || exit 1
 
-       sudo apt-get update
-       sudo apt-get -y install git gcc make libssl-dev libcurl4-openssl-dev libexpat-dev tcl tk gettext git-email zlib1g-dev apache2-bin
+       sudo apt-get update || echo "apt update failed"
+       ps -e | grep -e apt | grep -v grep
+       sudo lsof /var/lib/dpkg/lock
+       systemctl status apt-daily.service
+       systemctl status apt-daily.timer  
+       sudo apt-get -y install git gcc make libssl-dev libcurl4-openssl-dev libexpat-dev tcl tk gettext git-email zlib1g-dev apache2-bin || echo "apt-get failed"
 
        ci/install-dependencies.sh
        ci/run-build-and-tests.sh || {
@@ -283,8 +291,13 @@ phases:
   - bash: |
        test -z "$GITFILESHAREPWD" || ci/mount-fileshare.sh //gitfileshare.file.core.windows.net/test-cache gitfileshare "$GITFILESHAREPWD" "$HOME/test-cache" || exit 1
 
-       sudo apt-get update
-       sudo apt-get install -y coccinelle
+       sudo apt-get update || echo "apt update failed"
+       sudo lsof /var/lib/dpkg/lock
+       ps -e | grep -e apt | grep -v grep
+       systemctl status apt-daily.service
+       systemctl status apt-daily.timer 
+       
+       sudo apt-get install -y coccinelle || echo "apt get failed"
 
        export jobname=StaticAnalysis
 
