@@ -1776,7 +1776,7 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 	ret = CreateProcessW(*wcmd ? wcmd : NULL, wargs, NULL, NULL,
 			     stdhandles_count ? TRUE : FALSE,
 			     flags, wenvblk, dir ? wdir : NULL,
-			     &si.StartupInfo, &pi);
+			     (LPSTARTUPINFOW)&si, &pi);
 
 	/*
 	 * On Windows 2008 R2, it seems that specifying certain types of handles
