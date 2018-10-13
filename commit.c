@@ -357,8 +357,6 @@ void release_commit_memory(struct commit *c)
 	c->index = 0;
 	free_commit_buffer(c);
 	free_commit_list(c->parents);
-	/* TODO: what about commit->util? */
-
 	c->object.parsed = 0;
 }
 
