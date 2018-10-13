@@ -64,7 +64,7 @@ then
 	exit 1
 fi
 . "$GIT_BUILD_DIR"/GIT-BUILD-OPTIONS
-export PERL_PATH SHELL_PATH
+export MSWIN32_PERL_PATH PERL_PATH SHELL_PATH
 
 ################################################################
 # It appears that people try to run tests without building...
@@ -1267,4 +1267,12 @@ test_lazy_prereq CURL '
 # test anything meaningful (e.g. special values which cause short collisions).
 test_lazy_prereq SHA1 '
 	test $(git hash-object /dev/null) = e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+'
+
+# Some tests require a native Win32 Perl interpreter, such as Strawberry Perl
+# or ActiveState Perl, which is not distributed with Git for Windows.  These
+# tests only run if an appropriate Perl is specified (via MSWIN32_PERL_PATH).
+test_lazy_prereq MSWIN32_PERL '
+	test -n "$MSWIN32_PERL_PATH" &&
+	$MSWIN32_PERL_PATH -e "exit 1 if \$^O ne q{MSWin32}"
 '
