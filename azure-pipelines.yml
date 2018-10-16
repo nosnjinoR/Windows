@@ -229,6 +229,7 @@ phases:
     displayName: 'build & test'
     env:
       GITFILESHAREPWD: $(gitfileshare.pwd)
+      GIT_TEST_CHAIN_LINT: 0
   - task: PublishTestResults@2
     displayName: 'Publish Test Results **/TEST-*.xml'
     inputs:
