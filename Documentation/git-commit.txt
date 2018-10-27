@@ -176,7 +176,8 @@ The `-m` option is mutually exclusive with `-c`, `-C`, and `-F`.
 	Usually recording a commit that has the exact same tree as its
 	sole parent commit is a mistake, and the command prevents you
 	from making such a commit.  This option bypasses the safety, and
-	is primarily for use by foreign SCM interface scripts.
+	is primarily for use by foreign SCM interface scripts. See
+	`commit.allowEmpty` in linkgit:git-config[1].
 
 --allow-empty-message::
        Like --allow-empty this command is primarily for use by foreign

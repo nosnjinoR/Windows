@@ -55,4 +55,14 @@ test_expect_success \
      expr "$(echo $(git cherry master my-topic-branch) )" : "+ [^ ]* - .*"
 '
 
+
+# Tests for commit.allowEmpty config
+
+test_expect_success 'cherry-pick existing commit with commit.allowEmpty' '
+    test_tick &&
+	test_commit "first" &&
+	test_commit "second" &&
+	git -c commit.allowEmpty=true cherry-pick HEAD~1
+'
+
 test_done

@@ -1467,6 +1467,11 @@ commit.verbose::
 	A boolean or int to specify the level of verbose with `git commit`.
 	See linkgit:git-commit[1].
 
+commit.allowEmpty::
+	A boolean to specify whether empty commits are allowed with `git
+	commit`. See linkgit:git-commit[1]. 
+	Defaults to false.
+
 credential.helper::
 	Specify an external helper to be called when a username or
 	password credential is needed; the helper may consult external
