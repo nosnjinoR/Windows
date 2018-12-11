@@ -501,6 +501,9 @@ static inline void convert_slashes(char *path)
 #define find_last_dir_sep mingw_find_last_dir_sep
 int mingw_offset_1st_component(const char *path);
 #define offset_1st_component mingw_offset_1st_component
+struct strbuf;
+int mingw_is_mount_point(struct strbuf *path);
+#define is_mount_point mingw_is_mount_point
 #define CAN_UNLINK_MOUNT_POINTS 1
 #define PATH_SEP ';'
 extern char *mingw_query_user_email(void);
