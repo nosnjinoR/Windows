@@ -2803,6 +2803,8 @@ int mingw_offset_1st_component(const char *path)
 	return pos + is_dir_sep(*pos) - path;
 }
 
+int (*win32_is_mount_point)(struct strbuf *path) = mingw_is_mount_point;
+
 int mingw_is_mount_point(struct strbuf *path)
 {
 	WIN32_FIND_DATAW findbuf = { 0 };
