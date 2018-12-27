@@ -1,5 +1,6 @@
 # Command classification list
 # ---------------------------
+#
 # All supported commands, builtin or external, must be described in
 # here. This info is used to list commands in various places. Each
 # command is on one line followed by one or more attributes.
