@@ -1274,7 +1274,7 @@ int is_mount_point_via_stat(struct strbuf *path)
 	strbuf_addch(path, '.');
 	if (lstat(path->buf, &st)) {
 		/*
-		 * If we cannot access the oarent directory, we cannot say
+		 * If we cannot access the parent directory, we cannot say
 		 * that it is a bind mount.
 		 */
 		strbuf_setlen(path, len);
