@@ -446,7 +446,7 @@ static void *unpack_entry_data(off_t offset, size_t size,
 	memset(&stream, 0, sizeof(stream));
 	git_inflate_init(&stream);
 	stream.next_out = buf;
-	stream.avail_out = buf == fixed_buf ? sizeof(fixed_buf) : zlib_buf_cap(size);
+	stream.avail_out = buf == fixed_buf ? sizeof(fixed_buf) : size;
 
 	do {
 		unsigned char *last_out = stream.next_out;
@@ -481,7 +481,7 @@ static void *unpack_raw_entry(struct object_entry *obj,
 	unsigned char *p;
 	size_t size, c;
 	off_t base_offset;
-	unsigned shift;
+	size_t shift;
 	void *data;
 
 	obj->idx.offset = consumed_bytes;
