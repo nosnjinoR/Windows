@@ -10,9 +10,13 @@ test_expect_success SIZE_T_IS_64BIT 'require 64bit size_t' '
 	git config core.compression 0 &&
 	git config core.looseCompression 0 &&
 	git add file &&
+	git verify-pack -s .git/objects/pack/*.pack &&
+	git fsck --verbose --strict --full &&
 	git commit -m msg file &&
 	git log --stat &&
-	git verify-pack .git/objects/pack/*.pack &&
+	git gc &&
+	git fsck --verbose --strict --full &&
+	git index-pack --verbose .git/objects/pack/*.pack &&
 	git gc &&
 	git fsck
 '
