@@ -3,7 +3,7 @@
 test_description='test large file handling on windows'
 . ./test-lib.sh
 
-test_expect_success SIZE_T_IS_64BIT 'blah blubb' '
+test_expect_success SIZE_T_IS_64BIT 'require 64bit size_t' '
 
 	dd if=/dev/zero of=file bs=1M count=4100 &&
 	git config core.compression 0 &&
