@@ -441,7 +441,7 @@ static void *unpack_entry_data(off_t offset, size_t size,
 	if (type == OBJ_BLOB && size > big_file_threshold)
 		buf = fixed_buf;
 	else
-		buf = xmallocz(zlib_buf_cap(size));
+		buf = xmallocz(size);
 
 	memset(&stream, 0, sizeof(stream));
 	git_inflate_init(&stream);
