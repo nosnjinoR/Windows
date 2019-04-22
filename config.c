@@ -929,10 +929,10 @@ static int git_parse_int64(const char *value, int64_t *ret)
 	return 1;
 }
 
-int git_parse_ulong(const char *value, unsigned long *ret)
+int git_parse_ulong(const char *value, size_t *ret)
 {
 	uintmax_t tmp;
-	if (!git_parse_unsigned(value, &tmp, maximum_unsigned_value_of_type(long)))
+	if (!git_parse_unsigned(value, &tmp, maximum_unsigned_value_of_type(size_t)))
 		return 0;
 	*ret = tmp;
 	return 1;
@@ -996,10 +996,10 @@ int64_t git_config_int64(const char *name, const char *value)
 		die_bad_number(name, value);
 	return ret;
 }
-
-unsigned long git_config_ulong(const char *name, const char *value)
+/* on Windows we require size_t to cover the 64-bit range */
+size_t git_config_ulong(const char *name, const char *value)
 {
-	unsigned long ret;
+	size_t ret;
 	if (!git_parse_ulong(value, &ret))
 		die_bad_number(name, value);
 	return ret;
@@ -1219,7 +1219,7 @@ static int git_default_core_config(const char *var, const char *value, void *cb)
 	}
 
 	if (!strcmp(var, "core.bigfilethreshold")) {
-		big_file_threshold = git_config_ulong(var, value);
+		big_file_threshold = git_config_int64(var, value);
 		return 0;
 	}
 
