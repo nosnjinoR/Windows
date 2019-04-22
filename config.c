@@ -929,7 +929,16 @@ static int git_parse_int64(const char *value, int64_t *ret)
 	return 1;
 }
 
-int git_parse_ulong(const char *value, size_t *ret)
+int git_parse_ulong(const char *value, unsigned long *ret)
+{
+	uintmax_t tmp;
+	if (!git_parse_unsigned(value, &tmp, maximum_unsigned_value_of_type(unsigned long)))
+		return 0;
+	*ret = tmp;
+	return 1;
+}
+
+int git_parse_size_t(const char *value, size_t *ret)
 {
 	uintmax_t tmp;
 	if (!git_parse_unsigned(value, &tmp, maximum_unsigned_value_of_type(size_t)))
@@ -996,11 +1005,20 @@ int64_t git_config_int64(const char *name, const char *value)
 		die_bad_number(name, value);
 	return ret;
 }
+
+unsigned long git_config_ulong(const char *name, const char *value)
+{
+	unsigned long ret;
+	if (!git_parse_ulong(value, &ret))
+		die_bad_number(name, value);
+	return ret;
+}
+
 /* on Windows we require size_t to cover the 64-bit range */
-size_t git_config_ulong(const char *name, const char *value)
+size_t git_config_size_t(const char *name, const char *value)
 {
 	size_t ret;
-	if (!git_parse_ulong(value, &ret))
+	if (!git_parse_size_t(value, &ret))
 		die_bad_number(name, value);
 	return ret;
 }
@@ -1647,6 +1665,18 @@ unsigned long git_env_ulong(const char *k, unsigned long val)
 {
 	const char *v = getenv(k);
 	if (v && !git_parse_ulong(v, &val))
+		die(_("failed to parse %s"), k);
+	return val;
+}
+
+/*
+ * Parse environment variable 'k' as ulong with possibly a unit
+ * suffix; if missing, use the default value 'val'.
+ */
+size_t git_env_size_t(const char *k, size_t val)
+{
+	const char *v = getenv(k);
+	if (v && !git_parse_size_t(v, &val))
 		die(_("failed to parse %s"), k);
 	return val;
 }
