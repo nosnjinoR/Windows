@@ -9,7 +9,7 @@ struct progress;
 struct hashfile {
 	int fd;
 	int check_fd;
-	unsigned int offset;
+	size_t offset;
 	git_hash_ctx ctx;
 	off_t total;
 	struct progress *tp;
@@ -37,7 +37,7 @@ extern struct hashfile *hashfd(int fd, const char *name);
 extern struct hashfile *hashfd_check(const char *name);
 extern struct hashfile *hashfd_throughput(int fd, const char *name, struct progress *tp);
 extern int finalize_hashfile(struct hashfile *, unsigned char *, unsigned int);
-extern void hashwrite(struct hashfile *, const void *, unsigned int);
+extern void hashwrite(struct hashfile *, const void *, size_t);
 extern void hashflush(struct hashfile *f);
 extern void crc32_begin(struct hashfile *);
 extern uint32_t crc32_end(struct hashfile *);
