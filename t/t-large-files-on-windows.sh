@@ -16,7 +16,7 @@ test_expect_success SIZE_T_IS_64BIT 'require 64bit size_t' '
 	git log --stat &&
 	git gc &&
 	git fsck --verbose --strict --full &&
-	git index-pack --verbose .git/objects/pack/*.pack &&
+	git index-pack -v .git/objects/pack/*.pack &&
 	git gc &&
 	git fsck
 '
