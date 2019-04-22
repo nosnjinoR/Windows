@@ -11,7 +11,7 @@
 #include "progress.h"
 #include "csum-file.h"
 
-static void flush(struct hashfile *f, const void *buf, unsigned int count)
+static void flush(struct hashfile *f, const void *buf, size_t count)
 {
 	if (0 <= f->check_fd && count)  {
 		unsigned char check_buffer[8192];
