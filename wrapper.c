@@ -67,11 +67,11 @@ static void *do_xmalloc(size_t size, int gentle)
 			ret = malloc(1);
 		if (!ret) {
 			if (!gentle)
-				die("Out of memory, malloc failed (tried to allocate %lu bytes)",
-				    (unsigned long)size);
+				die("Out of memory, malloc failed (tried to allocate %" PRIuMAX " bytes)",
+				    (uintmax_t)size);
 			else {
-				error("Out of memory, malloc failed (tried to allocate %lu bytes)",
-				      (unsigned long)size);
+				error("Out of memory, malloc failed (tried to allocate %" PRIuMAX " bytes)",
+				      (uintmax_t)size);
 				return NULL;
 			}
 		}
@@ -702,4 +702,20 @@ int is_empty_or_missing_file(const char *filename)
 	}
 
 	return !st.st_size;
+}
+
+uLong xcrc32(uLong crc, const unsigned char *buf, size_t bytes)
+{
+	size_t bytes_rem, off;
+	bytes_rem = bytes;
+	off = 0;
+	while (bytes_rem) {
+		int crc_bytes = maximum_signed_value_of_type(int);
+		if (crc_bytes > bytes_rem)
+			crc_bytes = bytes_rem;
+		crc = crc32(crc, buf + off, crc_bytes);
+		off += crc_bytes;
+		bytes_rem -= crc_bytes;
+	}
+	return crc;
 }

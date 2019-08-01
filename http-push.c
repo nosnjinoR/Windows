@@ -360,7 +360,7 @@ static void start_put(struct transfer_request *request)
 	enum object_type type;
 	char hdr[50];
 	void *unpacked;
-	unsigned long len;
+	size_t len;
 	int hdrlen;
 	ssize_t size;
 	git_zstream stream;
@@ -370,7 +370,7 @@ static void start_put(struct transfer_request *request)
 
 	/* Set it up */
 	git_deflate_init(&stream, zlib_compression_level);
-	size = git_deflate_bound(&stream, len + hdrlen);
+	size = git_deflate_bound(&stream, len + (size_t) hdrlen);
 	strbuf_init(&request->buffer.buf, size);
 	request->buffer.posn = 0;
 
