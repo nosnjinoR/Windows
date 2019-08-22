@@ -1,0 +1,14 @@
+name: first test
+
+on: [pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Run a multi-line script
+      run: |
+        echo ${{ secrets.TEST_SECRET }} |
+        tr A-Za-z N-ZA-Mn-za-m
