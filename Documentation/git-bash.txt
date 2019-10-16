@@ -1,0 +1,51 @@
+git-bash(0)
+==========
+
+NAME
+----
+git-bash - A Windows initialiser for the bash window on that OS
+
+SYNOPSIS
+--------
+
+git-bash [--cd-to-home] [--xx] []
+
+DESCRIPTION
+-----------
+
+The `git-bash.exe` provides a windows run time executable that takes in a
+ few parameter and then starts (typically) the mintty terminal window
+ with a modified path such that `git` is found on the search path [Windows or *nix?]
+ and the MSYS2 interface is used to convert path references from windows
+ style (c:\w\x\y) to unix style (/c/w/x/y)
+
+ etc. etc.
+
+ More description and explanation of how it all works and the necessary
+ levels of redirection and misdirection so that it all 'just works'
+ despite severe incompatibilities in operating philosphy..
+
+include::glossary-content.txt[]
+
+SEE ALSO
+--------
+
+C:\git-sdk-64\usr\src\MINGW-packages\mingw-w64-git\git-bash.rc
+ describe this (and the .rc extension) for basic windows users.
+
+C:\git-sdk-64\usr\src\MINGW-packages\mingw-w64-git\compat-bash.rc
+
+
+C:\git-sdk-64\usr\src\git\contrib\mw-to-git\bin-wrapper\
+ various wrappers to describe.
+
+
+https://github.com/git-for-windows/git/issues/1674
+
+There is almost no tutorial or documentation suggesting anyone how to create your own custom git-bash.exe arguments like "--cd-to-home" . Can you kindly provide the steps and guidance to do that ?
+
+link:user-manual.html[The Git User's Manual]
+
+GIT
+---
+Part of the linkgit:git[1] suite
