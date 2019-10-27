@@ -539,27 +539,10 @@ static HANDLE swap_osfhnd(int fd, HANDLE new_handle)
 
 #ifdef DETECT_MSYS_TTY
 
-#include <winternl.h>
-
-#if defined(_MSC_VER)
-
-typedef struct _OBJECT_NAME_INFORMATION
-{
-	UNICODE_STRING Name;
-	WCHAR NameBuffer[FLEX_ARRAY];
-} OBJECT_NAME_INFORMATION, *POBJECT_NAME_INFORMATION;
-
-#define ObjectNameInformation 1
-
-#else
-#include <ntstatus.h>
-#endif
-
 static void detect_msys_tty(int fd)
 {
-	ULONG result;
 	BYTE buffer[1024];
-	POBJECT_NAME_INFORMATION nameinfo = (POBJECT_NAME_INFORMATION) buffer;
+	PFILE_NAME_INFO nameinfo = (PFILE_NAME_INFO) buffer;
 	PWSTR name;
 
 	/* check if fd is a pipe */
@@ -568,11 +551,11 @@ static void detect_msys_tty(int fd)
 		return;
 
 	/* get pipe name */
-	if (!NT_SUCCESS(NtQueryObject(h, ObjectNameInformation,
-			buffer, sizeof(buffer) - 2, &result)))
+	if (!GetFileInformationByHandleEx(h, FileNameInfo,
+			buffer, sizeof(buffer) - sizeof(WCHAR)))
 		return;
-	name = nameinfo->Name.Buffer;
-	name[nameinfo->Name.Length / sizeof(*name)] = 0;
+	name = nameinfo->FileName;
+	name[nameinfo->FileNameLength / sizeof(*name)] = 0;
 
 	/*
 	 * Check if this could be a MSYS2 pty pipe ('msys-XXXX-ptyN-XX')
