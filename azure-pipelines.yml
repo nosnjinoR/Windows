@@ -16,17 +16,18 @@ jobs:
     displayName: 'Mount test-cache'
     env:
       GITFILESHAREPWD: $(gitfileshare.pwd)
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: specific
+      project: git
+      pipeline: git-sdk-64-minimal
+      artifactName: git-sdk-64-minimal
+      downloadPath: git-sdk-64-minimal
+    displayName: 'Download git-sdk-64-minimal'
   - powershell: |
-      $urlbase = "https://dev.azure.com/git-for-windows/git/_apis/build/builds"
-      $id = ((Invoke-WebRequest -UseBasicParsing "${urlbase}?definitions=22&statusFilter=completed&resultFilter=succeeded&`$top=1").content | ConvertFrom-JSON).value[0].id
-      $downloadUrl = ((Invoke-WebRequest -UseBasicParsing "${urlbase}/$id/artifacts").content | ConvertFrom-JSON).value[1].resource.downloadUrl
-      (New-Object Net.WebClient).DownloadFile($downloadUrl,"git-sdk-64-minimal.zip")
-      Expand-Archive git-sdk-64-minimal.zip -DestinationPath . -Force
-      Remove-Item git-sdk-64-minimal.zip
-
       # Let Git ignore the SDK and the test-cache
       "/git-sdk-64-minimal/`n/test-cache/`n" | Out-File -NoNewLine -Encoding ascii -Append "$(Build.SourcesDirectory)\.git\info\exclude"
-    displayName: 'Download git-sdk-64-minimal'
+    displayName: 'Tell Git to ignore git-sdk-64-minimal and test-cache'
   - powershell: |
       & git-sdk-64-minimal\usr\bin\bash.exe -lc @"
         ci/make-test-artifacts.sh artifacts
@@ -144,17 +145,18 @@ jobs:
     displayName: 'Mount test-cache'
     env:
       GITFILESHAREPWD: $(gitfileshare.pwd)
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: specific
+      project: git
+      pipeline: git-sdk-64-minimal
+      artifactName: git-sdk-64-minimal
+      downloadPath: git-sdk-64-minimal
+    displayName: 'Download git-sdk-64-minimal'
   - powershell: |
-      $urlbase = "https://dev.azure.com/git-for-windows/git/_apis/build/builds"
-      $id = ((Invoke-WebRequest -UseBasicParsing "${urlbase}?definitions=22&statusFilter=completed&resultFilter=succeeded&`$top=1").content | ConvertFrom-JSON).value[0].id
-      $downloadUrl = ((Invoke-WebRequest -UseBasicParsing "${urlbase}/$id/artifacts").content | ConvertFrom-JSON).value[1].resource.downloadUrl
-      (New-Object Net.WebClient).DownloadFile($downloadUrl,"git-sdk-64-minimal.zip")
-      Expand-Archive git-sdk-64-minimal.zip -DestinationPath . -Force
-      Remove-Item git-sdk-64-minimal.zip
-
       # Let Git ignore the SDK and the test-cache
       "/git-sdk-64-minimal/`n/test-cache/`n" | Out-File -NoNewLine -Encoding ascii -Append "$(Build.SourcesDirectory)\.git\info\exclude"
-    displayName: 'Download git-sdk-64-minimal'
+    displayName: 'Tell Git to ignore git-sdk-64-minimal and test-cache'
   - powershell: |
       & git-sdk-64-minimal\usr\bin\bash.exe -lc @"
         make NDEBUG=1 DEVELOPER=1 vcxproj
