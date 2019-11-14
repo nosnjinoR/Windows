@@ -2186,18 +2186,131 @@ static void ensure_socket_initialization(void)
 	initialized = 1;
 }
 
+static int winsock_error_to_errno(DWORD err)
+{
+	switch (err) {
+	case WSAEINTR: return EINTR;
+	case WSAEBADF: return EBADF;
+	case WSAEACCES: return EACCES;
+	case WSAEFAULT: return EFAULT;
+	case WSAEINVAL: return EINVAL;
+	case WSAEMFILE: return EMFILE;
+	case WSAEWOULDBLOCK: return EWOULDBLOCK;
+	case WSAEINPROGRESS: return EINPROGRESS;
+	case WSAEALREADY: return EALREADY;
+	case WSAENOTSOCK: return ENOTSOCK;
+	case WSAEDESTADDRREQ: return EDESTADDRREQ;
+	case WSAEMSGSIZE: return EMSGSIZE;
+	case WSAEPROTOTYPE: return EPROTOTYPE;
+	case WSAENOPROTOOPT: return ENOPROTOOPT;
+	case WSAEPROTONOSUPPORT: return EPROTONOSUPPORT;
+	case WSAEOPNOTSUPP: return EOPNOTSUPP;
+	case WSAEAFNOSUPPORT: return EAFNOSUPPORT;
+	case WSAEADDRINUSE: return EADDRINUSE;
+	case WSAEADDRNOTAVAIL: return EADDRNOTAVAIL;
+	case WSAENETDOWN: return ENETDOWN;
+	case WSAENETUNREACH: return ENETUNREACH;
+	case WSAENETRESET: return ENETRESET;
+	case WSAECONNABORTED: return ECONNABORTED;
+	case WSAECONNRESET: return ECONNRESET;
+	case WSAENOBUFS: return ENOBUFS;
+	case WSAEISCONN: return EISCONN;
+	case WSAENOTCONN: return ENOTCONN;
+	case WSAETIMEDOUT: return ETIMEDOUT;
+	case WSAECONNREFUSED: return ECONNREFUSED;
+	case WSAELOOP: return ELOOP;
+	case WSAENAMETOOLONG: return ENAMETOOLONG;
+	case WSAEHOSTUNREACH: return EHOSTUNREACH;
+	case WSAENOTEMPTY: return ENOTEMPTY;
+	/* No errno equivalent; default to EIO */
+	case WSAESOCKTNOSUPPORT:
+	case WSAEPFNOSUPPORT:
+	case WSAESHUTDOWN:
+	case WSAETOOMANYREFS:
+	case WSAEHOSTDOWN:
+	case WSAEPROCLIM:
+	case WSAEUSERS:
+	case WSAEDQUOT:
+	case WSAESTALE:
+	case WSAEREMOTE:
+	case WSASYSNOTREADY:
+	case WSAVERNOTSUPPORTED:
+	case WSANOTINITIALISED:
+	case WSAEDISCON:
+	case WSAENOMORE:
+	case WSAECANCELLED:
+	case WSAEINVALIDPROCTABLE:
+	case WSAEINVALIDPROVIDER:
+	case WSAEPROVIDERFAILEDINIT:
+	case WSASYSCALLFAILURE:
+	case WSASERVICE_NOT_FOUND:
+	case WSATYPE_NOT_FOUND:
+	case WSA_E_NO_MORE:
+	case WSA_E_CANCELLED:
+	case WSAEREFUSED:
+	case WSAHOST_NOT_FOUND:
+	case WSATRY_AGAIN:
+	case WSANO_RECOVERY:
+	case WSANO_DATA:
+	case WSA_QOS_RECEIVERS:
+	case WSA_QOS_SENDERS:
+	case WSA_QOS_NO_SENDERS:
+	case WSA_QOS_NO_RECEIVERS:
+	case WSA_QOS_REQUEST_CONFIRMED:
+	case WSA_QOS_ADMISSION_FAILURE:
+	case WSA_QOS_POLICY_FAILURE:
+	case WSA_QOS_BAD_STYLE:
+	case WSA_QOS_BAD_OBJECT:
+	case WSA_QOS_TRAFFIC_CTRL_ERROR:
+	case WSA_QOS_GENERIC_ERROR:
+	case WSA_QOS_ESERVICETYPE:
+	case WSA_QOS_EFLOWSPEC:
+	case WSA_QOS_EPROVSPECBUF:
+	case WSA_QOS_EFILTERSTYLE:
+	case WSA_QOS_EFILTERTYPE:
+	case WSA_QOS_EFILTERCOUNT:
+	case WSA_QOS_EOBJLENGTH:
+	case WSA_QOS_EFLOWCOUNT:
+#ifndef _MSC_VER
+	case WSA_QOS_EUNKNOWNPSOBJ:
+#endif
+	case WSA_QOS_EPOLICYOBJ:
+	case WSA_QOS_EFLOWDESC:
+	case WSA_QOS_EPSFLOWSPEC:
+	case WSA_QOS_EPSFILTERSPEC:
+	case WSA_QOS_ESDMODEOBJ:
+	case WSA_QOS_ESHAPERATEOBJ:
+	case WSA_QOS_RESERVED_PETYPE:
+	default: return EIO;
+	}
+}
+
+#define WINSOCK_RETURN(x) { \
+	int ret = (x); \
+	if (ret < 0) \
+		errno = winsock_error_to_errno(WSAGetLastError()); \
+	return ret; \
+}
+
 #undef gethostname
 int mingw_gethostname(char *name, int namelen)
 {
-    ensure_socket_initialization();
-    return gethostname(name, namelen);
+	ensure_socket_initialization();
+	WINSOCK_RETURN(gethostname(name, namelen));
 }
 
 #undef gethostbyname
 struct hostent *mingw_gethostbyname(const char *host)
 {
+	struct hostent *ret;
+
 	ensure_socket_initialization();
-	return gethostbyname(host);
+
+	ret = gethostbyname(host);
+	if (!ret)
+		errno = winsock_error_to_errno(WSAGetLastError());
+
+	return ret;
 }
 
 #undef getaddrinfo
@@ -2205,7 +2318,7 @@ int mingw_getaddrinfo(const char *node, const char *service,
 		      const struct addrinfo *hints, struct addrinfo **res)
 {
 	ensure_socket_initialization();
-	return getaddrinfo(node, service, hints, res);
+	WINSOCK_RETURN(getaddrinfo(node, service, hints, res));
 }
 
 int mingw_socket(int domain, int type, int protocol)
@@ -2225,7 +2338,7 @@ int mingw_socket(int domain, int type, int protocol)
 		 * in errno so that _if_ someone looks up the code somewhere,
 		 * then it is at least the number that are usually listed.
 		 */
-		errno = WSAGetLastError();
+		errno = winsock_error_to_errno(WSAGetLastError());
 		return -1;
 	}
 	/* convert into a file descriptor */
@@ -2255,7 +2368,7 @@ int mingw_bind(int sockfd, struct sockaddr *sa, size_t sz)
 int mingw_setsockopt(int sockfd, int lvl, int optname, void *optval, int optlen)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	return setsockopt(s, lvl, optname, (const char*)optval, optlen);
+	WINSOCK_RETURN(setsockopt(s, lvl, optname, (const char*)optval, optlen));
 }
 
 #undef shutdown
