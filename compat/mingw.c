@@ -2285,7 +2285,7 @@ static int winsock_error_to_errno(DWORD err)
 	}
 }
 
-static int winsock_return(int ret)
+static inline int winsock_return(int ret)
 {
 	if (ret < 0) {
 		DWORD wsa = WSAGetLastError();
@@ -2361,14 +2361,14 @@ int mingw_socket(int domain, int type, int protocol)
 int mingw_connect(int sockfd, struct sockaddr *sa, size_t sz)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	return connect(s, sa, sz);
+	WINSOCK_RETURN(connect(s, sa, sz));
 }
 
 #undef bind
 int mingw_bind(int sockfd, struct sockaddr *sa, size_t sz)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	return bind(s, sa, sz);
+	WINSOCK_RETURN(bind(s, sa, sz));
 }
 
 #undef setsockopt
@@ -2382,14 +2382,14 @@ int mingw_setsockopt(int sockfd, int lvl, int optname, void *optval, int optlen)
 int mingw_shutdown(int sockfd, int how)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	return shutdown(s, how);
+	WINSOCK_RETURN(shutdown(s, how));
 }
 
 #undef listen
 int mingw_listen(int sockfd, int backlog)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	return listen(s, backlog);
+	WINSOCK_RETURN(listen(s, backlog));
 }
 
 #undef accept
@@ -2399,6 +2399,11 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 
 	SOCKET s1 = (SOCKET)_get_osfhandle(sockfd1);
 	SOCKET s2 = accept(s1, sa, sz);
+
+	if (s2 == INVALID_SOCKET) {
+		errno = winsock_error_to_errno(WSAGetLastError());
+		return -1;
+	}
 
 	/* convert into a file descriptor */
 	if ((sockfd2 = _open_osfhandle(s2, O_RDWR|O_BINARY)) < 0) {
