@@ -2285,12 +2285,19 @@ static int winsock_error_to_errno(DWORD err)
 	}
 }
 
-#define WINSOCK_RETURN(x) { \
-	int ret = (x); \
-	if (ret < 0) \
-		errno = winsock_error_to_errno(WSAGetLastError()); \
-	return ret; \
+static int winsock_return(int ret)
+{
+	if (ret < 0) {
+		DWORD wsa = WSAGetLastError();
+		int e = winsock_error_to_errno(wsa);
+		fprintf(stderr, "winsock error: %d -> %d\n", wsa, e);
+		fflush(stderr);
+		errno = e;
+	}
+	return ret;
 }
+
+#define WINSOCK_RETURN(x) do { return winsock_return(x); } while (0)
 
 #undef gethostname
 int mingw_gethostname(char *name, int namelen)
