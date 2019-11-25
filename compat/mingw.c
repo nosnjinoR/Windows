@@ -2285,15 +2285,25 @@ static int winsock_error_to_errno(DWORD err)
 	}
 }
 
+/*
+ * On Windows, `errno` is a global macro to a function call.
+ * This makes it difficult to debug and single-step our mappings.
+ */
+static inline void set_wsa_errno(void)
+{
+	DWORD wsa = WSAGetLastError();
+	int e = winsock_error_to_errno(wsa);
+	errno = e;
+
+	fprintf(stderr, "winsock error: %d -> %d\n", wsa, e);
+	fflush(stderr);
+}
+
 static inline int winsock_return(int ret)
 {
-	if (ret < 0) {
-		DWORD wsa = WSAGetLastError();
-		int e = winsock_error_to_errno(wsa);
-		fprintf(stderr, "winsock error: %d -> %d\n", wsa, e);
-		fflush(stderr);
-		errno = e;
-	}
+	if (ret < 0)
+		set_wsa_errno();
+
 	return ret;
 }
 
@@ -2315,7 +2325,7 @@ struct hostent *mingw_gethostbyname(const char *host)
 
 	ret = gethostbyname(host);
 	if (!ret)
-		errno = winsock_error_to_errno(WSAGetLastError());
+		set_wsa_errno();
 
 	return ret;
 }
@@ -2345,7 +2355,7 @@ int mingw_socket(int domain, int type, int protocol)
 		 * in errno so that _if_ someone looks up the code somewhere,
 		 * then it is at least the number that are usually listed.
 		 */
-		errno = winsock_error_to_errno(WSAGetLastError());
+		set_wsa_errno();
 		return -1;
 	}
 	/* convert into a file descriptor */
@@ -2401,7 +2411,7 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 	SOCKET s2 = accept(s1, sa, sz);
 
 	if (s2 == INVALID_SOCKET) {
-		errno = winsock_error_to_errno(WSAGetLastError());
+		set_wsa_errno();
 		return -1;
 	}
 
