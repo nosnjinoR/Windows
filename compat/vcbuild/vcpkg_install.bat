@@ -34,7 +34,16 @@ REM ================================================================
 	@FOR /F "delims=" %%D IN ("%~dp0") DO @SET cwd=%%~fD
 	cd %cwd%
 
-	dir vcpkg\vcpkg.exe >nul 2>nul && GOTO :install_libraries
+REM the architecture is currently hard-coded, and that we will change that once we need to.
+	SET arch=x64-windows
+
+REM is vcpkg package installed and complied?
+REM can be inhibited by creating compat\vcbuild\NoPrebuildEvent.txt
+
+	IF EXIST "vcpkg\installed\%arch%\include\openssl\ssl.h" GOTO :check_for_update
+
+REM is vcpkg package manager already cloned
+	IF EXIST vcpkg\vcpkg.exe GOTO GOTO :install_libraries
 
 	git.exe version 2>nul
 	IF ERRORLEVEL 1 (
@@ -53,9 +62,18 @@ REM ================================================================
 	IF ERRORLEVEL 1 ( EXIT /B 1 )
 
 	echo Successfully installed %cwd%vcpkg\vcpkg.exe
+	GOTO :install_libraries
+
+:check_for_updates
+	echo Checking for vcpkg updates and upgrades to installed libraries
+	cd %cwd%vcpkg
+	git pull
+	.\vcpkg.exe update
+	.\vcpkg.exe upgrade --no-dry-run
+
+	EXIT /B 0
 
 :install_libraries
-	SET arch=x64-windows
 
 	echo Installing third-party libraries...
 	FOR %%i IN (zlib expat libiconv openssl libssh2 curl) DO (
@@ -80,11 +98,11 @@ REM ================================================================
 :sub__install_one
 	echo     Installing package %1...
 
-	REM vcpkg may not be reliable on slow, intermittent or proxy
-	REM connections, see e.g.
-	REM https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/4a8f7be5-5e15-4213-a7bb-ddf424a954e6/winhttpsendrequest-ends-with-12002-errorhttptimeout-after-21-seconds-no-matter-what-timeout?forum=windowssdk
-	REM which explains the hidden 21 second timeout
-	REM (last post by Dave : Microsoft - Windows Networking team)
+REM vcpkg may not be reliable on slow, intermittent or proxy
+REM connections, see e.g.
+REM https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/4a8f7be5-5e15-4213-a7bb-ddf424a954e6/winhttpsendrequest-ends-with-12002-errorhttptimeout-after-21-seconds-no-matter-what-timeout?forum=windowssdk
+REM which explains the hidden 21 second timeout
+REM (last post by Dave : Microsoft - Windows Networking team)
 
 	.\vcpkg.exe install %1:%arch%
 	IF ERRORLEVEL 1 ( EXIT /B 1 )
