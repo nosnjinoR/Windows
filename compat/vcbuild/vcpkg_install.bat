@@ -55,9 +55,15 @@ REM ================================================================
 	echo Successfully installed %cwd%vcpkg\vcpkg.exe
 
 :install_libraries
-	SET arch=x64-windows
+	CALL :install_libraries_arch x64-windows
+	IF ERRORLEVEL 1 GOTO :EOF
+	CALL :install_libraries_arch arm64-windows
+	goto :EOF
 
-	echo Installing third-party libraries...
+:install_libraries_arch
+	SET arch=%1
+
+	echo Installing third-party libraries(%1)...
 	FOR %%i IN (zlib expat libiconv openssl libssh2 curl) DO (
 	    cd %cwd%vcpkg
 	    IF NOT EXIST "packages\%%i_%arch%" CALL :sub__install_one %%i
