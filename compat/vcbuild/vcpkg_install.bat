@@ -1,4 +1,4 @@
-@ECHO OFF
+@IF NOT DEFINED _ECHO ECHO OFF
 REM ================================================================
 REM This script installs the "vcpkg" source package manager and uses
 REM it to build the third-party libraries that git requires when it
@@ -32,7 +32,10 @@ REM ================================================================
 	SETLOCAL EnableDelayedExpansion
 
 	SET arch=%1
-	if not defined arch=x64-windows
+	IF NOT DEFINED arch (
+		echo defaulting to 'x64-windows`. Invoke %0 with 'x86-windows', 'x64-windows', or 'arm64-windows' 
+		set arch=x64-windows
+	)
 
 	@FOR /F "delims=" %%D IN ("%~dp0") DO @SET cwd=%%~fD
 	cd %cwd%
@@ -82,14 +85,50 @@ REM ================================================================
 :sub__install_one
 	echo     Installing package %1...
 
+	call :%1_features
+	
 	REM vcpkg may not be reliable on slow, intermittent or proxy
 	REM connections, see e.g.
 	REM https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/4a8f7be5-5e15-4213-a7bb-ddf424a954e6/winhttpsendrequest-ends-with-12002-errorhttptimeout-after-21-seconds-no-matter-what-timeout?forum=windowssdk
 	REM which explains the hidden 21 second timeout
 	REM (last post by Dave : Microsoft - Windows Networking team)
 
-	.\vcpkg.exe install %1:%arch%
+	.\vcpkg.exe install %1%features%:%arch%
 	IF ERRORLEVEL 1 ( EXIT /B 1 )
 
 	echo     Finished %1
 	goto :EOF
+
+
+
+::
+:: features for each vcpkg to install
+:: there should be an entry here for each package to install
+:: 'set features=' means use the default otherwise
+:: 'set features=[comma-delimited-feature-set]' is the syntax  
+::
+
+:zlib_features
+set features=
+goto :EOF
+
+:expat_features
+set features=
+goto :EOF
+
+:libiconv_features
+set features=
+goto :EOF
+
+:openssl_features
+set features=
+goto :EOF
+
+:libssh2_features
+set features=
+goto :EOF
+
+:curl_features
+set features=[core,openssl]
+goto :EOF
+
