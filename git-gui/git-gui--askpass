@@ -56,6 +56,8 @@ proc finish {} {
 		}
 	}
 
+	# Coerce UTF8 encoding
+	#
 	set ::answer [encoding convertto utf-8 $::answer]
 
 	puts $::answer
