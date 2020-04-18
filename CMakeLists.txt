@@ -846,24 +846,54 @@ set(wrapper_test_scripts
 	test-fake-ssh test-line-buffer test-svn-fe test-tool)
 
 
-foreach(script ${wrapper_scripts})
+if(NOT DEFINED CI_BUILD)
+
+	foreach(script ${wrapper_scripts})
+		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+		string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
+		string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
+		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+	endforeach()
+
+	foreach(script ${wrapper_test_scripts})
+		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+		string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
+		string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
+		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+	endforeach()
+
 	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
 	string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-	string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
-	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-endforeach()
+	string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
 
-foreach(script ${wrapper_test_scripts})
+else()#specific for CI builds
+
+	foreach(script ${wrapper_scripts})
+		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+		string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
+		string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
+		string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
+		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+		endforeach()
+
+	foreach(script ${wrapper_test_scripts})
+		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+		string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
+		string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
+		string(REPLACE "'\"$PATH\"" "'\"$PATH\":\"$GIT_EXEC_PATH\"" content "${content}")
+		string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
+		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+	endforeach()
+
 	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-	string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-	string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
-	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-endforeach()
+	string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
+	string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
+	string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
 
-file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
-file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
+
+endif()#CI_BUILD
 
 #options for configuring test options
 option(PERL_TESTS "Perform tests that use perl" ON)
