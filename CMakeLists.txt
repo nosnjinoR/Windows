@@ -22,6 +22,7 @@ FOR WINDOWS USE THIS GIT REPO https://github.com/git-for-windows/git
 #TODO gitk git-gui gitweb
 #TODO Enable NLS on windows natively
 #TODO Add pcre support
+#TODO Cross Compiling support
 
 
 include(CheckTypeSize)
@@ -147,6 +148,12 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_compile_definitions(PROCFS_EXECUTABLE_PATH="/proc/self/exe" HAVE_DEV_TTY )
 	list(APPEND compat_SOURCES unix-socket.c)
+
+else(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+	add_compile_definitions(APPLE_COMMON_CRYPTO SHA1_MAX_BLOCK_SIZE="1024L*1024L*1024L" SHA1_APPLE COMMON_DIGEST_FOR_OPENSSL
+							PRECOMPOSE_UNICODE PROTECT_HFS_DEFAULT=1 HAVE_DEV_TTY HAVE_NS_GET_EXECUTABLE_PATH)
+	list(APPEND compat_SOURCES compat/sha1-chunked.c compat/precompose_utf8.c unix-socket.c)
+	message(WARNING "Building git on Mac OS with cmake is untested")
 endif()
 
 if(WIN32)
@@ -848,49 +855,49 @@ set(wrapper_test_scripts
 
 if(NOT DEFINED CI_BUILD)
 
-	foreach(script ${wrapper_scripts})
-		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-		string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-		string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
-		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-	endforeach()
-
-	foreach(script ${wrapper_test_scripts})
-		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-		string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-		string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
-		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-	endforeach()
-
+foreach(script ${wrapper_scripts})
 	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
 	string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
-	string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
-	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
+	string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+endforeach()
+
+foreach(script ${wrapper_test_scripts})
+	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+	string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
+	string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+endforeach()
+
+file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+string(REPLACE "@@BUILD_DIR@@" "${CMAKE_BINARY_DIR}" content "${content}")
+string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
+file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
 
 else()#specific for CI builds
 
-	foreach(script ${wrapper_scripts})
-		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-		string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
-		string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
-		string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
-		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-		endforeach()
-
-	foreach(script ${wrapper_test_scripts})
-		file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
-		string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
-		string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
-		string(REPLACE "'\"$PATH\"" "'\"$PATH\":\"$GIT_EXEC_PATH\"" content "${content}")
-		string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
-		file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
-	endforeach()
-
+foreach(script ${wrapper_scripts})
 	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
 	string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
 	string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
-	string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
-	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
+	string(REPLACE "@@PROG@@" "${script}${EXE_EXTENSION}" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+	endforeach()
+
+foreach(script ${wrapper_test_scripts})
+	file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+	string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
+	string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
+	string(REPLACE "'\"$PATH\"" "'\"$PATH\":\"$GIT_EXEC_PATH\"" content "${content}")
+	string(REPLACE "@@PROG@@" "t/helper/${script}${EXE_EXTENSION}" content "${content}")
+	file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/${script} ${content})
+endforeach()
+
+file(STRINGS ${CMAKE_SOURCE_DIR}/wrap-for-bin.sh content NEWLINE_CONSUME)
+string(REPLACE "GIT_EXEC_PATH='@@BUILD_DIR@@'" "test -n \"$\{GIT_EXEC_PATH##*:*\}\" || GIT_EXEC_PATH=\"$(cygpath -u \"$GIT_EXEC_PATH\")\"" content "${content}")
+string(REPLACE "'@@BUILD_DIR@@" "\"$GIT_EXEC_PATH\"'" content "${content}")
+string(REPLACE "@@PROG@@" "git-cvsserver" content "${content}")
+file(WRITE ${CMAKE_BINARY_DIR}/bin-wrappers/git-cvsserver ${content})
 
 
 endif()#CI_BUILD
