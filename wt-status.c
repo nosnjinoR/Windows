@@ -1007,6 +1007,8 @@ size_t wt_status_locate_end(const char *s, size_t len)
 	struct strbuf pattern = STRBUF_INIT;
 
 	strbuf_addf(&pattern, "\n%c %s", comment_line_char, cut_line);
+	strbuf_trim_trailing_newline(&pattern);
+
 	if (starts_with(s, pattern.buf + 1))
 		len = 0;
 	else if ((p = strstr(s, pattern.buf)))
