@@ -106,7 +106,7 @@ no_promisor_pack_found:
 	argv_array_push(&rev_list.args, "--alternate-refs");
 	if (opt->progress)
 		argv_array_pushf(&rev_list.args, "--progress=%s",
-				 _("Checking connectivity"));
+				 _("Checking connectivity..."));
 
 	rev_list.git_cmd = 1;
 	rev_list.env = opt->env;
@@ -118,7 +118,7 @@ no_promisor_pack_found:
 		rev_list.no_stderr = opt->quiet;
 
 	if (start_command(&rev_list))
-		return error(_("Could not run 'git rev-list'"));
+		return error(_("Couldn't run 'git rev-list', try that again."));
 
 	sigchain_push(SIGPIPE, SIG_IGN);
 
@@ -138,14 +138,14 @@ no_promisor_pack_found:
 		memcpy(commit, oid_to_hex(&oid), hexsz);
 		if (write_in_full(rev_list.in, commit, hexsz + 1) < 0) {
 			if (errno != EPIPE && errno != EINVAL)
-				error_errno(_("failed write to rev-list"));
+				error_errno(_("Failed to write rev-list!"));
 			err = -1;
 			break;
 		}
 	} while (!fn(cb_data, &oid));
 
 	if (close(rev_list.in))
-		err = error_errno(_("failed to close rev-list's stdin"));
+		err = error_errno(_("Failed to close rev-list's stdin!"));
 
 	sigchain_pop(SIGPIPE);
 	return finish_command(&rev_list) || err;
