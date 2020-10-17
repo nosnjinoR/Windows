@@ -18,7 +18,7 @@ fixes](https://github.com/git-for-windows/git/wiki/How-to-participate).
 Git - fast, scalable, distributed revision control system
 =========================================================
 
-Git is a fast, scalable, distributed revision control system with an
+Git is a fast, scalable, distributed revision/version control system with an
 unusually rich command set that provides both high-level operations
 and full access to internals.
 
@@ -44,7 +44,7 @@ CVS users may also want to read [Documentation/gitcvs-migration.txt][]
 (`man gitcvs-migration` or `git help cvs-migration` if git is
 installed).
 
-The user discussion and development of core Git take place on the Git
+The user discussion and development of core Git can take place on the Git
 mailing list -- everyone is welcome to post bug reports, feature
 requests, comments and patches to git@vger.kernel.org (read
 [Documentation/SubmittingPatches][] for instructions on patch submission).
@@ -54,13 +54,13 @@ available at <https://lore.kernel.org/git/>,
 <http://marc.info/?l=git> and other archival sites.
 The core git mailing list is plain text (no HTML!).
 
-Issues which are security relevant should be disclosed privately to
+Issues which are security relevant and should be disclosed privately to
 the Git Security mailing list <git-security@googlegroups.com>.
 
 The maintainer frequently sends the "What's cooking" reports that
 list the current status of various development topics to the mailing
 list.  The discussion following them give a good reference for
-project status, development direction and remaining tasks.
+project status, development direction and the remaining tasks.
 
 The name "git" was given by Linus Torvalds when he wrote the very
 first version. He described the tool as "the stupid content tracker"
