@@ -150,7 +150,7 @@ void write_fsmonitor_extension(struct strbuf *sb, struct index_state *istate)
  */
 static int query_fsmonitor(int version, struct index_state *istate, struct strbuf *query_result)
 {
-	struct repository *r = istate->repo ? istate->repo : the_repository;
+	struct repository *r = the_repository;
 	const char *last_update = istate->fsmonitor_last_update;
 	struct child_process cp = CHILD_PROCESS_INIT;
 	int result;
