@@ -2091,7 +2091,12 @@ PAGER_ENV_CQ_SQ = $(subst ','\'',$(PAGER_ENV_CQ))
 BASIC_CFLAGS += -DPAGER_ENV='$(PAGER_ENV_CQ_SQ)'
 
 ALL_CFLAGS += $(BASIC_CFLAGS)
+ALL_CFLAGS_GUI := $(ALL_CFLAGS) $(GUI_CFLAGS)
+ALL_CFLAGS += $(CONSOLE_CFLAGS)
+
 ALL_LDFLAGS += $(BASIC_LDFLAGS)
+ALL_LDFLAGS_GUI := $(ALL_LDFLAGS) $(GUI_LDFLAGS)
+ALL_LDFLAGS += $(CONSOLE_LDFLAGS)
 
 export DIFF TAR INSTALL DESTDIR SHELL_PATH
 
@@ -2258,10 +2263,17 @@ $(SCRIPT_LIB) : % : %.sh GIT-SCRIPT-DEFINES
 	mv $@+ $@
 
 git.res: git.rc GIT-VERSION-FILE GIT-PREFIX
+ifdef MSVC
+	$(QUIET_RC)$(RC) \
+	  $(join -DMAJOR= -DMINOR= -DMICRO= -DPATCHLEVEL=, $(wordlist 1, 4, \
+	    $(shell echo $(GIT_VERSION) 0 0 0 0 | tr '.a-zA-Z-' ' '))) \
+	  -DGIT_VERSION="\"$(GIT_VERSION)\"" $<
+else
 	$(QUIET_RC)$(RC) \
 	  $(join -DMAJOR= -DMINOR= -DMICRO= -DPATCHLEVEL=, $(wordlist 1, 4, \
 	    $(shell echo $(GIT_VERSION) 0 0 0 0 | tr '.a-zA-Z-' ' '))) \
 	  -DGIT_VERSION="\\\"$(GIT_VERSION)\\\"" -i $< -o $@
+endif
 
 # This makes sure we depend on the NO_PERL setting itself.
 $(SCRIPT_PERL_GEN): GIT-BUILD-OPTIONS
@@ -2527,12 +2539,12 @@ compat/nedmalloc/nedmalloc.sp compat/nedmalloc/nedmalloc.o: EXTRA_CPPFLAGS = \
 compat/nedmalloc/nedmalloc.sp: SP_EXTRA_FLAGS += -Wno-non-pointer-null
 endif
 
-headless-git.o: compat/win32/headless.c
-	$(QUIET_CC)$(CC) $(ALL_CFLAGS) $(COMPAT_CFLAGS) \
-		-fno-stack-protector -o $@ -c -Wall -Wwrite-strings $<
+headless-git.o: compat/win32/headless.c GIT-CFLAGS
+	$(QUIET_CC)$(CC) $(ALL_CFLAGS_GUI) $(COMPAT_CFLAGS) \
+		-o $@ -c -Wall -Wwrite-strings $<
 
-headless-git$X: headless-git.o git.res
-	$(QUIET_LINK)$(CC) $(ALL_LDFLAGS) -mwindows $(COMPAT_CFLAGS) -o $@ $^
+headless-git$X: headless-git.o git.res GIT-LDFLAGS
+	$(QUIET_LINK)$(CC) $(ALL_CFLAGS_GUI) -o $@ $(ALL_LDFLAGS_GUI) $< git.res $(EXTLIBS)
 
 git-%$X: %.o GIT-LDFLAGS $(GITLIBS)
 	$(QUIET_LINK)$(CC) $(ALL_CFLAGS) -o $@ $(ALL_LDFLAGS) $(filter %.o,$^) $(LIBS)
@@ -3179,7 +3191,7 @@ cocciclean:
 
 clean: profile-clean coverage-clean cocciclean
 	$(RM) *.res
-	$(RM) $(OBJECTS)
+	$(RM) $(OBJECTS) headless-git.o
 	$(RM) $(LIB_FILE) $(XDIFF_LIB)
 	$(RM) $(ALL_PROGRAMS) $(SCRIPT_LIB) $(BUILT_INS) git$X
 	$(RM) $(TEST_PROGRAMS)
@@ -3207,7 +3219,7 @@ endif
 	$(RM) GIT-USER-AGENT GIT-PREFIX
 	$(RM) GIT-SCRIPT-DEFINES GIT-PERL-DEFINES GIT-PERL-HEADER GIT-PYTHON-VARS
 ifdef MSVC
-	$(RM) $(patsubst %.o,%.o.pdb,$(OBJECTS))
+	$(RM) $(patsubst %.o,%.o.pdb,$(OBJECTS)) headless-git.o.pdb
 	$(RM) $(patsubst %.exe,%.pdb,$(OTHER_PROGRAMS))
 	$(RM) $(patsubst %.exe,%.iobj,$(OTHER_PROGRAMS))
 	$(RM) $(patsubst %.exe,%.ipdb,$(OTHER_PROGRAMS))
