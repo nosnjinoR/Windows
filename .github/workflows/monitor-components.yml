@@ -53,6 +53,7 @@ jobs:
             feed: https://github.com/curl/curl/tags.atom
           - label: gpg
             feed: https://github.com/gpg/gnupg/releases.atom
+            title-pattern: ^gnupg-[0-9]+\.[0-9]*[02468]\.
           - label: mintty
             feed: https://github.com/mintty/mintty/releases.atom
           - label: p7zip
