@@ -1133,6 +1133,119 @@ static void *fsmonitor_fs_listen__thread_proc(void *_state)
 	return NULL;
 }
 
+#if defined(GIT_WINDOWS_NATIVE)
+/*
+ * NEEDSWORK: All of my work to make everything be free of global
+ * variables and possibly allow multiple IPC thread pool instances
+ * is a bit wasted here since the CTRL_C_EVENT handler doesn't get
+ * a "void *data" arg, so we have to explicitly remember the instance
+ * data for the initial IPC pool.  For now this is fine because we
+ * only create a single IPC thread pool (and only have a single fs
+ * listener instance which is listening to a single working directory).
+ * Later, we might consider making a linked list of these states and
+ * having the CTRL_C_EVENT handler call `ipc_server_stop_async()`
+ * for each one.
+ */
+static struct fsmonitor_daemon_state *registered_state;
+
+/*
+ * A Win32 CTRL_ event handler.  The OS will call this routine
+ * from a new thread when the OS or an installer application
+ * needs to have us shutdown.
+ *
+ * Whether we let the OS automatically restart us does not
+ * matter, since we are implicitly started by client commands
+ * if necessary.
+ *
+ * The main point of this is to release handles to our .EXE
+ * and .DLLs so that they can be upgraded by the installer.
+ *
+ * The system also calls us when the user types Ctrl-C on
+ * the console.  This routine gives us a nicer shutdown than
+ * just calling ExitProcessEx() from the default handler.
+ */
+static BOOL my_ctrl_handler(DWORD dwCtrlType)
+{
+#if 0
+	trace2_printf("In my_ctrl_handler '%p' '%d'",
+		      registered_state, (int)dwCtrlType);
+#endif
+
+	if (!registered_state)
+		return FALSE; /* we did not handle this CRTL_ event */
+
+	/*
+	 * Signal the thread pool to shutdown, but do not wait.  The
+	 * main thread owns the task of waiting, joining the pool
+	 * threads, and freeing any/all data structures.
+	 *
+	 * Remember that this call is happening in an injected thread
+	 * that the system created (and doesn't know the details of
+	 * our locking).
+	 */
+	ipc_server_stop_async(registered_state->ipc_server_data);
+	registered_state = NULL;
+
+	return TRUE;
+}
+
+static void register_upgrade_handler(struct fsmonitor_daemon_state *state)
+{
+	struct strbuf args = STRBUF_INIT;
+	wchar_t *wargs = NULL;
+
+	registered_state = state;
+
+	SetConsoleCtrlHandler(my_ctrl_handler, TRUE);
+
+#if 1
+	/*
+	 * NEEDSWORK: For now just create a trivial command for the
+	 * ResourceManager to launch after the installer finishes
+	 * updating everything.  The real `fsmonitor--daemon start`
+	 * command causes an empty terminal window to be created on
+	 * the screen which stays visible until the daemon is stopped.
+	 * Since the daemon is auto-started by client commands as
+	 * necessary, we don't really care if the installer restarts
+	 * it.  This will still cause a terminal window to briefly
+	 * appear, but that's the best we can do right now.  Afterall,
+	 * the main point of all of this is to let the installer do
+	 * the work of stopping running instances.
+	 */
+	strbuf_addstr(&args, " version");
+#else
+	/*
+	 * NEEDSWORK: We're building a native command line (not an argv)
+	 * for use by a native Win32 API so we probably need to properly
+	 * quote the workdir and convert slashes to backslashes and etc.
+	 * on the workdir path.
+	 */
+	strbuf_addf(  &args, " -C %s", state->path_worktree_watch.buf);
+	strbuf_addstr(&args, " fsmonitor--daemon");
+	strbuf_addstr(&args, " start");
+	strbuf_addf(  &args, " --ipc-threads=%d", fsmonitor__ipc_threads);
+	strbuf_addf(  &args, " --start-timeout=%d", fsmonitor__start_timeout_sec);
+#endif
+	trace2_printf("RegisterApplicationRestart(%s)", args.buf);
+
+	ALLOC_ARRAY(wargs, st_add(st_mult(2, args.len), 1));
+	xutftowcs(wargs, args.buf, 2 * args.len + 1);
+
+	/*
+	 * We want to set all the _NO_ bits that we can because we really
+	 * don't want ResourceManager to actually restart us, BUT that
+	 * causes problems.  When RESTART_NO_PATCH is set, the installer
+	 * treats it as a "manual shutdown required rather than optional"
+	 * and defeats the whole point.  I assume the same is true for
+	 * reboots.
+	 */
+	RegisterApplicationRestart(wargs, RESTART_NO_CRASH | RESTART_NO_HANG);
+
+	free(wargs);
+	strbuf_release(&args);
+}
+#endif /* GIT_WINDOWS_NATIVE */
+
 static int fsmonitor_run_daemon_1(struct fsmonitor_daemon_state *state)
 {
 	struct ipc_server_opts ipc_opts = {
@@ -1168,6 +1281,10 @@ static int fsmonitor_run_daemon_1(struct fsmonitor_daemon_state *state)
 
 		return error(_("could not start fsmonitor listener thread"));
 	}
+
+#if defined(GIT_WINDOWS_NATIVE)
+	register_upgrade_handler(state);
+#endif
 
 	/*
 	 * The daemon is now fully functional in background threads.
