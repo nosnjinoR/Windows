@@ -6,10 +6,9 @@ def check_var(name:str) -> bool:
         print(f"Required env var {name} is missing!")
         exit(1)
 
-for var in ['APT_REPO_ID', 'AZURE_AAD_ID', 'AAD_CLIENT_SECRET']:
+for var in ['AZURE_AAD_ID', 'AAD_CLIENT_SECRET']:
     check_var(var)
 
-repo_id = env['APT_REPO_ID']
 aad_id = env['AZURE_AAD_ID']
 password = env['AAD_CLIENT_SECRET']
 
@@ -20,9 +19,9 @@ repo_config = {
     "server": "azure-apt-cat.cloudapp.net",
     "port": "443",
 
-    "repositoryId": repo_id,
     "AADClientId": aad_id,
     "AADClientSecret": password,
+    "repositoryId": ""
 }
 
 configs = [
