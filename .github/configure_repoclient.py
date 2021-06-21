@@ -24,10 +24,5 @@ repo_config = {
     "repositoryId": ""
 }
 
-configs = [
-	("config.json", repo_config),
-]
-
-for filename, data in configs:
-	with open(filename, 'w') as fp:
-		json.dump(data, fp)
+with open("config.json", 'w') as fp:
+    json.dump(repo_config, fp)
