@@ -39,6 +39,8 @@ jobs:
         script: |
           const release = 'latest'
           const release_arg = release === 'latest' ? 'latest' : 'tags/release'
+          console.log(`release_arg is: ${release_arg}`)
+          console.log(`repo owner is: ${github.repository_owner}`)
           await github.repos.getReleaseAsset({
             microsoft,
             git,
