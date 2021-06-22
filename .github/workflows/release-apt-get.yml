@@ -1,13 +1,6 @@
 name: "release-apt-get"
 on: [push]
 
-  workflow_dispatch:
-    inputs:
-      release:
-        description: 'Release Tag'
-        required: true
-        default: 'latest'
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -48,7 +41,7 @@ jobs:
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            ${{ github.event.inputs.release }}
+            latest
           });
 
     - name: "Publish to apt feed"
@@ -58,5 +51,5 @@ jobs:
         pip install requests
         for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
         do
-          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.set-release-asset.outputs.result['name']}}" -r $id
+          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.get-release-asset.outputs.result['name']}}" -r $id
         done
