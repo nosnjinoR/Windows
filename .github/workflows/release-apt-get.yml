@@ -1,9 +1,6 @@
 name: "release-apt-get"
 on: [push]
 
-env:
-    RELEASE: latest
-
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -40,16 +37,12 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          if [[ ${RELEASE} == 'latest' ]]
-          then
-              release_arg=latest
-          else 
-              release_arg=tags/${RELEASE}
-          fi
+          const release = 'latest'
+          const release_arg = release === 'latest' ? 'latest' : 'tags/release'
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            $release_arg
+            release_arg
           });
 
     - name: "Publish to apt feed"
