@@ -21,6 +21,7 @@ jobs:
         AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
       run: |
         az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repoclient.deb --auth-mode login
+
     - name: "Install Repo Client"
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
@@ -38,11 +39,11 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          echo 'Release input: ${RELEASE}'
+          echo 'Release input: "${RELEASE}"'
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            ${RELEASE}
+            "${RELEASE}"
           });
 
     - name: "Publish to apt feed"
@@ -52,5 +53,5 @@ jobs:
         pip install requests
         for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
         do
-          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.set-result.outputs.result['name']}}" -r $id
+          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.set-release-asset.outputs.result['name']}}" -r $id
         done
