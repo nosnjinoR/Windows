@@ -42,9 +42,9 @@ jobs:
           console.log(`release_arg is: ${release_arg}`)
           console.log(`repo owner is: ${github.repository_owner}`)
           await github.repos.getReleaseAsset({
-            microsoft,
-            git,
-            release_arg
+            owner: microsoft,
+            repo: git,
+            tag_name: release_arg
           });
 
     - name: "Publish to apt feed"
