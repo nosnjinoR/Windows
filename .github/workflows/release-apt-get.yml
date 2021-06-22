@@ -33,14 +33,16 @@ jobs:
     
     - name: Get Release Asset
       uses: actions/github-script@v3
+      env:
+        RELEASE: ${{ github.event.inputs.release }}
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          echo 'Release input: ${{ github.event.inputs.release }}'
+          echo 'Release input: ${RELEASE}'
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            ${{ github.event.inputs.release }}
+            ${RELEASE}
           });
 
     - name: "Publish to apt feed"
