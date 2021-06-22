@@ -30,14 +30,25 @@ jobs:
         sudo dpkg -i repoclient.deb
         python .github/configure_repoclient.py
         rm repoclient.deb
+    
+    - name: Get Release Asset
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          echo 'Release input: ${{ github.event.inputs.release }}'
+          await github.repos.getReleaseAsset({
+            microsoft,
+            git,
+            ${{ github.event.inputs.release }}
+          });
+
     - name: "Publish to apt feed"
       env:
         RELEASE: ${{ github.event.inputs.release }}
       run: |
         pip install requests
-        python .github/fetch_release.py
-        wget "$(cat asset_url.txt)"
         for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
         do
-          repoclient -v v3 -c config.json package add --check --wait 300 "$(cat asset_name.txt)" -r $id
+          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.set-result.outputs.result['name']}}" -r $id
         done
