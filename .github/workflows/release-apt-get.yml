@@ -40,17 +40,16 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          if [ ${RELEASE} = "latest" ]
+          if [ ${RELEASE} == 'latest' ]
           then
               release_arg=latest
           else 
               release_arg=tags/${RELEASE}
           fi
-
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            release_arg
+            $release_arg
           });
 
     - name: "Publish to apt feed"
