@@ -39,11 +39,11 @@ jobs:
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
-          echo 'Release input: "${RELEASE}"'
+          echo 'Release input: env.RELEASE'
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            "${RELEASE}"
+            env.RELEASE
           });
 
     - name: "Publish to apt feed"
