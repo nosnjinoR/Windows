@@ -1,6 +1,13 @@
 name: "release-apt-get"
 on: [push]
 
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release Tag'
+        required: true
+        default: 'latest'
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -34,8 +41,6 @@ jobs:
     
     - name: Get Release Asset
       uses: actions/github-script@v3
-      env:
-        RELEASE: ${{ github.event.inputs.release }}
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
         script: |
@@ -43,7 +48,7 @@ jobs:
           await github.repos.getReleaseAsset({
             microsoft,
             git,
-            env.RELEASE
+            ${{ github.event.inputs.release }}
           });
 
     - name: "Publish to apt feed"
