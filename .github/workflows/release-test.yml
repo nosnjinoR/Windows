@@ -37,3 +37,33 @@ jobs:
         run: |
           echo "name: ${{ steps.get-asset.outputs.name }}"
           echo "url: ${{ steps.get-asset.outputs.url }}"
+      - name: "Write repoclient config"
+        uses: actions/github-script@v3
+        env:
+          AZURE_AAD_ID: dummy
+          AAD_CLIENT_SECRET: dummy2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            for (const key of ['AZURE_AAD_ID', 'AAD_CLIENT_SECRET']) {
+              if (!process.env[key]) throw new Error(`Required env var ${key} is missing!`)
+            }
+
+            const config = {
+              AADResource: 'https://microsoft.onmicrosoft.com/945999e9-da09-4b5b-878f-b66c414602c0',
+              AADTenant: '72f988bf-86f1-41af-91ab-2d7cd011db47',
+              AADAuthorityUrl: 'https://login.microsoftonline.com',
+              server: 'azure-apt-cat.cloudapp.net',
+              port: '443',
+
+              AADClientId: process.env.AZURE_AAD_ID,
+              AADClientSecret: process.env.AAD_CLIENT_SECRET,
+              repositoryId: ''
+            }
+
+            const fs = require('fs')
+            fs.writeFileSync('config.json', JSON.stringify(config, null, 2))
+      - name: DEBUG config.json
+        run: |
+          set -x
+          cat config.json
