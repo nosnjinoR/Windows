@@ -57,15 +57,12 @@ jobs:
             throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
           }
           await github.repos.getReleaseAsset({
-              accept: application/vnd.github.v3+application/octet-stream,
+              accept: application/octet-stream,
               owner: 'microsoft', // context.repo.owner,
               repo: context.repo.repo,
               asset_id: assets[0].id
             })
           core.setOutput('name', assets[0].name)
-
-    - name: "Peek in directory"
-      script: ls
 
     - name: "Publish to apt feed"
       env:
