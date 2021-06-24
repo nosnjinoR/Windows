@@ -63,6 +63,9 @@ jobs:
             })
           core.setOutput('name', assets[0].name)
 
+    - name: "Peek in directory"
+      script: ls
+
     - name: "Publish to apt feed"
       env:
         RELEASE: ${{ github.event.inputs.release }}
