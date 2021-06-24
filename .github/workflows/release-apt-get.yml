@@ -39,7 +39,7 @@ jobs:
         python .github/configure_repoclient.py
         rm repoclient.deb
     
-    - name: 'Get Release Asset'
+    - name: "Get Release Asset"
       id: get-asset
       env:
         RELEASE: ${{ github.event.inputs.release }}
@@ -56,8 +56,31 @@ jobs:
           if (assets.length !== 1) {
             throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
           }
+          await github.repos.getReleaseAsset({
+              owner: 'microsoft', // context.repo.owner,
+              repo: context.repo.repo,
+              asset_id: assets[0].id
+            })
           core.setOutput('name', assets[0].name)
-          core.setOutput('url', assets[0].url)
+
+    - name: "Download Release Asset"
+      id: get-asset
+      env:
+        RELEASE: ${{ github.event.inputs.release }}
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const { data } = await github.repos.getRelease({
+              owner: 'microsoft', // context.repo.owner,
+              repo: context.repo.repo,
+              release_id: process.env.RELEASE || 'latest'
+            })
+          const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
+          if (assets.length !== 1) {
+            throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
+          }
+          core.setOutput('id', assets[0].id)
 
     - name: "Publish to apt feed"
       env:
