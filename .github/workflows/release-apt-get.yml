@@ -63,25 +63,6 @@ jobs:
             })
           core.setOutput('name', assets[0].name)
 
-    - name: "Download Release Asset"
-      id: get-asset
-      env:
-        RELEASE: ${{ github.event.inputs.release }}
-      uses: actions/github-script@v3
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          const { data } = await github.repos.getRelease({
-              owner: 'microsoft', // context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.RELEASE || 'latest'
-            })
-          const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
-          if (assets.length !== 1) {
-            throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
-          }
-          core.setOutput('id', assets[0].id)
-
     - name: "Publish to apt feed"
       env:
         RELEASE: ${{ github.event.inputs.release }}
