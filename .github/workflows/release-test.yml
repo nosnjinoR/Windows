@@ -47,7 +47,6 @@ jobs:
           AZURE_AAD_ID: dummy
           AAD_CLIENT_SECRET: dummy2
         with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             for (const key of ['AZURE_AAD_ID', 'AAD_CLIENT_SECRET']) {
               if (!process.env[key]) throw new Error(`Required env var ${key} is missing!`)
