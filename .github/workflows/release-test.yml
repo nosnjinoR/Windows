@@ -29,18 +29,22 @@ jobs:
             if (assets.length !== 1) {
               throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
             }
-            await github.repos.getReleaseAsset({
+
+            const fs = require('fs')
+            const out = fs.createWriteStream(assets[0].name)
+            const buffer = await github.repos.getReleaseAsset({
                 accept: 'application/octet-stream',
                 owner: 'microsoft', // context.repo.owner,
                 repo: context.repo.repo,
                 asset_id: assets[0].id
               })
+              out.write(buffer.data)
+              out.end()
             core.setOutput('name', assets[0].name)
       - name: DEBUG
         shell: bash
         run: |
           echo "name: ${{ steps.get-asset.outputs.name }}"
-          echo "url: ${{ steps.get-asset.outputs.url }}"
       - name: "Write repoclient config"
         uses: actions/github-script@v3
         env:
