@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: "Get release assets"
+      - name: "Get Release Asset"
         id: get-asset
         env:
           RELEASE: ${{ github.event.inputs.release }}
@@ -25,13 +25,17 @@ jobs:
                 repo: context.repo.repo,
                 release_id: process.env.RELEASE || 'latest'
               })
-
             const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
             if (assets.length !== 1) {
               throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
             }
+            await github.repos.getReleaseAsset({
+                accept: 'application/octet-stream',
+                owner: 'microsoft', // context.repo.owner,
+                repo: context.repo.repo,
+                asset_id: assets[0].id
+              })
             core.setOutput('name', assets[0].name)
-            core.setOutput('url', assets[0].url)
       - name: DEBUG
         shell: bash
         run: |
