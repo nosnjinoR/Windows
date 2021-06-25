@@ -33,7 +33,9 @@ jobs:
             const fs = require('fs')
             const out = fs.createWriteStream(assets[0].name)
             const buffer = await github.repos.getReleaseAsset({
-                accept: 'application/octet-stream',
+                headers: {
+                  accept: 'application/octet-stream'
+                },
                 owner: 'microsoft', // context.repo.owner,
                 repo: context.repo.repo,
                 asset_id: assets[0].id
