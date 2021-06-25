@@ -46,6 +46,8 @@ jobs:
         shell: bash
         run: |
           echo "name: ${{ steps.get-asset.outputs.name }}"
+          ls -l "${{ steps.get-asset.outputs.name }}"
+          sha256sum "${{ steps.get-asset.outputs.name }}"
       - name: "Write repoclient config"
         uses: actions/github-script@v3
         env:
