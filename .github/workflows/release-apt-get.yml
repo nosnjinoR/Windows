@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install python3-adal --yes
           sudo dpkg -i repoclient.deb
           rm repoclient.deb
-      
+
       - name: "Configure Repo Client"
         uses: actions/github-script@v3
         with:
