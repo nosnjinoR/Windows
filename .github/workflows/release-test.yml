@@ -40,7 +40,7 @@ jobs:
                 asset_id: assets[0].id
               })
             console.log(buffer)
-            fs.writeFileSync(assets[0].name, buffer.data)
+            fs.writeFileSync(assets[0].name, Buffer.from(buffer.data))
             core.setOutput('name', assets[0].name)
       - name: DEBUG
         shell: bash
