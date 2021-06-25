@@ -38,6 +38,7 @@ jobs:
                 repo: context.repo.repo,
                 asset_id: assets[0].id
               })
+              console.log(buffer)
               out.write(buffer.data)
               out.end()
             core.setOutput('name', assets[0].name)
