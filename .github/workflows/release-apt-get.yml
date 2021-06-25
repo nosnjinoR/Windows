@@ -11,64 +11,64 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - name: setup python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+      - name: setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Download Repo Client'
-      env:
-        AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
-      run: |
-        az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repoclient.deb --auth-mode login
+      - name: 'Download Repo Client'
+        env:
+          AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
+        run: |
+          az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repoclient.deb --auth-mode login
 
-    - name: "Install Repo Client"
-      env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        AAD_CLIENT_SECRET: ${{ secrets.AAD_CLIENT_SECRET }}
-      run: |
-        sudo apt-get install python3-adal --yes
-        sudo dpkg -i repoclient.deb
-        python .github/configure_repoclient.py
-        rm repoclient.deb
-    
-    - name: "Get Release Asset"
-      id: get-asset
-      env:
-        RELEASE: ${{ github.event.inputs.release }}
-      uses: actions/github-script@v3
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        script: |
-          const { data } = await github.repos.getRelease({
-              owner: 'microsoft', // context.repo.owner,
-              repo: context.repo.repo,
-              release_id: process.env.RELEASE || 'latest'
-            })
-          const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
-          if (assets.length !== 1) {
-            throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
-          }
-          await github.repos.getReleaseAsset({
-              accept: 'application/octet-stream',
-              owner: 'microsoft', // context.repo.owner,
-              repo: context.repo.repo,
-              asset_id: assets[0].id
-            })
-          core.setOutput('name', assets[0].name)
+      - name: "Install Repo Client"
+        env:
+          AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+          AAD_CLIENT_SECRET: ${{ secrets.AAD_CLIENT_SECRET }}
+        run: |
+          sudo apt-get install python3-adal --yes
+          sudo dpkg -i repoclient.deb
+          python .github/configure_repoclient.py
+          rm repoclient.deb
+      
+      - name: "Get Release Asset"
+        id: get-asset
+        env:
+          RELEASE: ${{ github.event.inputs.release }}
+        uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { data } = await github.repos.getRelease({
+                owner: 'microsoft', // context.repo.owner,
+                repo: context.repo.repo,
+                release_id: process.env.RELEASE || 'latest'
+              })
+            const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
+            if (assets.length !== 1) {
+              throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
+            }
+            await github.repos.getReleaseAsset({
+                accept: 'application/octet-stream',
+                owner: 'microsoft', // context.repo.owner,
+                repo: context.repo.repo,
+                asset_id: assets[0].id
+              })
+            core.setOutput('name', assets[0].name)
 
-    - name: "Publish to apt feed"
-      env:
-        RELEASE: ${{ github.event.inputs.release }}
-      run: |
-        pip install requests
-        for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
-        do
-          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.get-asset.outputs.name}}" -r $id
-        done
+      - name: "Publish to apt feed"
+        env:
+          RELEASE: ${{ github.event.inputs.release }}
+        run: |
+          pip install requests
+          for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
+          do
+            repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.get-asset.outputs.name}}" -r $id
+          done
