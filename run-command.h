@@ -483,4 +483,9 @@ int run_processes_parallel_tr2(int n, get_next_task_fn, start_failure_fn,
 			       task_finished_fn, void *pp_cb,
 			       const char *tr2_category, const char *tr2_label);
 
+/*
+ * Get the path of the POSIX shell to use in `start_command()`.
+ */
+const char *get_shell_path(const char *fallback);
+
 #endif
