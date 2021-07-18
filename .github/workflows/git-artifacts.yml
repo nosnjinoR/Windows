@@ -544,17 +544,17 @@ jobs:
           Write-Output "FILENAMEX86=$($filename_x86)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Output "FILENAMEARM64=$($filename_arm64)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Extract portable x64 artifacts
-        uses: DuckSoft/extract-7z-action@v1
+        uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEX64 }}
           pathTarget: build
       - name: Extract portable x86 artifacts
-        uses: DuckSoft/extract-7z-action@v1
+        uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEX86 }}
           pathTarget: build
       - name: Extract portable arm64 artifacts
-        uses: DuckSoft/extract-7z-action@v1
+        uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEARM64 }}
           pathTarget: build
