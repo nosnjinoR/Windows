@@ -546,17 +546,17 @@ jobs:
       - name: Extract portable x64 artifacts
         uses: DuckSoft/extract-7z-action@v1
         with:
-          pathSource: {{ env.FILENAMEX64 }}
+          pathSource: ${{ env.FILENAMEX64 }}
           pathTarget: build
       - name: Extract portable x86 artifacts
         uses: DuckSoft/extract-7z-action@v1
         with:
-          pathSource: {{ env.FILENAMEX86 }}
+          pathSource: ${{ env.FILENAMEX86 }}
           pathTarget: build
       - name: Extract portable arm64 artifacts
         uses: DuckSoft/extract-7z-action@v1
         with:
-          pathSource: {{ env.FILENAMEARM64 }}
+          pathSource: ${{ env.FILENAMEARM64 }}
           pathTarget: build
       - name: Show content of build
         run: |
