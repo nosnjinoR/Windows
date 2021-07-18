@@ -535,10 +535,29 @@ jobs:
         with:
           name: portable-i686
           path: portable
-      - name: Extract portable artifacts
-        uses: edgarrc/action-7z@v1
+      - name: Find filenames
+        run: |
+          $filename_arm64 = (Get-ChildItem portable\*arm64.7z.exe)[0].FullName
+          $filename_x64 = (Get-ChildItem portable\*64-bit.7z.exe)[0].FullName
+          $filename_x86 = (Get-ChildItem portable\*32-bit.7z.exe)[0].FullName
+          Write-Output "FILENAMEX64=$($filename_x64)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "FILENAMEX86=$($filename_x86)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "FILENAMEARM64=$($filename_arm64)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Extract portable x64 artifacts
+        uses: DuckSoft/extract-7z-action@v1
         with:
-          args: 7z -y x "portable/*.7z" -obuild
+          pathSource: {{ env.FILENAMEX64 }}
+          pathTarget: build
+      - name: Extract portable x86 artifacts
+        uses: DuckSoft/extract-7z-action@v1
+        with:
+          pathSource: {{ env.FILENAMEX86 }}
+          pathTarget: build
+      - name: Extract portable arm64 artifacts
+        uses: DuckSoft/extract-7z-action@v1
+        with:
+          pathSource: {{ env.FILENAMEARM64 }}
+          pathTarget: build
       - name: Show content of build
         run: |
           gci build
