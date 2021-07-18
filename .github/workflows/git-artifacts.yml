@@ -516,3 +516,29 @@ jobs:
         with:
           name: nuget-x86_64
           path: artifacts
+  msix:
+    runs-on: windows-latest
+    needs: artifacts
+    steps:
+      - name: Download portable-arm64 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-arm64
+          path: portable
+      - name: Download portable-x86_64 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-x86_64
+          path: portable
+      - name: Download portable-i686 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-i686
+          path: portable
+      - name: Extract portable artifacts
+        uses: edgarrc/action-7z@v1
+        with:
+          args: 7z -y x "portable/*.7z" -obuild
+      - name: Show content of build
+        run: |
+          gci build
