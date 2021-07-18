@@ -547,17 +547,28 @@ jobs:
         uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEX64 }}
-          pathTarget: build
+          pathTarget: build/x64
       - name: Extract portable x86 artifacts
         uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEX86 }}
-          pathTarget: build
+          pathTarget: build/x86
       - name: Extract portable arm64 artifacts
         uses: DuckSoft/extract-7z-action@v1.0
         with:
           pathSource: ${{ env.FILENAMEARM64 }}
-          pathTarget: build
+          pathTarget: build/arm64          
       - name: Show content of build
         run: |
           gci build
+      - name: Clone build-extra
+        run: git clone --single-branch -b msix https://github.com/davidanthoff/build-extra build-extra
+      - name: Write packaging layout file
+        run: build-extra\msix\create_packaginglayout_file.ps1
+      - name: Build MSIX
+        run: |
+          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f build\PackagingLayout.xml /op build /pv 1.0.0.0 /bv 1.0.0.0
+      - uses: actions/upload-artifact@v2
+        with:
+          name: msixinstaller
+          path: build\*.appxbundle
