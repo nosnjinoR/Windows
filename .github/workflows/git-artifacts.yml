@@ -564,7 +564,10 @@ jobs:
       - name: Clone build-extra
         run: git clone --single-branch -b msix https://github.com/davidanthoff/build-extra build-extra
       - name: Write packaging layout file
-        run: build-extra\msix\create_packaginglayout_file.ps1
+        run: |
+          build-extra\msix\create_packaginglayout_file.ps1
+      - name: Copy appxmanifest
+        run: copy-item build-extra\msix\appxmanifest.xml build\appxmanifest.xml
       - name: Show content of build
         run: |
           gci build
@@ -573,7 +576,9 @@ jobs:
           gci build-extra\msix
       - name: Build MSIX
         run: |
-          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f build\PackagingLayout.xml /op build /pv 1.0.0.0 /bv 1.0.0.0
+          push-location build
+          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
+          pop-location
       - uses: actions/upload-artifact@v2
         with:
           name: msixinstaller
