@@ -565,6 +565,12 @@ jobs:
         run: git clone --single-branch -b msix https://github.com/davidanthoff/build-extra build-extra
       - name: Write packaging layout file
         run: build-extra\msix\create_packaginglayout_file.ps1
+      - name: Show content of build
+        run: |
+          gci build
+      - name: Show content of build
+        run: |
+          gci build-extra\msix
       - name: Build MSIX
         run: |
           &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f build\PackagingLayout.xml /op build /pv 1.0.0.0 /bv 1.0.0.0
