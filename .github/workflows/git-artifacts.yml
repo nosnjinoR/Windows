@@ -574,8 +574,13 @@ jobs:
       - name: Show content of build
         run: |
           gci build-extra\msix
-      - name: Build MSIX
+      - name: Delete WebView2Loader.dll
         run: |
+          Remove-Item build\x64\mingw64\libexec\git-core\WebView2Loader.dll
+          Remove-Item build\x86\mingw64\libexec\git-core\WebView2Loader.dll
+          Remove-Item build\arm64\mingw64\libexec\git-core\WebView2Loader.dll
+      - name: Build MSIX
+        run: |        
           push-location build
           &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
           pop-location
