@@ -594,9 +594,9 @@ jobs:
           Write-Output "Here we should sign the appxbundle that is in the buildstore folder with signtool."
       - uses: actions/upload-artifact@v2
         with:
-          name: standalonemsixinstaller
+          name: msixinstallerstandalone
           path: buildmsix\*.appxbundle
       - uses: actions/upload-artifact@v2
         with:
-          name: storemsixinstaller
+          name: msixinstallerstore
           path: buildstore\*.appxbundle
