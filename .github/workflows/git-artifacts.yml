@@ -572,7 +572,7 @@ jobs:
           build-extra\msix\create_packaginglayout_file.ps1
           Write-PackageLayoutFile "1.0.0.0" "buildmsix\appxmanifest.xml"
           Write-PackageLayoutFile "1.0.0.0" "buildstore\appxmanifest.xml"
-          Write-AppxManifest "1.0.0.0" "CN=Johannes Schindelin, O=Johannes Schindelin, L=Köln, S=North Rhine-Westphalia, C=DE" "buildmsix\PackagingLayout.xml"
+          Write-AppxManifest "1.0.0.0" "CN=Johannes Schindelin,O=Johannes Schindelin,L=Köln,S=North Rhine-Westphalia,C=DE" "buildmsix\PackagingLayout.xml"
           Write-AppxManifest "1.0.0.0" "CN=82A13EFD-FE37-4EFC-8BA4-1C3E9EFE5F23" "buildstore\PackagingLayout.xml"
       - name: Delete WebView2Loader.dll
         run: |
