@@ -563,28 +563,40 @@ jobs:
           gci build
       - name: Clone build-extra
         run: git clone --single-branch -b msix https://github.com/davidanthoff/build-extra build-extra
-      - name: Write packaging layout file
+      - name: Create folder for store and msix version
+        run: |
+          md buildmsix
+          md buildstore
+      - name: Write packaging layout files
         run: |
           build-extra\msix\create_packaginglayout_file.ps1
-      - name: Copy appxmanifest
-        run: copy-item build-extra\msix\appxmanifest.xml build\appxmanifest.xml
-      - name: Show content of build
-        run: |
-          gci build
-      - name: Show content of build
-        run: |
-          gci build-extra\msix
+          Write-PackageLayoutFile "1.0.0.0" "buildmsix\appxmanifest.xml"
+          Write-PackageLayoutFile "1.0.0.0" "buildstore\appxmanifest.xml"
+          Write-AppxManifest "1.0.0.0" "CN=Johannes Schindelin, O=Johannes Schindelin, L=Köln, S=North Rhine-Westphalia, C=DE" "buildmsix\PackagingLayout.xml"
+          Write-AppxManifest "1.0.0.0" "CN=82A13EFD-FE37-4EFC-8BA4-1C3E9EFE5F23" "buildstore\PackagingLayout.xml"
       - name: Delete WebView2Loader.dll
         run: |
           Remove-Item build\x64\mingw64\libexec\git-core\WebView2Loader.dll
           Remove-Item build\x86\mingw32\libexec\git-core\WebView2Loader.dll
           Remove-Item build\arm64\mingw32\libexec\git-core\WebView2Loader.dll
-      - name: Build MSIX
+      - name: Build Standalone MSIX
         run: |        
-          push-location build
+          push-location buildmsix
           &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
           pop-location
+      - name: Build Store MSIX
+        run: |        
+          push-location buildstore
+          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
+          pop-location
+      - name: Sign standalone MSIX
+        run: |
+          Write-Output "Here we should sign the appxbundle that is in the buildstore folder with signtool."
       - uses: actions/upload-artifact@v2
         with:
-          name: msixinstaller
-          path: build\*.appxbundle
+          name: standalonemsixinstaller
+          path: buildmsix\*.appxbundle
+      - uses: actions/upload-artifact@v2
+        with:
+          name: storemsixinstaller
+          path: buildstore\*.appxbundle
