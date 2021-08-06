@@ -30,6 +30,7 @@
 #include "help.h"
 #include "merge-recursive.h"
 #include "merge-ort-wrappers.h"
+#include "merge-ort.h"
 #include "resolve-undo.h"
 #include "remote.h"
 #include "fmt-merge-msg.h"
@@ -86,6 +87,9 @@ static int signoff;
 static const char *sign_commit;
 static int autostash;
 static int no_verify;
+static char *into;
+static char *output_file;
+static char *unmerged_file;
 
 static struct strategy all_strategy[] = {
 	{ "recursive",  DEFAULT_TWOHEAD | NO_TRIVIAL },
@@ -301,6 +305,9 @@ static struct option builtin_merge_options[] = {
 	OPT_BOOL(0, "overwrite-ignore", &overwrite_ignore, N_("update ignored files (default)")),
 	OPT_BOOL(0, "signoff", &signoff, N_("add a Signed-off-by trailer")),
 	OPT_BOOL(0, "no-verify", &no_verify, N_("bypass pre-merge-commit and commit-msg hooks")),
+	OPT_STRING(0, "into", &into, N_("commit"), N_("blah blah blah")),
+	OPT_STRING(0, "output", &output_file, N_("file"), N_("blah blah blah")),
+	OPT_STRING(0, "unmerged", &unmerged_file, N_("file"), N_("blah blah blah")),
 	OPT_END()
 };
 
@@ -1260,6 +1267,61 @@ static int merging_a_throwaway_tag(struct commit *commit)
 	return is_throwaway_tag;
 }
 
+static int bare_worktree_merge(int argc, const char **argv)
+{
+	struct commit *parent1, *parent2;
+	struct commit_list *common;
+	struct commit_list *merge_bases = NULL;
+	struct commit_list *j;
+	struct merge_options opt;
+	struct merge_result result;
+	int x;
+
+	parent1 = get_merge_parent(into);
+	if (!parent1)
+		help_unknown_ref(into, "merge",
+				 _("not something we can merge"));
+
+	if (argc != 1)
+		error(_("Not handling anything other than two heads merge with --into."));
+
+	parent2 = get_merge_parent(argv[0]);
+	if (!parent2)
+		help_unknown_ref(argv[0], "merge",
+				 _("not something we can merge"));
+
+	if (verify_signatures)
+		verify_merge_signature(parent2, verbosity, check_trust_level);
+
+	init_merge_options(&opt, the_repository);
+	/* FIXME: Support subtree??
+	if (use_strategies_nr == 1 &&
+	    !strcmp(use_strategies[0]->name, "subtree"))
+		opt.subtree_shift = "";
+	*/
+
+	opt.show_rename_progress = 0;
+	for (x = 0; x < xopts_nr; x++)
+		if (parse_merge_opt(&opt, xopts[x]))
+			die(_("Unknown strategy option: -X%s"), xopts[x]);
+
+	opt.branch1 = into;
+	opt.branch2 = merge_remote_util(parent2)->name;
+
+	/* Get the merge bases, in reverse order */
+	common = get_merge_bases(parent1, parent2);
+	if (!common && !allow_unrelated_histories)
+		die(_("refusing to merge unrelated histories"));
+	for (j = common; j; j = j->next)
+		commit_list_insert(j->item, &merge_bases);
+
+	memset(&result, 0, sizeof(result));
+	merge_incore_recursive(&opt, merge_bases, parent1, parent2, &result);
+	printf("%s\n", oid_to_hex(&result.tree->object.oid));
+	merge_switch_to_result(&opt, NULL, &result, 0, 0);
+	return result.clean ? 0 : 1;
+}
+
 int cmd_merge(int argc, const char **argv, const char *prefix)
 {
 	struct object_id result_tree, stash, head_oid;
@@ -1307,6 +1369,9 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 
 	if (verbosity < 0 && show_progress == -1)
 		show_progress = 0;
+
+	if (!into)
+		setup_work_tree();
 
 	if (abort_current_merge) {
 		int nargc = 2;
@@ -1359,6 +1424,12 @@ int cmd_merge(int argc, const char **argv, const char *prefix)
 		ret = cmd_commit(nargc, nargv, prefix);
 		goto done;
 	}
+
+	if (into) {
+		ret = bare_worktree_merge(argc, argv);
+		goto done;
+	}
+	setup_work_tree();
 
 	if (read_cache_unmerged())
 		die_resolve_conflict("merge");

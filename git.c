@@ -550,7 +550,7 @@ static struct cmd_struct commands[] = {
 	{ "mailinfo", cmd_mailinfo, RUN_SETUP_GENTLY | NO_PARSEOPT },
 	{ "mailsplit", cmd_mailsplit, NO_PARSEOPT },
 	{ "maintenance", cmd_maintenance, RUN_SETUP | NO_PARSEOPT },
-	{ "merge", cmd_merge, RUN_SETUP | NEED_WORK_TREE },
+	{ "merge", cmd_merge, RUN_SETUP_GENTLY },
 	{ "merge-base", cmd_merge_base, RUN_SETUP },
 	{ "merge-file", cmd_merge_file, RUN_SETUP_GENTLY },
 	{ "merge-index", cmd_merge_index, RUN_SETUP | NO_PARSEOPT },
