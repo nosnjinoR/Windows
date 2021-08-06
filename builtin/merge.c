@@ -1317,8 +1317,13 @@ static int bare_worktree_merge(int argc, const char **argv)
 
 	memset(&result, 0, sizeof(result));
 	merge_incore_recursive(&opt, merge_bases, parent1, parent2, &result);
+	if (output_file) {
+		FILE *fp = xfopen(output_file, "w");
+		merge_display_update_messages(&opt, &result, fp);
+		fclose(fp);
+	}
 	printf("%s\n", oid_to_hex(&result.tree->object.oid));
-	merge_switch_to_result(&opt, NULL, &result, 0, 0);
+	merge_finalize(&opt, &result);
 	return result.clean ? 0 : 1;
 }
 
