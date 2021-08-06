@@ -1322,6 +1322,17 @@ static int bare_worktree_merge(int argc, const char **argv)
 		merge_display_update_messages(&opt, &result, fp);
 		fclose(fp);
 	}
+	if (unmerged_file) {
+		struct string_list unmerged_files = STRING_LIST_INIT_NODUP;
+		FILE *fp = xfopen(unmerged_file, "w");
+		int i;
+
+		merge_get_unmerged_files(&result, &unmerged_files);
+		for (i = 0; i < unmerged_files.nr; i++)
+			fprintf(fp, "%s\n", unmerged_files.items[i].string);
+		fclose(fp);
+		string_list_clear(&unmerged_files, 0);
+	}
 	printf("%s\n", oid_to_hex(&result.tree->object.oid));
 	merge_finalize(&opt, &result);
 	return result.clean ? 0 : 1;
