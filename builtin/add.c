@@ -470,7 +470,7 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 {
 	int exit_status = 0;
 	struct pathspec pathspec;
-	struct dir_struct dir;
+	struct dir_struct dir = DIR_INIT;
 	int flags;
 	int add_new_files;
 	int require_pathspec;
@@ -581,7 +581,6 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	/* We do not really re-read the index but update the up-to-date flags */
 	preload_index(&the_index, &pathspec, 0);
 
-	dir_init(&dir);
 	if (add_new_files) {
 		int baselen;
 

@@ -2073,7 +2073,7 @@ static int configset_add_value(struct config_set *cs, const char *key, const cha
 		e = xmalloc(sizeof(*e));
 		hashmap_entry_init(&e->ent, strhash(key));
 		e->key = xstrdup(key);
-		string_list_init(&e->value_list, 1);
+		string_list_init_dup(&e->value_list);
 		hashmap_add(&cs->config_hash, &e->ent);
 	}
 	si = string_list_append_nodup(&e->value_list, xstrdup_or_null(value));
@@ -2517,31 +2517,6 @@ int git_config_get_max_percent_split_change(void)
 	return -1; /* default value */
 }
 
-int repo_config_get_fsmonitor(struct repository *r)
-{
-	if (!r->worktree) {
-		/* FSMonitor makes no sense in bare repositories */
-		core_fsmonitor = NULL;
-		return 1;
-	}
-
-	if (r->settings.use_builtin_fsmonitor > 0) {
-		core_fsmonitor = "(built-in daemon)";
-		return 1;
-	}
-
-	if (repo_config_get_pathname(r, "core.fsmonitor", &core_fsmonitor))
-		core_fsmonitor = getenv("GIT_TEST_FSMONITOR");
-
-	if (core_fsmonitor && !*core_fsmonitor)
-		core_fsmonitor = NULL;
-
-	if (core_fsmonitor)
-		return 1;
-
-	return 0;
-}
-
 int git_config_get_index_threads(int *dest)
 {
 	int is_bool, val;
@@ -2849,7 +2824,7 @@ static void maybe_remove_section(struct config_store_data *store,
 	begin = store->parsed[i].begin;
 
 	/*
-	 * Next, make sure that we are removing he last key(s) in the section,
+	 * Next, make sure that we are removing the last key(s) in the section,
 	 * and that there are no comments that are possibly about the current
 	 * section.
 	 */
@@ -3063,7 +3038,8 @@ int git_config_set_multivar_in_file_gently(const char *config_filename,
 		if (contents == MAP_FAILED) {
 			if (errno == ENODEV && S_ISDIR(st.st_mode))
 				errno = EISDIR;
-			error_errno(_("unable to mmap '%s'"), config_filename);
+			error_errno(_("unable to mmap '%s'%s"),
+					config_filename, mmap_os_err());
 			ret = CONFIG_INVALID_FILE;
 			contents = NULL;
 			goto out_free;

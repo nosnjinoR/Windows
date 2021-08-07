@@ -496,6 +496,12 @@ int send_pack(struct send_pack_args *args,
 	const char *push_cert_nonce = NULL;
 	struct packet_reader reader;
 
+	if (!remote_refs) {
+		fprintf(stderr, "No refs in common and none specified; doing nothing.\n"
+			"Perhaps you should specify a branch.\n");
+		return 0;
+	}
+
 	git_config(send_pack_config, NULL);
 
 	git_config_get_bool("push.negotiate", &push_negotiate);
@@ -546,11 +552,6 @@ int send_pack(struct send_pack_args *args,
 		}
 	}
 
-	if (!remote_refs) {
-		fprintf(stderr, "No refs in common and none specified; doing nothing.\n"
-			"Perhaps you should specify a branch.\n");
-		return 0;
-	}
 	if (args->atomic && !atomic_supported)
 		die(_("the receiving end does not support --atomic push"));
 

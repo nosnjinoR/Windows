@@ -118,6 +118,7 @@ static int write_in_file(const char *path, const char *mode, const char *format,
 	return fclose(fp);
 }
 
+__attribute__((format (printf, 2, 3)))
 static int write_to_file(const char *path, const char *format, ...)
 {
 	int res;
@@ -130,6 +131,7 @@ static int write_to_file(const char *path, const char *format, ...)
 	return res;
 }
 
+__attribute__((format (printf, 2, 3)))
 static int append_to_file(const char *path, const char *format, ...)
 {
 	int res;
