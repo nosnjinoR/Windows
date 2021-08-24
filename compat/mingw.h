@@ -332,6 +332,9 @@ int mingw_getpagesize(void);
 #define getpagesize mingw_getpagesize
 #endif
 
+int mingw_fsync_no_flush(int fd);
+#define fsync_no_flush mingw_fsync_no_flush
+
 struct rlimit {
 	unsigned int rlim_cur;
 };

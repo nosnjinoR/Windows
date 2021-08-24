@@ -8,6 +8,7 @@
 #include "../cache.h"
 #include "win32/exit-process.h"
 #include "win32/lazyload.h"
+#include "win32/ntifs.h"
 #include "../config.h"
 #include "dir.h"
 #include "win32/fscache.h"
@@ -2664,6 +2665,30 @@ repeat:
 
 	errno = EACCES;
 	return -1;
+}
+
+int mingw_fsync_no_flush(int fd)
+{
+       IO_STATUS_BLOCK io_status;
+
+#define FLUSH_FLAGS_FILE_DATA_ONLY 1
+
+       DECLARE_PROC_ADDR(ntdll.dll, NTSTATUS, NtFlushBuffersFileEx,
+			 HANDLE FileHandle, ULONG Flags, PVOID Parameters, ULONG ParameterSize,
+			 PIO_STATUS_BLOCK IoStatusBlock);
+
+       if (!INIT_PROC_ADDR(NtFlushBuffersFileEx))
+		return -1;
+
+       /* See https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-ntflushbuffersfileex */
+       memset(&io_status, 0, sizeof(io_status));
+       if (NtFlushBuffersFileEx((HANDLE)_get_osfhandle(fd), FLUSH_FLAGS_FILE_DATA_ONLY,
+				NULL, 0, &io_status)) {
+		errno = EINVAL;
+		return -1;
+       }
+
+       return 0;
 }
 
 /*

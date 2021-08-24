@@ -541,6 +541,7 @@ int xmkstemp_mode(char *filename_template, int mode)
 int git_fsync(int fd, enum fsync_action action)
 {
 	if (action == FSYNC_WRITEOUT_ONLY) {
+
 #ifdef __APPLE__
 		/*
 		 * on Mac OS X, fsync just causes filesystem cache writeback but does not
@@ -561,6 +562,10 @@ int git_fsync(int fd, enum fsync_action action)
 		return sync_file_range(fd, 0, 0, SYNC_FILE_RANGE_WAIT_BEFORE |
 						 SYNC_FILE_RANGE_WRITE |
 						 SYNC_FILE_RANGE_WAIT_AFTER);
+#endif
+
+#ifdef fsync_no_flush
+		return fsync_no_flush(fd);
 #endif
 
 		errno = ENOSYS;
