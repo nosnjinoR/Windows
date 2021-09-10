@@ -11,7 +11,7 @@
 
 # run in, e.g., the /contrib/buildsystems/ folder
 
-find . -type f -name "compile_commands*" | xargs sed --in-place=.tmp 's: /: -:g; s/ -Od//g; s/ -Ob0//g; s/ -Zi//g'
+find . -type f -name "compile_commands.json" | xargs sed --in-place=.tmp 's: /: -:g; s/ -Od//g; s/ -Ob0//g; s/ -Zi//g'
 
 # references
 # https://github.com/git/git/commit/409047a2b3fabb6a5f3fdbb28d93a5db3a7de28c
