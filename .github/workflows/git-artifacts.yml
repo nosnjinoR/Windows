@@ -31,7 +31,7 @@ jobs:
       latest-sdk64-extra-build-id: ${{ steps.determine-latest-sdk64-extra-build-id.outputs.id }}
     steps:
       - name: Configure user
-        shell: bash
+        shell: bash 
         run:
           USER_NAME="${{github.actor}}" &&
           USER_EMAIL="${{github.actor}}@users.noreply.github.com" &&
