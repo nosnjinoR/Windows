@@ -759,10 +759,10 @@ static int is_local_disk_file(const char *filename)
 
 	/*
 	 * GetDriveTypeW() requires a final slash.
-	 */ 
+	 */
 	windex = wcslen(wpath) - 1;
 	while (windex >= 0) {
-		if (is_dir_sep(wpath[windex])) 
+		if (is_dir_sep(wpath[windex]))
 			break;
 		windex--;
 	}
@@ -777,7 +777,7 @@ static int is_local_disk_file(const char *filename)
 	if (!GetFullPathNameW(wpath, MAX_LONG_PATH, wfullpath, NULL))
 		return 0;
 
-	if (GetDriveTypeW(wfullpath) == DRIVE_REMOTE) 
+	if (GetDriveTypeW(wfullpath) == DRIVE_REMOTE)
 		return 0;
 
 	return 1;
