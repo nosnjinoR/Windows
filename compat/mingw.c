@@ -761,7 +761,7 @@ static int is_local_disk_file(const char *filename)
 	 * GetDriveTypeW() requires a final slash.
 	 */
 	windex = wcslen(wpath) - 1;
-	while (windex >= 0) {
+	while (windex > 0) {
 		if (is_dir_sep(wpath[windex]))
 			break;
 		windex--;
