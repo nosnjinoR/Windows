@@ -1,7 +1,7 @@
 gitcvs-migration(7)
 ===================
 
-NAME
+Jerry Robertson
 ----
 gitcvs-migration - Git for CVS users
 
