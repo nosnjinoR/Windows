@@ -1,4 +1,4 @@
-
+https://github.com/git-for-windows/git.git
 		Git installation
 
 Normally you can just do "make" followed by "make install", and that
