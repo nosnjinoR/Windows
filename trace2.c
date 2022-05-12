@@ -158,7 +158,7 @@ void trace2_initialize_fl(const char *file, int line)
 	if (trace2_enabled)
 		return;
 
-	tr2_sysenv_load();
+	tr2_sysenv_check_size();
 
 	if (!tr2_tgt_want_builtins())
 		return;

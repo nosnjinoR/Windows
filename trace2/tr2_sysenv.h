@@ -30,7 +30,8 @@ enum tr2_sysenv_variable {
 	TR2_SYSENV_MUST_BE_LAST
 };
 
-void tr2_sysenv_load(void);
+int tr2_sysenv_cb(const char *key, const char *value, void *d);
+void tr2_sysenv_check_size(void);
 
 const char *tr2_sysenv_get(enum tr2_sysenv_variable);
 const char *tr2_sysenv_display_name(enum tr2_sysenv_variable var);
