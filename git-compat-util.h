@@ -372,6 +372,10 @@ char *gitdirname(char *);
 #define PATH_MAX 4096
 #endif
 
+#ifndef get_max_path_size
+#define get_max_path_size() PATH_MAX
+#endif
+
 typedef uintmax_t timestamp_t;
 #define PRItime PRIuMAX
 #define parse_timestamp strtoumax

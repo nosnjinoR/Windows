@@ -27,7 +27,10 @@ static void restore_sigpipe_to_default(void)
 
 static int read_very_early_config_cb(const char *key, const char *value, void *d)
 {
-	return tr2_sysenv_cb(key, value, d);
+	if (starts_with(key, "core."))
+		return platform_core_config(key, value, d);
+	else
+		return tr2_sysenv_cb(key, value, d);
 }
 
 int main(int argc, const char **argv)

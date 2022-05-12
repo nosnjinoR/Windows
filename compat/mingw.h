@@ -552,6 +552,12 @@ int is_valid_win32_path(const char *path, int allow_literal_nul);
  */
 int handle_long_path(wchar_t *path, int len, int max_path, int expand);
 
+static inline int mingw_get_max_path_size(void)
+{
+	return core_long_paths ? MAX_LONG_PATH : MAX_PATH;
+}
+#define get_max_path_size mingw_get_max_path_size
+
 /**
  * Converts UTF-8 encoded string to UTF-16LE.
  *
