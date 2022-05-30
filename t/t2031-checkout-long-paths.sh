@@ -99,4 +99,11 @@ test_expect_success SHORTABSPATH 'clean up path close to MAX_PATH' '
 	test ! -d "$subdir1"
 '
 
+test_expect_success 'init with long path' '
+	p=/123456789abcdef/123456789abcdef/123456789abcdef/123456789abc/ef &&
+	p=y$p$p$p$p &&
+	test_config_global core.longpaths true &&
+	git init $p
+'
+
 test_done
