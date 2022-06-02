@@ -933,7 +933,7 @@ static int current_directory_len = 0;
 
 int mingw_chdir(const char *dirname)
 {
-	int result;
+	int result = 0;
 	wchar_t wdirname[MAX_LONG_PATH];
 	if (xutftowcs_long_path(wdirname, dirname) < 0)
 		return -1;
@@ -954,8 +954,11 @@ int mingw_chdir(const char *dirname)
 		CloseHandle(hnd);
 	}
 
-	result = _wchdir(normalize_ntpath(wdirname));
+	if(!SetCurrentDirectoryW(wdirname)) {
+		result = -1;
+	}
 	current_directory_len = GetCurrentDirectoryW(0, NULL);
+
 	return result;
 }
 
@@ -1254,15 +1257,11 @@ unsigned int sleep (unsigned int seconds)
 
 char *mingw_mktemp(char *template)
 {
-	wchar_t wtemplate[MAX_PATH];
+	wchar_t wtemplate[MAX_LONG_PATH];
 	int offset = 0;
 
-	/* we need to return the path, thus no long paths here! */
-	if (xutftowcsn(wtemplate, template, MAX_PATH, -1) < 0) {
-		if (errno == ERANGE)
-			errno = ENAMETOOLONG;
+	if (xutftowcs_long_path(wtemplate, template) < 0)
 		return NULL;
-	}
 
 	if (is_dir_sep(template[0]) && !is_dir_sep(template[1]) &&
 	    iswalpha(wtemplate[0]) && wtemplate[1] == L':') {
@@ -1278,10 +1277,14 @@ char *mingw_mktemp(char *template)
 
 int mkstemp(char *template)
 {
-	char *filename = mktemp(template);
-	if (filename == NULL)
+	wchar_t wtemplate[MAX_LONG_PATH];
+
+	if (xutftowcs_long_path(wtemplate, template) < 0)
 		return -1;
-	return open(filename, O_RDWR | O_CREAT, 0600);
+	if (!_wmktemp(wtemplate))
+		return -1;
+
+	return _wopen(wtemplate, O_RDWR | O_CREAT, 0600);
 }
 
 int gettimeofday(struct timeval *tv, void *tz)
@@ -1401,7 +1404,7 @@ char *mingw_strbuf_realpath(struct strbuf *resolved, const char *path)
 
 char *mingw_getcwd(char *pointer, int len)
 {
-	wchar_t cwd[MAX_PATH], wpointer[MAX_PATH];
+	wchar_t cwd[MAX_LONG_PATH], wpointer[MAX_LONG_PATH];
 	DWORD ret = GetCurrentDirectoryW(ARRAY_SIZE(cwd), cwd);
 	HANDLE hnd;
 
@@ -3488,16 +3491,16 @@ static PSID get_current_user_sid(void)
 
 int is_path_owned_by_current_sid(const char *path)
 {
-	WCHAR wpath[MAX_PATH];
+	WCHAR wpath[MAX_LONG_PATH];
 	PSID sid = NULL;
 	PSECURITY_DESCRIPTOR descriptor = NULL;
 	DWORD err;
 
-	static wchar_t home[MAX_PATH];
+	static wchar_t home[MAX_LONG_PATH];
 
 	int result = 0;
 
-	if (xutftowcs_path(wpath, path) < 0)
+	if (xutftowcs_long_path(wpath, path) < 0)
 		return 0;
 
 	/*
