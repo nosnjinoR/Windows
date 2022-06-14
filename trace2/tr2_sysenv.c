@@ -57,7 +57,14 @@ static struct tr2_sysenv_entry tr2_sysenv_settings[] = {
 };
 /* clang-format on */
 
-static int tr2_sysenv_cb(const char *key, const char *value, void *d)
+/*
+ * Load Trace2 settings from the system config (usually "/etc/gitconfig"
+ * unless we were built with a runtime-prefix).  These are intended to
+ * define the default values for Trace2 as requested by the administrator.
+ *
+ * Then override with the Trace2 settings from the global config.
+ */
+int tr2_sysenv_cb(const char *key, const char *value, void *d)
 {
 	int k;
 
@@ -75,19 +82,10 @@ static int tr2_sysenv_cb(const char *key, const char *value, void *d)
 	return 0;
 }
 
-/*
- * Load Trace2 settings from the system config (usually "/etc/gitconfig"
- * unless we were built with a runtime-prefix).  These are intended to
- * define the default values for Trace2 as requested by the administrator.
- *
- * Then override with the Trace2 settings from the global config.
- */
-void tr2_sysenv_load(void)
+void tr2_sysenv_check_size(void)
 {
 	if (ARRAY_SIZE(tr2_sysenv_settings) != TR2_SYSENV_MUST_BE_LAST)
 		BUG("tr2_sysenv_settings size is wrong");
-
-	read_very_early_config(tr2_sysenv_cb, NULL);
 }
 
 /*

@@ -1,6 +1,8 @@
 #include "cache.h"
+#include "config.h"
 #include "exec-cmd.h"
 #include "attr.h"
+#include "trace2/tr2_sysenv.h"
 
 /*
  * Many parts of Git have subprograms communicate via pipe, expect the
@@ -21,6 +23,14 @@ static void restore_sigpipe_to_default(void)
 	sigaddset(&unblock, SIGPIPE);
 	sigprocmask(SIG_UNBLOCK, &unblock, NULL);
 	signal(SIGPIPE, SIG_DFL);
+}
+
+static int read_very_early_config_cb(const char *key, const char *value, void *d)
+{
+	if (starts_with(key, "core."))
+		return platform_core_config(key, value, d);
+	else
+		return tr2_sysenv_cb(key, value, d);
 }
 
 int main(int argc, const char **argv)
@@ -46,7 +56,10 @@ int main(int argc, const char **argv)
 
 	attr_start();
 
+	read_very_early_config(read_very_early_config_cb, NULL);
+
 	trace2_initialize();
+
 	trace2_cmd_start(argv);
 	trace2_collect_process_info(TRACE2_PROCESS_INFO_STARTUP);
 
