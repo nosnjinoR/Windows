@@ -656,7 +656,9 @@ ifeq ($(uname_S),MINGW)
 	USE_WIN32_IPC = YesPlease
 	USE_WIN32_MMAP = YesPlease
 	MMAP_PREVENTS_DELETE = UnfortunatelyYes
-	USE_NED_ALLOCATOR = YesPlease
+	ifneq (CLANGARM64,$(MSYSTEM))
+		USE_NED_ALLOCATOR = YesPlease
+	endif
 	UNRELIABLE_FSTAT = UnfortunatelyYes
 	OBJECT_CREATION_USES_RENAMES = UnfortunatelyNeedsTo
 	NO_REGEX = YesPlease
@@ -711,9 +713,15 @@ else
 			prefix = /mingw64
 			HOST_CPU = x86_64
 			BASIC_LDFLAGS += -Wl,--pic-executable,-e,mainCRTStartup
+		endif
+		ifeq (CLANGARM64,$(MSYSTEM))
+			prefix = /clangarm64
+			HOST_CPU = aarch64
+			BASIC_LDFLAGS += -Wl,--pic-executable,-e,mainCRTStartup
 		else
 			COMPAT_CFLAGS += -D_USE_32BIT_TIME_T
 			BASIC_LDFLAGS += -Wl,--large-address-aware
+			USE_NED_ALLOCATOR = YesPlease
 		endif
 		CC = gcc
 		COMPAT_CFLAGS += -D__USE_MINGW_ANSI_STDIO=0 -DDETECT_MSYS_TTY \
@@ -726,7 +734,6 @@ else
 		USE_GETTEXT_SCHEME = fallthrough
 		USE_LIBPCRE = YesPlease
 		NO_CURL =
-		USE_NED_ALLOCATOR = YesPlease
 		NO_PYTHON =
 		ifeq (/mingw64,$(subst 32,64,$(prefix)))
 			# Move system config into top-level /etc/
