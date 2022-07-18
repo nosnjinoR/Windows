@@ -108,8 +108,8 @@ static int win32_unwind(struct backtrace_data *bdata)
     HMODULE kernel32 =
       LoadLibraryExW(L"kernel32.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
     if (kernel32)
-      RtlCaptureStackBackTrace =
-        (void *)GetProcAddress(kernel32, "RtlCaptureStackBackTrace");
+      RtlCaptureStackBackTrace = (USHORT (*)(ULONG, ULONG, PVOID*, PULONG))
+        (void (*)(void))GetProcAddress(kernel32, "RtlCaptureStackBackTrace");
     initialized = 1;
     if (!RtlCaptureStackBackTrace)
       return -1;

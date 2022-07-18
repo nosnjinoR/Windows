@@ -3624,6 +3624,31 @@ static int is_system32_path(const char *path)
 	return 1;
 }
 
+#include "libbacktrace/backtrace.h"
+#include "libbacktrace/backtrace-supported.h"
+
+static void bt_error_callback(void *data, const char *msg, int errnum)
+{
+      error("%s (%d)", msg, errnum);
+}
+
+static struct backtrace_state *bt_state;
+
+static int bt_full_callback(void *data, uintptr_t pc, const char *filename, int lineno, const char *function)
+{
+      fprintf(stderr, "%s:%d %s %p\n", filename, lineno, function, (void *)pc);
+
+      return 0;
+}
+
+static void printStacktraceWithLines(void)
+{
+      if (!bt_state)
+              bt_state = backtrace_create_state(NULL, BACKTRACE_SUPPORTS_THREADS, bt_error_callback, NULL);
+      backtrace_full(bt_state, 1, bt_full_callback, bt_error_callback, NULL);
+}
+
+
 static void setup_windows_environment(void)
 {
 	char *tmp = getenv("TMPDIR");
@@ -3638,6 +3663,7 @@ static void setup_windows_environment(void)
 		}
 	}
 
+printStacktraceWithLines();
 	if (tmp) {
 		/*
 		 * Convert all dir separators to forward slashes,

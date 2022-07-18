@@ -1621,8 +1621,8 @@ ifdef OPEN_RETURNS_EINTR
 endif
 ifneq (,$(DEBUG_FILE_LOCKS))
 	BACKTRACE_SOURCES := $(patsubst %,compat/libbacktrace/%,atomic.c \
-		alloc.c dwarf.c state.c fileline.c posix.c pecoff.c sort.c \
-		read.c)
+		alloc.c backtrace.c dwarf.c state.c fileline.c posix.c \
+		pecoff.c sort.c read.c)
 	BACKTRACE_OBJS := $(patsubst %.c,%.o,$(BACKTRACE_SOURCES))
 	COMPAT_OBJS += $(BACKTRACE_OBJS)
 $(BACKTRACE_OBJS): EXTRA_CPPFLAGS = -I compat/libbacktrace
