@@ -3369,13 +3369,14 @@ read_referenced_name_from_attr (struct dwarf_data *ddata, struct unit *u,
 
   if (val->encoding == ATTR_VAL_REF_INFO)
     {
+      uint64_t offset;
       struct unit *unit
 	= find_unit (ddata->units, ddata->units_count,
 		     val->u.uint);
       if (unit == NULL)
 	return NULL;
 
-      uint64_t offset = val->u.uint - unit->low_offset;
+      offset = val->u.uint - unit->low_offset;
       return read_referenced_name (ddata, unit, offset, error_callback, data);
     }
 
@@ -3385,13 +3386,14 @@ read_referenced_name_from_attr (struct dwarf_data *ddata, struct unit *u,
 
   if (val->encoding == ATTR_VAL_REF_ALT_INFO)
     {
+      uint64_t offset;
       struct unit *alt_unit
 	= find_unit (ddata->altlink->units, ddata->altlink->units_count,
 		     val->u.uint);
       if (alt_unit == NULL)
 	return NULL;
 
-      uint64_t offset = val->u.uint - alt_unit->low_offset;
+      offset = val->u.uint - alt_unit->low_offset;
       return read_referenced_name (ddata->altlink, alt_unit, offset,
 				   error_callback, data);
     }
