@@ -19434,11 +19434,6 @@ msgstr "版本庫 “%s” 因錯誤而與 fsmonitor 不相容"
 
 #: fsmonitor-settings.c
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "遠端版本庫 “%s” 與 fsmonitor 不相容"
-
-#: fsmonitor-settings.c
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "虛擬版本庫 “%s” 與 fsmonitor 不相容"
 

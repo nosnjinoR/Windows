@@ -65,9 +65,6 @@ static enum fsmonitor_reason check_volume(struct repository *r)
 			 "statfs('%s') [type 0x%08x][flags 0x%08x] '%s'",
 			 r->worktree, fs.f_type, fs.f_flags, fs.f_fstypename);
 
-	if (!(fs.f_flags & MNT_LOCAL))
-		return FSMONITOR_REASON_REMOTE;
-
 	if (!strcmp(fs.f_fstypename, "msdos")) /* aka FAT32 */
 		return FSMONITOR_REASON_NOSOCKETS;
 

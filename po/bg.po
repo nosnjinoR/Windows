@@ -16445,10 +16445,6 @@ msgid "repository '%s' is incompatible with fsmonitor due to errors"
 msgstr "хранилището „%s“ е несъвместимо с fsmonitor поради грешки"
 
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "отдалеченото хранилище „%s“ е съвместимо с fsmonitor"
-
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "виртуалното хранилище „%s“ е несъвместимо с fsmonitor"
 

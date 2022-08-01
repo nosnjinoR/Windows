@@ -111,13 +111,6 @@ static enum fsmonitor_reason check_remote(struct repository *r)
 			 "DriveType '%s' L'%ls' (%u)",
 			 r->worktree, wfullpath, driveType);
 
-	if (driveType == DRIVE_REMOTE) {
-		trace_printf_key(&trace_fsmonitor,
-				 "check_remote('%s') true",
-				 r->worktree);
-		return FSMONITOR_REASON_REMOTE;
-	}
-
 	return FSMONITOR_REASON_OK;
 }
 

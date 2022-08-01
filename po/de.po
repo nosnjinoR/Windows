@@ -16207,10 +16207,6 @@ msgid "repository '%s' is incompatible with fsmonitor due to errors"
 msgstr "Repository '%s' ist wegen Fehler inkompatibel mit fsmonitor"
 
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "Remote-Repository '%s' ist inkompatibel mit fsmonitor"
-
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "virtuelles Repository '%s' ist inkompatibel mit fsmonitor"
 

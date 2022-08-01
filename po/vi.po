@@ -15840,10 +15840,6 @@ msgid "repository '%s' is incompatible with fsmonitor due to errors"
 msgstr "kho '%s' là không tương thích với fsmonitor bởi vì có lỗi"
 
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "kho trên mạng '%s' là không tương thích với fsmonitor"
-
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "kho ảo '%s' là không tương thích với fsmonitor"
 

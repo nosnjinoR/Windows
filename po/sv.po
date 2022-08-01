@@ -15694,10 +15694,6 @@ msgid "repository '%s' is incompatible with fsmonitor due to errors"
 msgstr "arkivet \"%s\" är inkompatibelt med fsmonitor på grund av fel"
 
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "fjärrarkivet \"%s\" är inkompatibelt med fsmonitor"
-
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "det virtuella arkivet \"%s\" är inkompatibelt med fsmonitor"
 

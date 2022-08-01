@@ -19585,11 +19585,6 @@ msgstr "因为错误，仓库 '%s' 与 fsmonitor 不兼容"
 
 #: fsmonitor-settings.c
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "远程仓库 '%s' 与 fsmonitor 不兼容"
-
-#: fsmonitor-settings.c
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "虚拟仓库 '%s' 与 fsmonitor 不兼容"
 

@@ -19718,11 +19718,6 @@ msgstr ""
 
 #: fsmonitor-settings.c
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr ""
-
-#: fsmonitor-settings.c
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr ""
 

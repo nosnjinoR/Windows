@@ -15791,10 +15791,6 @@ msgid "repository '%s' is incompatible with fsmonitor due to errors"
 msgstr "'%s' deposu, hatalardan dolayı fsmonitor ile uyumsuz"
 
 #, c-format
-msgid "remote repository '%s' is incompatible with fsmonitor"
-msgstr "uzak depo '%s', fsmonitor ile uyumsuz"
-
-#, c-format
 msgid "virtual repository '%s' is incompatible with fsmonitor"
 msgstr "sanal depo '%s', fsmonitor ile uyumsuz"
 
