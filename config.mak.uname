@@ -699,8 +699,10 @@ else
 		# Enable DEP
 		BASIC_LDFLAGS += -Wl,--nxcompat
 		# Enable ASLR (unless debugging)
+		ifeq (,$(DEBUG_FILE_LOCKS))
 		ifneq (,$(findstring -O,$(filter-out -O0 -Og,$(CFLAGS))))
 			BASIC_LDFLAGS += -Wl,--dynamicbase
+		endif
 		endif
 		ifeq (MINGW32,$(MSYSTEM))
 			prefix = /mingw32

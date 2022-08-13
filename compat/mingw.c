@@ -18,6 +18,174 @@
 #include "../attr.h"
 #include "../string-list.h"
 
+#ifdef DEBUG_FILE_LOCKS
+
+#include "libbacktrace/backtrace.h"
+#include "../hashmap.h"
+
+struct file_lock_backtrace
+{
+	struct hashmap_entry entry;
+	int fd, count;
+	uintptr_t *pcs;
+	const char *filename;
+};
+
+static CRITICAL_SECTION backtrace_mutex;
+static struct hashmap file_lock_map;
+#define FILE_LOCK_MAX_FD 256
+static struct file_lock_backtrace *file_lock_by_fd[FILE_LOCK_MAX_FD];
+
+static int my_backtrace_cb(void *data, uintptr_t pc, const char *filename,
+			   int lineno, const char *function)
+{
+	struct strbuf *buf = data;
+
+	if (!function || !strcmp("__tmainCRTStartup", function))
+		return -1;
+
+	strbuf_addf(buf, "%s:%d:\n\t%s\n", filename, lineno, function);
+
+	return 0;
+}
+
+static void my_error_cb(void *data, const char *msg, int errnum)
+{
+	struct strbuf *buf = data;
+
+	strbuf_addf(buf, "error %s (%d)\n", msg, errnum);
+}
+
+static void file_lock_backtrace(struct file_lock_backtrace *data,
+				struct strbuf *buf)
+{
+	static struct backtrace_state *state;
+	static int initialized;
+	int i;
+
+	if (!initialized) {
+		EnterCriticalSection(&backtrace_mutex);
+		if (!initialized) {
+			state = backtrace_create_state(NULL, 1, my_error_cb,
+						       NULL);
+			initialized = 1;
+		}
+		LeaveCriticalSection(&backtrace_mutex);
+	}
+
+	if (data->fd >= 0)
+		strbuf_addf(buf, "file '%s' (fd %d) was opened here:\n",
+			    data->filename, data->fd);
+	for (i = 0; i < data->count; i++)
+		if (backtrace_pcinfo(state, data->pcs[i], my_backtrace_cb,
+				     my_error_cb, buf) < 0)
+			break;
+}
+
+static struct file_lock_backtrace *alloc_file_lock_backtrace(int fd,
+		const char *filename)
+{
+	DECLARE_PROC_ADDR(kernel32.dll, USHORT, NTAPI, RtlCaptureStackBackTrace,
+			  ULONG, ULONG, PVOID*, PULONG);
+	struct file_lock_backtrace *result;
+	uintptr_t pcs[62];
+	int count = 0;
+	size_t pcs_size = 0, size, len = strlen(filename) + 1;
+
+	if ((fd < 0 || fd >= FILE_LOCK_MAX_FD) && fd != -123)
+		BUG("Called with fd = %d\n", fd);
+
+	if (INIT_PROC_ADDR(RtlCaptureStackBackTrace)) {
+		count = RtlCaptureStackBackTrace(1, ARRAY_SIZE(pcs),
+						 (void **)pcs, NULL);
+		pcs_size = sizeof(uintptr_t) * count;
+	}
+	size = sizeof(*result) + pcs_size + len + 1;
+
+	result = xmalloc(size);
+	result->fd = fd;
+	result->count = count;
+	if (!count)
+		result->pcs = NULL;
+	else {
+		result->pcs = (uintptr_t *)((char *)result + sizeof(*result));
+		memcpy(result->pcs, pcs, pcs_size);
+	}
+
+	result->filename = ((char *)result + sizeof(*result) + pcs_size);
+	strlcpy((char *)result->filename, filename, len);
+
+	if (fd < 0)
+		return result;
+
+	EnterCriticalSection(&backtrace_mutex);
+	if (file_lock_by_fd[fd]) {
+		struct strbuf buf = STRBUF_INIT;
+		strbuf_addf(&buf, "Bogus file_lock (%d). First trace:\n", fd);
+		file_lock_backtrace(file_lock_by_fd[fd], &buf);
+		strbuf_addf(&buf, "\nSecond trace:\n");
+		file_lock_backtrace(result, &buf);
+		BUG("%s", buf.buf);
+	}
+	file_lock_by_fd[fd] = result;
+	hashmap_entry_init(&result->entry, strihash(filename));
+	hashmap_add(&file_lock_map, &result->entry);
+	LeaveCriticalSection(&backtrace_mutex);
+
+	return result;
+}
+
+static void current_backtrace(struct strbuf *buf)
+{
+	struct file_lock_backtrace *p = alloc_file_lock_backtrace(-123, "");
+	file_lock_backtrace(p, buf);
+	free(p);
+}
+
+static void remove_file_lock_backtrace(int fd)
+{
+	if (fd < 0 || fd >= FILE_LOCK_MAX_FD)
+		BUG("Called with fd = %d\n", fd);
+
+	EnterCriticalSection(&backtrace_mutex);
+	if (!file_lock_by_fd[fd])
+		BUG("trying to release non-existing lock for fd %d", fd);
+
+	hashmap_remove(&file_lock_map, &file_lock_by_fd[fd]->entry, NULL);
+	free(file_lock_by_fd[fd]);
+	file_lock_by_fd[fd] = NULL;
+	LeaveCriticalSection(&backtrace_mutex);
+}
+
+static int file_lock_backtrace_cmp(const void *dummy,
+		const struct file_lock_backtrace *a,
+		const struct file_lock_backtrace *b,
+		const void *keydata)
+{
+	return strcasecmp(a->filename,
+			  keydata ? (const char *)keydata : b->filename);
+}
+
+static struct file_lock_backtrace *file_lock_lookup(const char *filename)
+{
+	struct file_lock_backtrace entry, *result;
+
+	hashmap_entry_init(&entry.entry, strihash(filename));
+	EnterCriticalSection(&backtrace_mutex);
+	result = hashmap_get_entry(&file_lock_map, &entry, entry, filename);
+	LeaveCriticalSection(&backtrace_mutex);
+
+	return result;
+}
+
+static void initialize_file_lock_map(void)
+{
+	InitializeCriticalSection(&backtrace_mutex);
+	hashmap_init(&file_lock_map, (hashmap_cmp_fn)file_lock_backtrace_cmp,
+		     NULL, 0);
+}
+#endif
+
 #define HCAST(type, handle) ((type)(intptr_t)handle)
 
 void open_in_gdb(void)
@@ -529,6 +697,21 @@ int mingw_unlink(const char *pathname)
 		 */
 		if (!_wrmdir(wpathname))
 			return 0;
+#ifdef DEBUG_FILE_LOCKS
+		{
+			struct file_lock_backtrace *p =
+				file_lock_lookup(pathname);
+			if (p) {
+				struct strbuf buf = STRBUF_INIT;
+				strbuf_addf(&buf, "the file '%s' wants "
+					    "to be deleted here:\n", pathname);
+				current_backtrace(&buf);
+				strbuf_addf(&buf, "\nBut it is still open:\n");
+				file_lock_backtrace(p, &buf);
+				die("%s\n", buf.buf);
+			}
+		}
+#endif
 	} while (retry_ask_yes_no(&tries, "Unlink of file '%s' failed. "
 			"Should I try again?", pathname));
 	return -1;
@@ -803,6 +986,10 @@ int mingw_open (const char *filename, int oflags, ...)
 		if (fd >= 0 && set_hidden_flag(wfilename, 1))
 			warning("could not mark '%s' as hidden.", filename);
 	}
+#ifdef DEBUG_FILE_LOCKS
+	if (fd >= 0)
+		alloc_file_lock_backtrace(fd, filename);
+#endif
 	return fd;
 }
 
@@ -858,6 +1045,10 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 		errno = ENOENT;
 	if (file && hide && set_hidden_flag(wfilename, 1))
 		warning("could not mark '%s' as hidden.", filename);
+#ifdef DEBUG_FILE_LOCKS
+	if (file)
+		alloc_file_lock_backtrace(fileno(file), filename);
+#endif
 	return file;
 }
 
@@ -866,6 +1057,9 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 	int hide = needs_hiding(filename);
 	FILE *file;
 	wchar_t wfilename[MAX_LONG_PATH], wotype[4];
+#ifdef DEBUG_FILE_LOCKS
+	int oldfd = fileno(stream);
+#endif
 	if (filename && !strcmp(filename, "/dev/null"))
 		wcscpy(wfilename, L"nul");
 	else if (!is_valid_win32_path(filename, 1)) {
@@ -885,8 +1079,36 @@ FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
 	file = _wfreopen(wfilename, wotype, stream);
 	if (file && hide && set_hidden_flag(wfilename, 1))
 		warning("could not mark '%s' as hidden.", filename);
+#ifdef DEBUG_FILE_LOCKS
+	if (file) {
+		remove_file_lock_backtrace(oldfd);
+		alloc_file_lock_backtrace(fileno(file), filename);
+	}
+#endif
 	return file;
 }
+
+#ifdef DEBUG_FILE_LOCKS
+#undef close
+int mingw_close(int fd)
+{
+	int ret = close(fd);
+	if (!ret)
+		remove_file_lock_backtrace(fd);
+	return ret;
+}
+#define close mingw_close
+
+#undef fclose
+int mingw_fclose(FILE *stream)
+{
+	int fd = fileno(stream), ret = fclose(stream);
+	if (!ret)
+		remove_file_lock_backtrace(fd);
+	return ret;
+}
+#define fclose mingw_fclose
+#endif
 
 #undef fflush
 int mingw_fflush(FILE *stream)
@@ -2695,6 +2917,26 @@ repeat:
 		    SetFileAttributesW(wpnew, attrs & ~FILE_ATTRIBUTE_READONLY))
 			goto repeat;
 	}
+#ifdef DEBUG_FILE_LOCKS
+	{
+		struct file_lock_backtrace *p = file_lock_lookup(pnew);
+		const char *which = "target";
+		if (!p) {
+			p = file_lock_lookup(pold);
+			which = "source";
+		}
+		if (p) {
+			struct strbuf buf = STRBUF_INIT;
+			strbuf_addf(&buf, "the file '%s' wants to be "
+				    "renamed to '%s' here:\n", pold, pnew);
+			current_backtrace(&buf);
+			strbuf_addf(&buf, "\nBut the %s is still open:\n",
+				    which);
+			file_lock_backtrace(p, &buf);
+			die("%s\n", buf.buf);
+		}
+	}
+#endif
 	if (retry_ask_yes_no(&tries, "Rename from '%s' to '%s' failed. "
 		       "Should I try again?", pold, pnew))
 		goto repeat;
@@ -3379,6 +3621,31 @@ static int is_system32_path(const char *path)
 	return 1;
 }
 
+#include "libbacktrace/backtrace.h"
+#include "libbacktrace/backtrace-supported.h"
+
+static void bt_error_callback(void *data, const char *msg, int errnum)
+{
+      error("%s (%d)", msg, errnum);
+}
+
+static struct backtrace_state *bt_state;
+
+static int bt_full_callback(void *data, uintptr_t pc, const char *filename, int lineno, const char *function)
+{
+      fprintf(stderr, "%s:%d %s %p\n", filename, lineno, function, (void *)pc);
+
+      return 0;
+}
+
+static void printStacktraceWithLines(void)
+{
+      if (!bt_state)
+              bt_state = backtrace_create_state(NULL, BACKTRACE_SUPPORTS_THREADS, bt_error_callback, NULL);
+      backtrace_full(bt_state, 1, bt_full_callback, bt_error_callback, NULL);
+}
+
+
 static void setup_windows_environment(void)
 {
 	char *tmp = getenv("TMPDIR");
@@ -3393,6 +3660,7 @@ static void setup_windows_environment(void)
 		}
 	}
 
+printStacktraceWithLines();
 	if (tmp) {
 		/*
 		 * Convert all dir separators to forward slashes,
@@ -3950,6 +4218,10 @@ int wmain(int argc, const wchar_t **wargv)
 #endif
 
 	SetConsoleCtrlHandler(handle_ctrl_c, TRUE);
+
+#ifdef DEBUG_FILE_LOCKS
+	initialize_file_lock_map();
+#endif
 
 	maybe_redirect_std_handles();
 	adjust_symlink_flags();
