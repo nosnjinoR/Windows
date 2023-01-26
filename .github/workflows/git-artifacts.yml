@@ -512,3 +512,87 @@ jobs:
         with:
           name: nuget-x86_64
           path: artifacts
+  msix:
+    runs-on: windows-latest
+    needs: artifacts
+    steps:
+      - name: Download portable-arm64 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-arm64
+          path: portable
+      - name: Download portable-x86_64 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-x86_64
+          path: portable
+      - name: Download portable-i686 artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: portable-i686
+          path: portable
+      - name: Find filenames
+        run: |
+          $filename_arm64 = (Get-ChildItem portable\*arm64.7z.exe)[0].FullName
+          $filename_x64 = (Get-ChildItem portable\*64-bit.7z.exe)[0].FullName
+          $filename_x86 = (Get-ChildItem portable\*32-bit.7z.exe)[0].FullName
+          Write-Output "FILENAMEX64=$($filename_x64)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "FILENAMEX86=$($filename_x86)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          Write-Output "FILENAMEARM64=$($filename_arm64)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Extract portable x64 artifacts
+        uses: DuckSoft/extract-7z-action@v1.0
+        with:
+          pathSource: ${{ env.FILENAMEX64 }}
+          pathTarget: build/x64
+      - name: Extract portable x86 artifacts
+        uses: DuckSoft/extract-7z-action@v1.0
+        with:
+          pathSource: ${{ env.FILENAMEX86 }}
+          pathTarget: build/x86
+      - name: Extract portable arm64 artifacts
+        uses: DuckSoft/extract-7z-action@v1.0
+        with:
+          pathSource: ${{ env.FILENAMEARM64 }}
+          pathTarget: build/arm64          
+      - name: Show content of build
+        run: |
+          gci build
+      - name: Clone build-extra
+        run: git clone --single-branch -b msix https://github.com/davidanthoff/build-extra build-extra
+      - name: Create folder for store and msix version
+        run: |
+          md buildmsix
+          md buildstore
+      - name: Write packaging layout files
+        run: |
+          . build-extra\msix\create_packaginglayout_file.ps1
+          Write-PackageLayoutFile "1.0.0.0" (Join-Path -Path $pwd -ChildPath "buildmsix\PackagingLayout.xml")
+          Write-PackageLayoutFile "1.0.0.0" (Join-Path -Path $pwd -ChildPath "buildstore\PackagingLayout.xml")
+          Write-AppxManifest "1.0.0.0" "CN=Johannes Schindelin, O=Johannes Schindelin, L=Köln, S=North Rhine-Westphalia, C=DE" (Join-Path -Path $pwd -ChildPath "buildmsix\appxmanifest.xml")
+          Write-AppxManifest "1.0.0.0" "CN=82A13EFD-FE37-4EFC-8BA4-1C3E9EFE5F23" (Join-Path -Path $pwd -ChildPath "buildstore\appxmanifest.xml")
+      - name: Delete WebView2Loader.dll
+        run: |
+          Remove-Item build\x64\mingw64\libexec\git-core\WebView2Loader.dll
+          Remove-Item build\x86\mingw32\libexec\git-core\WebView2Loader.dll
+          Remove-Item build\arm64\mingw32\libexec\git-core\WebView2Loader.dll
+      - name: Build Standalone MSIX
+        run: |        
+          push-location buildmsix
+          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
+          pop-location
+      - name: Build Store MSIX
+        run: |        
+          push-location buildstore
+          &"C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\MakeAppx.exe" build /f PackagingLayout.xml /op . /pv 1.0.0.0 /bv 1.0.0.0
+          pop-location
+      - name: Sign standalone MSIX
+        run: |
+          Write-Output "Here we should sign the appxbundle that is in the buildstore folder with signtool."
+      - uses: actions/upload-artifact@v2
+        with:
+          name: msixinstallerstandalone
+          path: buildmsix\*.appxbundle
+      - uses: actions/upload-artifact@v2
+        with:
+          name: msixinstallerstore
+          path: buildstore\*.appxbundle
