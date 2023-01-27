@@ -36,7 +36,6 @@
 #include "rebase-interactive.h"
 #include "reset.h"
 #include "branch.h"
-#include "log-tree.h"
 
 #define GIT_REFLOG_ACTION "GIT_REFLOG_ACTION"
 
@@ -2897,6 +2896,7 @@ static void read_strategy_opts(struct replay_opts *opts, struct strbuf *buf)
 	strbuf_reset(buf);
 	if (!read_oneliner(buf, rebase_path_strategy(), 0))
 		return;
+	free(opts->strategy);
 	opts->strategy = strbuf_detach(buf, NULL);
 	if (!read_oneliner(buf, rebase_path_strategy_opts(), 0))
 		return;
@@ -5745,8 +5745,8 @@ static void todo_list_add_exec_commands(struct todo_list *todo_list,
 
 		base_items[i].command = TODO_EXEC;
 		base_items[i].offset_in_buf = base_offset;
-		base_items[i].arg_offset = base_offset + strlen("exec ");
-		base_items[i].arg_len = command_len - strlen("exec ");
+		base_items[i].arg_offset = base_offset;
+		base_items[i].arg_len = command_len;
 
 		base_offset += command_len + 1;
 	}

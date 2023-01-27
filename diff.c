@@ -604,7 +604,7 @@ static unsigned long diff_filespec_size(struct repository *r,
 	return one->size;
 }
 
-static int count_trailing_blank(mmfile_t *mf, unsigned ws_rule)
+static int count_trailing_blank(mmfile_t *mf)
 {
 	char *ptr = mf->ptr;
 	long size = mf->size;
@@ -622,7 +622,7 @@ static int count_trailing_blank(mmfile_t *mf, unsigned ws_rule)
 		for (prev_eol = ptr; mf->ptr <= prev_eol; prev_eol--)
 			if (*prev_eol == '\n')
 				break;
-		if (!ws_blank_line(prev_eol + 1, ptr - prev_eol, ws_rule))
+		if (!ws_blank_line(prev_eol + 1, ptr - prev_eol))
 			break;
 		cnt++;
 		ptr = prev_eol - 1;
@@ -634,9 +634,8 @@ static void check_blank_at_eof(mmfile_t *mf1, mmfile_t *mf2,
 			       struct emit_callback *ecbdata)
 {
 	int l1, l2, at;
-	unsigned ws_rule = ecbdata->ws_rule;
-	l1 = count_trailing_blank(mf1, ws_rule);
-	l2 = count_trailing_blank(mf2, ws_rule);
+	l1 = count_trailing_blank(mf1);
+	l2 = count_trailing_blank(mf2);
 	if (l2 <= l1) {
 		ecbdata->blank_at_eof_in_preimage = 0;
 		ecbdata->blank_at_eof_in_postimage = 0;
@@ -1583,7 +1582,7 @@ static int new_blank_line_at_eof(struct emit_callback *ecbdata, const char *line
 	      ecbdata->blank_at_eof_in_preimage <= ecbdata->lno_in_preimage &&
 	      ecbdata->blank_at_eof_in_postimage <= ecbdata->lno_in_postimage))
 		return 0;
-	return ws_blank_line(line, len, ecbdata->ws_rule);
+	return ws_blank_line(line, len);
 }
 
 static void emit_add_line(struct emit_callback *ecbdata,
@@ -1955,7 +1954,7 @@ static int color_words_output_graph_prefix(struct diff_words_data *diff_words)
 static void fn_out_diff_words_aux(void *priv,
 				  long minus_first, long minus_len,
 				  long plus_first, long plus_len,
-				  const char *func, long funclen)
+				  const char *func UNUSED, long funclen UNUSED)
 {
 	struct diff_words_data *diff_words = priv;
 	struct diff_words_style *style = diff_words->style;
@@ -2801,7 +2800,7 @@ static void show_stats(struct diffstat_t *data, struct diff_options *options)
 		else if (file->is_unmerged) {
 			strbuf_addf(&out, " %s%s%*s | %*s",
 				    prefix, name, padding, "",
-				    number_width, "Unmerged");
+				    number_width, "Unmerged\n");
 			emit_diff_symbol(options, DIFF_SYMBOL_STATS_LINE,
 					 out.buf, out.len, 0);
 			strbuf_reset(&out);
@@ -3185,8 +3184,9 @@ static int is_conflict_marker(const char *line, int marker_size, unsigned long l
 }
 
 static void checkdiff_consume_hunk(void *priv,
-				   long ob, long on, long nb, long nn,
-				   const char *func, long funclen)
+				   long ob UNUSED, long on UNUSED,
+				   long nb, long nn UNUSED,
+				   const char *func UNUSED, long funclen UNUSED)
 
 {
 	struct checkdiff_t *data = priv;
@@ -4213,7 +4213,6 @@ static void prep_temp_blob(struct index_state *istate,
 }
 
 static struct diff_tempfile *prepare_temp_file(struct repository *r,
-					       const char *name,
 					       struct diff_filespec *one)
 {
 	struct diff_tempfile *temp = claim_diff_tempfile();
@@ -4231,18 +4230,18 @@ static struct diff_tempfile *prepare_temp_file(struct repository *r,
 
 	if (!S_ISGITLINK(one->mode) &&
 	    (!one->oid_valid ||
-	     reuse_worktree_file(r->index, name, &one->oid, 1))) {
+	     reuse_worktree_file(r->index, one->path, &one->oid, 1))) {
 		struct stat st;
-		if (lstat(name, &st) < 0) {
+		if (lstat(one->path, &st) < 0) {
 			if (errno == ENOENT)
 				goto not_a_valid_file;
-			die_errno("stat(%s)", name);
+			die_errno("stat(%s)", one->path);
 		}
 		if (S_ISLNK(st.st_mode)) {
 			struct strbuf sb = STRBUF_INIT;
-			if (strbuf_readlink(&sb, name, st.st_size) < 0)
-				die_errno("readlink(%s)", name);
-			prep_temp_blob(r->index, name, temp, sb.buf, sb.len,
+			if (strbuf_readlink(&sb, one->path, st.st_size) < 0)
+				die_errno("readlink(%s)", one->path);
+			prep_temp_blob(r->index, one->path, temp, sb.buf, sb.len,
 				       (one->oid_valid ?
 					&one->oid : null_oid()),
 				       (one->oid_valid ?
@@ -4251,7 +4250,7 @@ static struct diff_tempfile *prepare_temp_file(struct repository *r,
 		}
 		else {
 			/* we can borrow from the file in the work tree */
-			temp->name = name;
+			temp->name = one->path;
 			if (!one->oid_valid)
 				oid_to_hex_r(temp->hex, null_oid());
 			else
@@ -4269,7 +4268,7 @@ static struct diff_tempfile *prepare_temp_file(struct repository *r,
 	else {
 		if (diff_populate_filespec(r, one, NULL))
 			die("cannot read data blob for %s", one->path);
-		prep_temp_blob(r->index, name, temp,
+		prep_temp_blob(r->index, one->path, temp,
 			       one->data, one->size,
 			       &one->oid, one->mode);
 	}
@@ -4278,10 +4277,9 @@ static struct diff_tempfile *prepare_temp_file(struct repository *r,
 
 static void add_external_diff_name(struct repository *r,
 				   struct strvec *argv,
-				   const char *name,
 				   struct diff_filespec *df)
 {
-	struct diff_tempfile *temp = prepare_temp_file(r, name, df);
+	struct diff_tempfile *temp = prepare_temp_file(r, df);
 	strvec_push(argv, temp->name);
 	strvec_push(argv, temp->hex);
 	strvec_push(argv, temp->mode);
@@ -4308,11 +4306,9 @@ static void run_external_diff(const char *pgm,
 	strvec_push(&cmd.args, name);
 
 	if (one && two) {
-		add_external_diff_name(o->repo, &cmd.args, name, one);
-		if (!other)
-			add_external_diff_name(o->repo, &cmd.args, name, two);
-		else {
-			add_external_diff_name(o->repo, &cmd.args, other, two);
+		add_external_diff_name(o->repo, &cmd.args, one);
+		add_external_diff_name(o->repo, &cmd.args, two);
+		if (other) {
 			strvec_push(&cmd.args, other);
 			strvec_push(&cmd.args, xfrm_msg);
 		}
@@ -4615,8 +4611,6 @@ static void run_checkdiff(struct diff_filepair *p, struct diff_options *o)
 	builtin_checkdiff(name, other, attr_path, p->one, p->two, o);
 }
 
-static void prep_parse_options(struct diff_options *options);
-
 void repo_diff_setup(struct repository *r, struct diff_options *options)
 {
 	memcpy(options, &default_diff_options, sizeof(*options));
@@ -4662,8 +4656,6 @@ void repo_diff_setup(struct repository *r, struct diff_options *options)
 
 	options->color_moved = diff_color_moved_default;
 	options->color_moved_ws_handling = diff_color_moved_ws_default;
-
-	prep_parse_options(options);
 }
 
 static const char diff_status_letters[] = {
@@ -4821,8 +4813,6 @@ void diff_setup_done(struct diff_options *options)
 			options->filter = ~filter_bit[DIFF_STATUS_FILTER_AON];
 		options->filter &= ~options->filter_not;
 	}
-
-	FREE_AND_NULL(options->parseopts);
 }
 
 int parse_long_opt(const char *opt, const char **argv,
@@ -5419,7 +5409,8 @@ static int diff_opt_rotate_to(const struct option *opt, const char *arg, int uns
 	return 0;
 }
 
-static void prep_parse_options(struct diff_options *options)
+struct option *add_diff_options(const struct option *opts,
+				struct diff_options *options)
 {
 	struct option parseopts[] = {
 		OPT_GROUP(N_("Diff output format options")),
@@ -5689,22 +5680,25 @@ static void prep_parse_options(struct diff_options *options)
 		OPT_END()
 	};
 
-	ALLOC_ARRAY(options->parseopts, ARRAY_SIZE(parseopts));
-	memcpy(options->parseopts, parseopts, sizeof(parseopts));
+	return parse_options_concat(opts, parseopts);
 }
 
 int diff_opt_parse(struct diff_options *options,
 		   const char **av, int ac, const char *prefix)
 {
+	struct option no_options[] = { OPT_END() };
+	struct option *parseopts = add_diff_options(no_options, options);
+
 	if (!prefix)
 		prefix = "";
 
-	ac = parse_options(ac, av, prefix, options->parseopts, NULL,
+	ac = parse_options(ac, av, prefix, parseopts, NULL,
 			   PARSE_OPT_KEEP_DASHDASH |
 			   PARSE_OPT_KEEP_UNKNOWN_OPT |
 			   PARSE_OPT_NO_INTERNAL_HELP |
 			   PARSE_OPT_ONE_SHOT |
 			   PARSE_OPT_STOP_AT_NON_OPTION);
+	free(parseopts);
 
 	return ac;
 }
@@ -6513,7 +6507,6 @@ void diff_free(struct diff_options *options)
 	diff_free_file(options);
 	diff_free_ignore_regex(options);
 	clear_pathspec(&options->pathspec);
-	FREE_AND_NULL(options->parseopts);
 }
 
 void diff_flush(struct diff_options *options)
@@ -7037,7 +7030,7 @@ static char *run_textconv(struct repository *r,
 	struct strbuf buf = STRBUF_INIT;
 	int err = 0;
 
-	temp = prepare_temp_file(r, spec->path, spec);
+	temp = prepare_temp_file(r, spec);
 	strvec_push(&child.args, pgm);
 	strvec_push(&child.args, temp->name);
 

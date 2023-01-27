@@ -188,7 +188,7 @@ static struct strategy *get_strategy(const char *name)
 		for (i = 0; i < main_cmds.cnt; i++) {
 			int j, found = 0;
 			struct cmdname *ent = main_cmds.names[i];
-			for (j = 0; j < ARRAY_SIZE(all_strategy); j++)
+			for (j = 0; !found && j < ARRAY_SIZE(all_strategy); j++)
 				if (!strncmp(ent->name, all_strategy[j].name, ent->len)
 						&& !all_strategy[j].name[ent->len])
 					found = 1;
@@ -776,7 +776,7 @@ static int try_merge_strategy(const char *strategy, struct commit_list *common,
 }
 
 static void count_diff_files(struct diff_queue_struct *q,
-			     struct diff_options *opt, void *data)
+			     struct diff_options *opt UNUSED, void *data)
 {
 	int *count = data;
 
@@ -1789,5 +1789,6 @@ done:
 	}
 	strbuf_release(&buf);
 	free(branch_to_free);
+	discard_index(&the_index);
 	return ret;
 }

@@ -1,0 +1,203 @@
+Git v2.40 Release Notes
+=======================
+
+UI, Workflows & Features
+
+ * "merge-tree" learns a new `--merge-base` option.
+
+ * "git jump" (in contrib/) learned to present the "quickfix list" to
+   its standard output (instead of letting it consumed by the editor
+   it invokes), and learned to also drive emacs/emacsclient.
+
+ * "git var UNKNOWN_VARIABLE" and "git var VARIABLE" with the variable
+   given an empty value used to behave identically.  Now the latter
+   just gives an empty output, while the former still gives an error
+   message.
+
+ * Introduce a case insensitive mode to the Bash completion helpers.
+
+ * The advice message given by "git status" when it takes long time to
+   enumerate untracked paths has been updated.
+
+ * Just like "git var GIT_EDITOR" abstracts the complex logic to
+   choose which editor gets used behind it, "git var" now give support
+   to GIT_SEQUENCE_EDITOR.
+
+ * "git format-patch" learned to honor format.mboxrd even when sending
+   patches to the standard output stream,
+
+ * 'cat-file' gains mailmap support for its '--batch-check' and '-s'
+   options.
+
+ * Conditionally skip the pre-applypatch and applypatch-msg hooks when
+   applying patches with 'git am'.
+
+ * Introduce an optional configuration to allow the trailing hash that
+   protects the index file from bit flipping.
+
+ * "git check-attr" learned to take an optional tree-ish to read the
+   .gitattributes file from.
+
+ * "scalar" learned to give progress bar.
+
+
+Performance, Internal Implementation, Development Support etc.
+
+ * `git bisect` becomes a builtin.
+
+ * The pack-bitmap machinery is taught to log the paths of redundant
+   bitmap(s) to trace2 instead of stderr.
+
+ * Use the SHA1DC implementation on macOS, just like other platforms,
+   by default.
+
+ * Even in a repository with promisor remote, it is useless to
+   attempt to lazily attempt fetching an object that is expected to be
+   commit, because no "filter" mode omits commit objects.  Take
+   advantage of this assumption to fail fast on errors.
+
+ * Stop using "git --super-prefix" and narrow the scope of its use to
+   the submodule--helper.
+
+ * Stop running win+VS build by default.
+   (merge a0da6deeec js/ci-disable-cmake-by-default later to maint).
+
+ * CI updates.  We probably want a clean-up to move the long shell
+   script embedded in yaml file into a separate file, but that can
+   come later.
+   (merge 4542582e59 cw/ci-whitespace later to maint).
+
+ * Use `git diff --no-index` as a test_cmp on Windows.
+
+   We'd probably need to revisit "do we really want to, and have to,
+   lose CRLF vs LF?" later, at which time we may be able to further
+   clean this up by replacing "git diff --no-index" with "diff -u".
+
+ * Avoid unnecessary builds in CI, with settings configured in
+   ci-config.
+   (merge eb5b03a9c0 tb/ci-concurrency later to maint).
+
+
+Fixes since v2.39
+-----------------
+
+ * Various leak fixes.
+   (merge ac95f5d36a ab/various-leak-fixes later to maint).
+
+ * Fix a bug where `pack-objects` would not respect multiple `--filter`
+   arguments when invoked directly.
+   (merge d4f7036887 rs/multi-filter-args later to maint).
+
+ * Make fsmonitor more robust to avoid the flakiness seen in t7527.
+   (merge 6692d45477 jh/t7527-unflake-by-forcing-cookie later to maint).
+
+ * Stop using deprecated macOS API in fsmonitor.
+   (merge b0226007f0 jh/fsmonitor-darwin-modernize later to maint).
+
+ * Redefining system functions for a few functions did not follow our
+   usual "implement git_foo() and #define foo(args) git_foo(args)"
+   pattern, which has broken build for some folks.
+   (merge e1a95b78d8 jk/avoid-redef-system-functions-2.30 later to maint).
+   (merge 395bec6b39 jk/avoid-redef-system-functions later to maint).
+
+ * The way the diff machinery prepares the options array for the
+   parse_options API has been refactored to avoid resource leaks.
+   (merge 189e97bc4b rs/diff-parseopts later to maint).
+
+ * Correct pthread API usage.
+   (merge 786e67611d sx/pthread-error-check-fix later to maint).
+
+ * The code to auto-correct a misspelt subcommand unnecessarily called
+   into git_default_config() from the early config codepath, which was
+   a no-no.  This has bee corrected.
+   (merge 0918d08887 sg/help-autocorrect-config-fix later to maint).
+
+ * "git http-fetch" (which is rarely used) forgot to identify itself
+   in the trace2 output.
+   (merge 7abb43cbc8 jt/http-fetch-trace2-report-name later to maint).
+
+ * The output from "git diff --stat" on an unmerged path lost the
+   terminating LF in Git 2.39, which has been corrected.
+   (merge 209d9cb011 pg/diff-stat-unmerged-regression-fix later to maint).
+
+ * "git pull -v --recurse-submodules" attempted to pass "-v" down to
+   underlying "git submodule update", which did not understand the
+   request and barfed, which has been corrected.
+   (merge 6f65f84766 ss/pull-v-recurse-fix later to maint).
+
+ * When given a pattern that matches an empty string at the end of a
+   line, the code to parse the "git diff" line-ranges fell into an
+   infinite loop, which has been corrected.
+   (merge 4e57c88e02 lk/line-range-parsing-fix later to maint).
+
+ * Fix the sequence to fsync $GIT_DIR/packed-refs file that forgot to
+   flush its output to the disk..
+   (merge ce54672f9b ps/fsync-refs-fix later to maint).
+
+ * Fix to a small regression in 2.38 days.
+   (merge 6d5e9e53aa ab/bundle-wo-args later to maint).
+
+ * "git diff --relative" did not mix well with "git diff --ext-diff",
+   which has been corrected.
+   (merge f034bb1cad jk/ext-diff-with-relative later to maint).
+
+ * The logic to see if we are using the "cone" mode by checking the
+   sparsity patterns has been tightened to avoid mistaking a pattern
+   that names a single file as specifying a cone.
+   (merge 5842710dc2 ws/single-file-cone later to maint).
+
+ * Deal with a few deprecation warning from cURL library.
+   (merge 6c065f72b8 jk/curl-avoid-deprecated-api later to maint).
+
+ * Doc update for environment variables set when hooks are invoked.
+   (merge 772f8ff826 es/hooks-and-local-env later to maint).
+
+ * Document ORIG_HEAD a bit more.
+   (merge f1c9243fc5 pb/doc-orig-head later to maint).
+
+ * "git ls-tree --format='%(path) %(path)' $tree $path" showed the
+   path three times, which has been corrected.
+   (merge c388fcda99 rs/ls-tree-path-expansion-fix later to maint).
+
+ * Remove "git env--helper" and demote it to a test-tool subcommand.
+   (merge 4a1baacd46 ab/test-env-helper later to maint).
+
+ * Newer regex library macOS stopped enabling GNU-like enhanced BRE,
+   where '\(A\|B\)' works as alternation, unless explicitly asked with
+   the REG_ENHANCED flag.  "git grep" now can be compiled to do so, to
+   retain the old behaviour.
+   (merge 54463d32ef rs/use-enhanced-bre-on-macos later to maint).
+
+ * Pthread emulation on Win32 leaked thread handle when a thread is
+   joined.
+   (merge 238a9dfe86 sk/win32-close-handle-upon-pthread-join later to maint).
+
+ * Other code cleanup, docfix, build fix, etc.
+   (merge 77e04b2ed4 rs/t4205-do-not-exit-in-test-script later to maint).
+   (merge faebba436e rs/plug-pattern-list-leak-in-lof later to maint).
+   (merge 243caa8982 ab/t5314-avoid-losing-exit-status later to maint).
+   (merge 4d81ce1b99 ab/t7600-avoid-losing-exit-status-of-git later to maint).
+   (merge 5f3bfdc4f3 ab/t4023-avoid-losing-exit-status-of-diff later to maint).
+   (merge 500317ae03 js/t3920-shell-and-or-fix later to maint).
+   (merge 86325d36e6 rs/t3920-crlf-eating-grep-fix later to maint).
+   (merge cfbd173ccb rj/branch-copy-and-rename later to maint).
+   (merge c25d9e529d jk/unused-post-2.39 later to maint).
+   (merge a31cfe3283 jk/server-supports-v2-cleanup later to maint).
+   (merge a658e881c1 rs/am-parse-options-cleanup later to maint).
+   (merge 4cb39fcf19 rs/clear-commit-marks-cleanup later to maint).
+   (merge b07a819c05 rs/reflog-expiry-cleanup later to maint).
+   (merge d422d06167 rs/clarify-error-in-write-loose-object later to maint).
+   (merge 92cb135855 sk/remove-duplicate-includes later to maint).
+   (merge 4eb1ccecd4 dh/mingw-ownership-check-typofix later to maint).
+   (merge f95526419b ar/typofix-gitattributes-doc later to maint).
+   (merge 27875aeec9 km/doc-branch-start-point later to maint).
+   (merge 35c194dc57 es/t1509-root-fixes later to maint).
+   (merge 7b341645e3 pw/ci-print-failure-name-fix later to maint).
+   (merge bcb71d45bf jx/t1301-updates later to maint).
+   (merge ebdc46c242 jc/doc-diff-patch.txt later to maint).
+   (merge a87a20cbb4 ar/test-cleanup later to maint).
+   (merge f5156f1885 ar/bisect-doc-update later to maint).
+   (merge fca2d86c97 jk/interop-error later to maint).
+   (merge cf4936ed74 tl/ls-tree-code-clean-up later to maint).
+   (merge dcb47e52b0 en/t6426-todo-cleanup later to maint).
+   (merge 5b8db44bdd jc/format-patch-v-unleak later to maint).

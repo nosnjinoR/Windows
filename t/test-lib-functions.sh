@@ -1149,7 +1149,7 @@ test_expect_code () {
 
 test_cmp () {
 	test "$#" -ne 2 && BUG "2 param"
-	GIT_ALLOC_LIMIT=0 eval "$GIT_TEST_CMP" '"$@"'
+	eval "$GIT_TEST_CMP" '"$@"'
 }
 
 # Check that the given config key has the expected value.
@@ -1422,7 +1422,7 @@ test_bool_env () {
 		BUG "test_bool_env requires two parameters (variable name and default value)"
 	fi
 
-	git env--helper --type=bool --default="$2" --exit-code "$1"
+	test-tool env-helper --type=bool --default="$2" --exit-code "$1"
 	ret=$?
 	case $ret in
 	0|1)	# unset or valid bool value
@@ -1616,7 +1616,7 @@ test_oid () {
 	then
 		BUG "undefined key '$1'"
 	fi &&
-	eval "printf '%s' \"\${$var}\""
+	eval "printf '%s\n' \"\${$var}\""
 }
 
 # Insert a slash into an object ID so it can be used to reference a location
@@ -1683,6 +1683,13 @@ test_path_is_hidden () {
 	# Use the output of `attrib`, ignore the absolute path
 	case "$("$SYSTEMROOT"/system32/attrib "$1")" in *H*?:*) return 0;; esac
 	return 1
+}
+
+# Poor man's URI escaping. Good enough for the test suite whose trash
+# directory has a space in it. See 93c3fcbe4d4 (git-svn: attempt to
+# mimic SVN 1.7 URL canonicalization, 2012-07-28) for prior art.
+test_uri_escape() {
+	sed 's/ /%20/g'
 }
 
 # Check that the given command was invoked as part of the
@@ -1808,4 +1815,12 @@ test_cmp_config_output () {
 	sort config-expect >sorted-expect &&
 	sort config-actual >sorted-actual &&
 	test_cmp sorted-expect sorted-actual
+}
+
+# Given a filename, extract its trailing hash as a hex string
+test_trailing_hash () {
+	local file="$1" &&
+	tail -c $(test_oid rawsz) "$file" |
+		test-tool hexdump |
+		sed "s/ //g"
 }

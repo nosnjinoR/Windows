@@ -1019,7 +1019,7 @@ static void *run_thread(void *data)
 		sigset_t mask;
 		sigemptyset(&mask);
 		sigaddset(&mask, SIGPIPE);
-		if (pthread_sigmask(SIG_BLOCK, &mask, NULL) < 0) {
+		if (pthread_sigmask(SIG_BLOCK, &mask, NULL)) {
 			ret = error("unable to block SIGPIPE in async thread");
 			return (void *)ret;
 		}
@@ -1853,7 +1853,7 @@ enum start_bg_result start_bg_command(struct child_process *cmd,
 		 *
 		 * We also assume that `start_command()` does not add
 		 * us to the cleanup list.  And that it calls
-		 * calls `child_process_clear()`.
+		 * `child_process_clear()`.
 		 */
 		sbgr = SBGR_ERROR;
 		goto done;

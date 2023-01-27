@@ -136,7 +136,8 @@ static void print_new_head_line(struct commit *commit)
 }
 
 static void update_index_from_diff(struct diff_queue_struct *q,
-		struct diff_options *opt, void *data)
+				   struct diff_options *opt UNUSED,
+				   void *data)
 {
 	int i;
 	int intent_to_add = *(int *)data;
@@ -498,6 +499,8 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 	}
 	if (!pathspec.nr)
 		remove_branch_state(the_repository, 0);
+
+	discard_index(&the_index);
 
 	return update_ref_status;
 }

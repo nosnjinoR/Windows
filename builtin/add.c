@@ -88,7 +88,7 @@ static int fix_unmerged_status(struct diff_filepair *p,
 }
 
 static void update_callback(struct diff_queue_struct *q,
-			    struct diff_options *opt, void *cbdata)
+			    struct diff_options *opt UNUSED, void *cbdata)
 {
 	int i;
 	struct update_callback_data *data = cbdata;
@@ -699,7 +699,7 @@ finish:
 		die(_("Unable to write new index file"));
 
 	dir_clear(&dir);
+	clear_pathspec(&pathspec);
 	enable_fscache(0);
-	UNLEAK(pathspec);
 	return exit_status;
 }

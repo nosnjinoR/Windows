@@ -1783,8 +1783,7 @@ static wchar_t *make_environment_block(char **deltaenv)
 			p += s;
 		}
 
-		ALLOC_ARRAY(result, size);
-		COPY_ARRAY(result, wenv, size);
+		DUP_ARRAY(result, wenv, size);
 		FreeEnvironmentStringsW(wenv);
 		return result;
 	}
@@ -2231,16 +2230,13 @@ static int try_shell_exec(const char *cmd, char *const *argv)
 	if (prog) {
 		int exec_id;
 		int argc = 0;
-#ifndef _MSC_VER
-		const
-#endif
 		char **argv2;
 		while (argv[argc]) argc++;
 		ALLOC_ARRAY(argv2, argc + 1);
 		argv2[0] = (char *)cmd;	/* full path to the script file */
 		COPY_ARRAY(&argv2[1], &argv[1], argc);
-		exec_id = trace2_exec(prog, argv2);
-		pid = mingw_spawnv(prog, argv2, interpr);
+		exec_id = trace2_exec(prog, (const char **)argv2);
+		pid = mingw_spawnv(prog, (const char **)argv2, interpr);
 		if (pid >= 0) {
 			int status;
 			if (waitpid(pid, &status, 0) < 0)
@@ -3007,7 +3003,7 @@ static enum symlink_type check_symlink_attr(struct index_state *index, const cha
 	if (!check)
 		check = attr_check_initl("symlink", NULL);
 
-	git_check_attr(index, link, check);
+	git_check_attr(index, NULL, link, check);
 
 	value = check->items[0].value;
 	if (ATTR_UNSET(value))
@@ -3605,7 +3601,7 @@ int is_path_owned_by_current_sid(const char *path, struct strbuf *report)
 			/*
 			 * On FAT32 volumes, ownership is not actually recorded.
 			 */
-			strbuf_addf(report, "'%s' is on a file system that does"
+			strbuf_addf(report, "'%s' is on a file system that does "
 				    "not record ownership\n", path);
 		} else if (report) {
 			LPSTR str1, str2, to_free1 = NULL, to_free2 = NULL;

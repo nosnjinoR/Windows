@@ -48,6 +48,7 @@ int win32_pthread_join(pthread_t *thread, void **value_ptr)
 		CloseHandle(thread->handle);
 		return EINVAL;
 	default:
+		/* the wait failed, so do not detach */
 		return err_win_to_posix(GetLastError());
 	}
 }

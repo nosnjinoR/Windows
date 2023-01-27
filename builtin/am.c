@@ -117,6 +117,7 @@ struct am_state {
 
 	/* various operating modes and command line options */
 	int interactive;
+	int no_verify;
 	int threeway;
 	int quiet;
 	int signoff; /* enum signoff_type */
@@ -472,10 +473,12 @@ static void am_destroy(const struct am_state *state)
  */
 static int run_applypatch_msg_hook(struct am_state *state)
 {
-	int ret;
+	int ret = 0;
 
 	assert(state->msg);
-	ret = run_hooks_l("applypatch-msg", am_path(state, "final-commit"), NULL);
+
+	if (!state->no_verify)
+		ret = run_hooks_l("applypatch-msg", am_path(state, "final-commit"), NULL);
 
 	if (!ret) {
 		FREE_AND_NULL(state->msg);
@@ -1476,6 +1479,7 @@ static int run_apply(const struct am_state *state, const char *index_file)
 	int res, opts_left;
 	int force_apply = 0;
 	int options = 0;
+	const char **apply_argv;
 
 	if (init_apply_state(&apply_state, the_repository, NULL))
 		BUG("init_apply_state() failed");
@@ -1483,7 +1487,14 @@ static int run_apply(const struct am_state *state, const char *index_file)
 	strvec_push(&apply_opts, "apply");
 	strvec_pushv(&apply_opts, state->git_apply_opts.v);
 
-	opts_left = apply_parse_options(apply_opts.nr, apply_opts.v,
+	/*
+	 * Build a copy that apply_parse_options() can rearrange.
+	 * apply_opts.v keeps referencing the allocated strings for
+	 * strvec_clear() to release.
+	 */
+	DUP_ARRAY(apply_argv, apply_opts.v, apply_opts.nr);
+
+	opts_left = apply_parse_options(apply_opts.nr, apply_argv,
 					&apply_state, &force_apply, &options,
 					NULL);
 
@@ -1513,6 +1524,7 @@ static int run_apply(const struct am_state *state, const char *index_file)
 	strvec_clear(&apply_paths);
 	strvec_clear(&apply_opts);
 	clear_apply_state(&apply_state);
+	free(apply_argv);
 
 	if (res)
 		return res;
@@ -1640,7 +1652,7 @@ static void do_commit(const struct am_state *state)
 	const char *reflog_msg, *author, *committer = NULL;
 	struct strbuf sb = STRBUF_INIT;
 
-	if (run_hooks("pre-applypatch"))
+	if (!state->no_verify && run_hooks("pre-applypatch"))
 		exit(1);
 
 	if (write_cache_as_tree(&tree, 0, NULL))
@@ -2330,6 +2342,8 @@ int cmd_am(int argc, const char **argv, const char *prefix)
 	struct option options[] = {
 		OPT_BOOL('i', "interactive", &state.interactive,
 			N_("run interactively")),
+		OPT_BOOL('n', "no-verify", &state.no_verify,
+			N_("bypass pre-applypatch and applypatch-msg hooks")),
 		OPT_HIDDEN_BOOL('b', "binary", &binary,
 			N_("historical option -- no-op")),
 		OPT_BOOL('3', "3way", &state.threeway,
