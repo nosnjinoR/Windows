@@ -46,6 +46,139 @@ catch {rename send {}} ; # What an evil concept...
 
 ######################################################################
 ##
+## Enabling platform-specific code paths
+
+proc is_MacOSX {} {
+	if {[tk windowingsystem] eq {aqua}} {
+		return 1
+	}
+	return 0
+}
+
+proc is_Windows {} {
+	if {$::tcl_platform(platform) eq {windows}} {
+		return 1
+	}
+	return 0
+}
+
+set _iscygwin {}
+proc is_Cygwin {} {
+	global _iscygwin
+	if {$_iscygwin eq {}} {
+		if {[string match "CYGWIN_*" $::tcl_platform(os)]} {
+			set _iscygwin 1
+		} else {
+			set _iscygwin 0
+		}
+	}
+	return $_iscygwin
+}
+
+######################################################################
+##
+## PATH lookup
+
+set _search_path {}
+proc _which {what args} {
+	global env _search_exe _search_path
+
+	if {$_search_path eq {}} {
+		if {[is_Cygwin] && [regexp {^(/|\.:)} $env(PATH)]} {
+			set _search_path [split [exec cygpath \
+				--windows \
+				--path \
+				--absolute \
+				$env(PATH)] {;}]
+			set _search_exe .exe
+		} elseif {[is_Windows]} {
+			set gitguidir [file dirname [info script]]
+			regsub -all ";" $gitguidir "\\;" gitguidir
+			set env(PATH) "$gitguidir;$env(PATH)"
+			set _search_path [split $env(PATH) {;}]
+			# Skip empty `PATH` elements
+			set _search_path [lsearch -all -inline -not -exact \
+				$_search_path ""]
+			set _search_exe .exe
+		} else {
+			set _search_path [split $env(PATH) :]
+			set _search_exe {}
+		}
+	}
+
+	if {[is_Windows] && [lsearch -exact $args -script] >= 0} {
+		set suffix {}
+	} else {
+		set suffix $_search_exe
+	}
+
+	foreach p $_search_path {
+		set p [file join $p $what$suffix]
+		if {[file exists $p]} {
+			return [file normalize $p]
+		}
+	}
+	return {}
+}
+
+proc sanitize_command_line {command_line from_index} {
+	set i $from_index
+	while {$i < [llength $command_line]} {
+		set cmd [lindex $command_line $i]
+		if {[file pathtype $cmd] ne "absolute"} {
+			set fullpath [_which $cmd]
+			if {$fullpath eq ""} {
+				throw {NOT-FOUND} "$cmd not found in PATH"
+			}
+			lset command_line $i $fullpath
+		}
+
+		# handle piped commands, e.g. `exec A | B`
+		for {incr i} {$i < [llength $command_line]} {incr i} {
+			if {[lindex $command_line $i] eq "|"} {
+				incr i
+				break
+			}
+		}
+	}
+	return $command_line
+}
+
+# Override `exec` to avoid unsafe PATH lookup
+
+rename exec real_exec
+
+proc exec {args} {
+	# skip options
+	for {set i 0} {$i < [llength $args]} {incr i} {
+		set arg [lindex $args $i]
+		if {$arg eq "--"} {
+			incr i
+			break
+		}
+		if {[string range $arg 0 0] ne "-"} {
+			break
+		}
+	}
+	set args [sanitize_command_line $args $i]
+	uplevel 1 real_exec $args
+}
+
+# Override `open` to avoid unsafe PATH lookup
+
+rename open real_open
+
+proc open {args} {
+	set arg0 [lindex $args 0]
+	if {[string range $arg0 0 0] eq "|"} {
+		set command_line [string trim [string range $arg0 1 end]]
+		lset args 0 "| [sanitize_command_line $command_line 0]"
+	}
+	uplevel 1 real_open $args
+}
+
+######################################################################
+##
 ## locate our library
 
 if { [info exists ::env(GIT_GUI_LIB_DIR) ] } {
@@ -163,8 +296,6 @@ set _isbare {}
 set _gitexec {}
 set _githtmldir {}
 set _reponame {}
-set _iscygwin {}
-set _search_path {}
 set _shellpath {@@SHELL_PATH@@}
 
 set _trace [lsearch -exact $argv --trace]
@@ -250,40 +381,6 @@ proc githtmldir {args} {
 
 proc reponame {} {
 	return $::_reponame
-}
-
-proc is_MacOSX {} {
-	if {[tk windowingsystem] eq {aqua}} {
-		return 1
-	}
-	return 0
-}
-
-proc is_Windows {} {
-	if {$::tcl_platform(platform) eq {windows}} {
-		return 1
-	}
-	return 0
-}
-
-proc is_Cygwin {} {
-	global _iscygwin
-	if {$_iscygwin eq {}} {
-		if {$::tcl_platform(platform) eq {windows}} {
-			if {[catch {set p [exec cygpath --windir]} err]} {
-				set _iscygwin 0
-			} else {
-				set _iscygwin 1
-				# Handle MSys2 which is only cygwin when MSYSTEM is MSYS.
-				if {[info exists ::env(MSYSTEM)] && $::env(MSYSTEM) ne "MSYS"} {
-					set _iscygwin 0
-				}
-			}
-		} else {
-			set _iscygwin 0
-		}
-	}
-	return $_iscygwin
 }
 
 proc is_enabled {option} {
@@ -448,44 +545,6 @@ proc _git_cmd {name} {
 	return $v
 }
 
-proc _which {what args} {
-	global env _search_exe _search_path
-
-	if {$_search_path eq {}} {
-		if {[is_Cygwin] && [regexp {^(/|\.:)} $env(PATH)]} {
-			set _search_path [split [exec cygpath \
-				--windows \
-				--path \
-				--absolute \
-				$env(PATH)] {;}]
-			set _search_exe .exe
-		} elseif {[is_Windows]} {
-			set gitguidir [file dirname [info script]]
-			regsub -all ";" $gitguidir "\\;" gitguidir
-			set env(PATH) "$gitguidir;$env(PATH)"
-			set _search_path [split $env(PATH) {;}]
-			set _search_exe .exe
-		} else {
-			set _search_path [split $env(PATH) :]
-			set _search_exe {}
-		}
-	}
-
-	if {[is_Windows] && [lsearch -exact $args -script] >= 0} {
-		set suffix {}
-	} else {
-		set suffix $_search_exe
-	}
-
-	foreach p $_search_path {
-		set p [file join $p $what$suffix]
-		if {[file exists $p]} {
-			return [file normalize $p]
-		}
-	}
-	return {}
-}
-
 # Test a file for a hashbang to identify executable scripts on Windows.
 proc is_shellscript {filename} {
 	if {![file exists $filename]} {return 0}
@@ -623,7 +682,11 @@ proc git_write {args} {
 }
 
 proc githook_read {hook_name args} {
-	set pchook [gitdir hooks $hook_name]
+	if {[package vcompare $::_git_version 2.5.0] >= 0} {
+		set pchook [git rev-parse --git-path "hooks/$hook_name"]
+	} else {
+		set pchook [gitdir hooks $hook_name]
+	}
 	lappend args 2>@1
 
 	# On Windows [file executable] might lie so we need to ask
@@ -1229,6 +1292,12 @@ set have_tk85 [expr {[package vcompare $tk_version "8.5"] >= 0}]
 # Suggest our implementation of askpass, if none is set
 if {![info exists env(SSH_ASKPASS)]} {
 	set env(SSH_ASKPASS) [gitexec git-gui--askpass]
+}
+if {![info exists env(GIT_ASKPASS)]} {
+	set env(GIT_ASKPASS) [gitexec git-gui--askpass]
+}
+if {![info exists env(GIT_ASK_YESNO)]} {
+	set env(GIT_ASK_YESNO) [gitexec git-gui--askyesno]
 }
 
 ######################################################################
@@ -2087,6 +2156,7 @@ set all_icons(U$ui_index)   file_merge
 set all_icons(T$ui_index)   file_statechange
 
 set all_icons(_$ui_workdir) file_plain
+set all_icons(A$ui_workdir) file_plain
 set all_icons(M$ui_workdir) file_mod
 set all_icons(D$ui_workdir) file_question
 set all_icons(U$ui_workdir) file_merge
@@ -2113,6 +2183,7 @@ foreach i {
 		{A_ {mc "Staged for commit"}}
 		{AM {mc "Portions staged for commit"}}
 		{AD {mc "Staged for commit, missing"}}
+		{AA {mc "Intended to be added"}}
 
 		{_D {mc "Missing"}}
 		{D_ {mc "Staged for removal"}}
