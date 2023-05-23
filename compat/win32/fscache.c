@@ -787,3 +787,106 @@ void fscache_merge(struct fscache *dest)
 	free(cache);
 
 }
+
+
+#define LX_FILE_METADATA_HAS_UID 0x1
+#define LX_FILE_METADATA_HAS_GID 0x2
+#define LX_FILE_METADATA_HAS_MODE 0x4
+#define LX_FILE_METADATA_HAS_DEVICE_ID 0x8
+#define LX_FILE_CASE_SENSITIVE_DIR 0x10
+typedef struct _FILE_STAT_LX_INFORMATION {
+	LARGE_INTEGER FileId;
+	LARGE_INTEGER CreationTime;
+	LARGE_INTEGER LastAccessTime;
+	LARGE_INTEGER LastWriteTime;
+	LARGE_INTEGER ChangeTime;
+	LARGE_INTEGER AllocationSize;
+	LARGE_INTEGER EndOfFile;
+	uint32_t FileAttributes;
+	uint32_t ReparseTag;
+	uint32_t NumberOfLinks;
+	ACCESS_MASK EffectiveAccess;
+	uint32_t LxFlags;
+	uint32_t LxUid;
+	uint32_t LxGid;
+	uint32_t LxMode;
+	uint32_t LxDeviceIdMajor;
+	uint32_t LxDeviceIdMinor;
+} FILE_STAT_LX_INFORMATION, *PFILE_STAT_LX_INFORMATION;
+typedef struct _FILE_FULL_EA_INFORMATION {
+	ULONG NextEntryOffset;
+	UCHAR Flags;
+	UCHAR EaNameLength;
+	USHORT EaValueLength;
+	CHAR EaName[1];
+} FILE_FULL_EA_INFORMATION, *PFILE_FULL_EA_INFORMATION;
+
+enum {
+	FileStatLxInformation = 70,
+};
+__declspec(dllimport) NTSTATUS WINAPI
+	NtQueryInformationFile(HANDLE FileHandle,
+			       PIO_STATUS_BLOCK IoStatusBlock,
+			       PVOID FileInformation, ULONG Length,
+			       uint32_t FileInformationClass);
+__declspec(dllimport) NTSTATUS WINAPI
+	NtSetInformationFile(HANDLE FileHandle, PIO_STATUS_BLOCK IoStatusBlock,
+			     PVOID FileInformation, ULONG Length,
+			     uint32_t FileInformationClass);
+__declspec(dllimport) NTSTATUS WINAPI
+	NtSetEaFile(HANDLE FileHandle, PIO_STATUS_BLOCK IoStatusBlock,
+		    PVOID EaBuffer, ULONG EaBufferSize);
+
+int set_file_mode(HANDLE hd, struct stat *st)
+{
+	char buf[0x40] = { 0 };
+	const char *names[] = { "$LXUID", "$LXGID", "$LXMOD" };
+	uint32_t vals[] = { (uint32_t)st->st_uid, (uint32_t)st->st_gid,
+			    st->st_mode };
+	char *endp = buf;
+	FILE_FULL_EA_INFORMATION *prev = 0;
+	IO_STATUS_BLOCK iob = { 0 };
+
+	assert(S_ISREG(st->st_mode) || S_ISDIR(st->st_mode));
+
+	for (int i = 0; i < 3; ++i) {
+		FILE_FULL_EA_INFORMATION *p =
+			(FILE_FULL_EA_INFORMATION *)(((uintptr_t)endp + 3) &
+						     ~3llu);
+		char *vp;
+		if (prev)
+			prev->NextEntryOffset =
+				(ULONG)((char *)p - (char *)prev);
+		p->NextEntryOffset = 0;
+		p->Flags = 0;
+		p->EaNameLength = (unsigned char)strlen(names[i]);
+		p->EaValueLength = 4;
+		memcpy(p->EaName, names[i], (size_t)p->EaNameLength + 1);
+		vp = p->EaName + p->EaNameLength + 1;
+		memcpy(vp, &vals[i], sizeof(vals[i]));
+		endp = vp + sizeof(vals[i]);
+		prev = p;
+	}
+	return NtSetEaFile(hd, &iob, buf, (ULONG)(endp - buf));
+}
+
+int copy_file_mode(HANDLE hd, struct stat *buf)
+{
+	FILE_STAT_LX_INFORMATION fxi;
+	IO_STATUS_BLOCK io = { 0 };
+	if (NtQueryInformationFile(hd, &io, &fxi, sizeof(fxi),
+				   FileStatLxInformation) == 0) {
+		if (fxi.LxFlags & LX_FILE_METADATA_HAS_MODE)
+			buf->st_mode = (buf->st_mode & ~0x1ff) |
+				       (fxi.LxMode & 0x1ff);
+		if (fxi.LxFlags & LX_FILE_METADATA_HAS_UID)
+			buf->st_uid = fxi.LxUid;
+		if (fxi.LxFlags & LX_FILE_METADATA_HAS_GID)
+			buf->st_gid = fxi.LxGid;
+		if (fxi.LxFlags & LX_FILE_METADATA_HAS_DEVICE_ID)
+			buf->st_dev = (fxi.LxDeviceIdMajor << 8) +
+				      fxi.LxDeviceIdMinor;
+		return 0;
+	}
+	return -1;
+}

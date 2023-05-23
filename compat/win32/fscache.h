@@ -33,4 +33,7 @@ struct fscache *fscache_getcache(void);
 void fscache_merge(struct fscache *dest);
 #define merge_fscache(dest) fscache_merge(dest)
 
+int copy_file_mode(HANDLE hd, struct stat * buf);
+int set_file_mode(HANDLE hd, struct stat * st);
+
 #endif
