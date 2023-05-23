@@ -237,7 +237,26 @@ static struct fsentry *fseentry_create_entry(struct fscache *cache,
 			     &(fse->u.s.st_mtim));
 	filetime_to_timespec((FILETIME *)&(fdata->CreationTime),
 			     &(fse->u.s.st_ctim));
-
+	if (fdata->EaSize > 0) {
+		WCHAR wpath[MAX_LONG_PATH];
+		HANDLE hnd;
+		struct stat bst;
+		if (xutftowcs_long_path(wpath, buf) >= 0 &&
+		    (hnd = CreateFileW(fdata->FileName,
+				       FILE_READ_EA | SYNCHRONIZE,
+				       FILE_SHARE_READ | FILE_SHARE_WRITE |
+					       FILE_SHARE_DELETE,
+				       NULL, OPEN_EXISTING,
+				       FILE_FLAG_BACKUP_SEMANTICS |
+					       FILE_FLAG_OPEN_REPARSE_POINT,
+				       NULL) != INVALID_HANDLE_VALUE)) {
+			memset(&bst, 0, sizeof(bst));
+			bst.st_mode = fse->st_mode;
+			copy_file_mode(hnd, &bst);
+			fse->st_mode = bst.st_mode;
+			CloseHandle(hnd);
+		}
+	}
 	return fse;
 }
 

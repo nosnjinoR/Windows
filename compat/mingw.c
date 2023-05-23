@@ -809,6 +809,14 @@ int mingw_open (const char *filename, int oflags, ...)
 		return -1;
 
 	fd = open_fn(wfilename, oflags, mode);
+	if ((oflags & O_CREAT) && fd >= 0) {
+		HANDLE hd = (HANDLE)_get_osfhandle(fd);
+		if (hd != INVALID_HANDLE_VALUE) {
+			struct stat ost = { 0 };
+			ost.st_mode = S_IFREG | (mode & 0x1ff);
+			set_file_mode(hd, &ost);
+		}
+	}
 
 	if (fd < 0 && (oflags & O_ACCMODE) != O_RDONLY && errno == EACCES) {
 		DWORD attrs = GetFileAttributesW(wfilename);
@@ -1097,6 +1105,22 @@ int mingw_lstat(const char *file_name, struct stat *buf)
 		filetime_to_timespec(&(fdata.ftLastAccessTime), &(buf->st_atim));
 		filetime_to_timespec(&(fdata.ftLastWriteTime), &(buf->st_mtim));
 		filetime_to_timespec(&(fdata.ftCreationTime), &(buf->st_ctim));
+		if (!S_ISLNK(buf->st_mode))
+		{
+			HANDLE hf = CreateFileW(
+				wfilename, FILE_READ_EA | SYNCHRONIZE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE |
+					FILE_SHARE_DELETE,
+				NULL, +OPEN_EXISTING,
+				FILE_FLAG_BACKUP_SEMANTICS |
+					FILE_FLAG_OPEN_REPARSE_POINT,
+				NULL);
+			if (hf != INVALID_HANDLE_VALUE)
+			{
+				copy_file_mode(hf, buf);
+				CloseHandle(hf);
+			}
+		}
 		return 0;
 	}
 
@@ -1148,6 +1172,7 @@ static int get_file_info_by_handle(HANDLE hnd, struct stat *buf)
 	filetime_to_timespec(&(fdata.ftLastAccessTime), &(buf->st_atim));
 	filetime_to_timespec(&(fdata.ftLastWriteTime), &(buf->st_mtim));
 	filetime_to_timespec(&(fdata.ftCreationTime), &(buf->st_ctim));
+	copy_file_mode(hnd, buf);
 	return 0;
 }
 
