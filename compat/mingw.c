@@ -2688,7 +2688,6 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 int mingw_rename(const char *pold, const char *pnew)
 {
 	DWORD attrs = INVALID_FILE_ATTRIBUTES, gle, attrsold;
-	bool resetattrs;
 	int tries = 0;
 	wchar_t wpold[MAX_LONG_PATH], wpnew[MAX_LONG_PATH];
 	if (xutftowcs_long_path(wpold, pold) < 0 ||
@@ -2696,18 +2695,8 @@ int mingw_rename(const char *pold, const char *pnew)
 		return -1;
 
 repeat:
-	/* check if file is read-only and change if necessary */
-	resetattrs = false;
-	attrsold = GetFileAttributesW(wpold);
-	if (attrsold & FILE_ATTRIBUTE_READONLY) {
-    SetFileAttributesW(wpold, attrsold & ~FILE_ATTRIBUTE_READONLY);
-		/* flag to change back after rename */
-    resetattrs = true;
-	}
 	if (MoveFileExW(wpold, wpnew,
 			MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED))
-		if (resetattrs) 
-	    SetFileAttributesW(wpnew, attrsold);
 		return 0;
 	gle = GetLastError();
 
@@ -2715,6 +2704,16 @@ repeat:
 		/* Fall back to copy to destination & remove source */
 		if (CopyFileW(wpold, wpnew, FALSE) && !mingw_unlink(pold))
 			return 0;
+		gle = GetLastError();
+	} else if ((attrsold = GetFileAttributesW(wpold)) & FILE_ATTRIBUTE_READONLY) {
+		/* if file is read-only, change and retry */
+    SetFileAttributesW(wpold, attrsold & ~FILE_ATTRIBUTE_READONLY);
+		if (MoveFileExW(wpold, wpnew,
+				MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
+			/* reset attrs on renamed file */
+	    SetFileAttributesW(wpnew, attrsold);
+			return 0;
+		}
 		gle = GetLastError();
 	}
 
