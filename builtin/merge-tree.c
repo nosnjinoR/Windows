@@ -9,7 +9,7 @@
 #include "commit-reach.h"
 #include "merge-ort.h"
 #include "object-name.h"
-#include "object-store.h"
+#include "object-store-ll.h"
 #include "parse-options.h"
 #include "repository.h"
 #include "blob.h"
@@ -448,7 +448,7 @@ static int real_merge(struct merge_tree_options *o,
 
 		base_commit = lookup_commit_reference_by_name(merge_base);
 		if (!base_commit)
-			die(_("could not lookup commit %s"), merge_base);
+			die(_("could not lookup commit '%s'"), merge_base);
 
 		opt.ancestor = merge_base;
 		base_tree = repo_get_commit_tree(the_repository, base_commit);

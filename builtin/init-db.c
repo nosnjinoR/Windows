@@ -3,22 +3,19 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "cache.h"
+#include "builtin.h"
 #include "abspath.h"
 #include "config.h"
-#include "copy.h"
 #include "environment.h"
 #include "gettext.h"
-#include "refs.h"
-#include "builtin.h"
-#include "exec-cmd.h"
 #include "object-file.h"
 #include "parse-options.h"
 #include "path.h"
 #include "setup.h"
-#include "worktree.h"
+#include "strbuf.h"
 #include "wrapper.h"
 
+<<<<<<< HEAD
 #ifndef DEFAULT_GIT_TEMPLATE_DIR
 #define DEFAULT_GIT_TEMPLATE_DIR "/usr/share/git-core/templates"
 #endif
@@ -482,6 +479,8 @@ int init_db(const char *git_dir, const char *real_git_dir,
 	return 0;
 }
 
+=======
+>>>>>>> master
 static int guess_repository_type(const char *git_dir)
 {
 	const char *slash;
@@ -546,6 +545,7 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 	const char *object_format = NULL;
 	const char *initial_branch = NULL;
 	int hash_algo = GIT_HASH_UNKNOWN;
+	int init_shared_repository = -1;
 	const struct option init_db_options[] = {
 		OPT_STRING(0, "template", &template_dir, N_("template-directory"),
 				N_("directory from which templates will be used")),
@@ -703,5 +703,5 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 
 	flags |= INIT_DB_EXIST_OK;
 	return init_db(git_dir, real_git_dir, template_dir, hash_algo,
-		       initial_branch, flags);
+		       initial_branch, init_shared_repository, flags);
 }

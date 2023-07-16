@@ -80,6 +80,7 @@ static struct {
 	[ADVICE_UPDATE_SPARSE_PATH]			= { "updateSparsePath", 1 },
 	[ADVICE_USE_CORE_FSMONITOR_CONFIG]		= { "useCoreFSMonitorConfig", 1 },
 	[ADVICE_WAITING_FOR_EDITOR]			= { "waitingForEditor", 1 },
+	[ADVICE_WORKTREE_ADD_ORPHAN]			= { "worktreeAddOrphan", 1 },
 };
 
 static const char turn_off_instructions[] =

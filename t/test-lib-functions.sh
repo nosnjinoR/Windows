@@ -542,8 +542,17 @@ test_config () {
 		config_dir=$1
 		shift
 	fi
-	test_when_finished "test_unconfig ${config_dir:+-C '$config_dir'} '$1'" &&
-	git ${config_dir:+-C "$config_dir"} config "$@"
+
+	# If --worktree is provided, use it to configure/unconfigure
+	is_worktree=
+	if test "$1" = --worktree
+	then
+		is_worktree=1
+		shift
+	fi
+
+	test_when_finished "test_unconfig ${config_dir:+-C '$config_dir'} ${is_worktree:+--worktree} '$1'" &&
+	git ${config_dir:+-C "$config_dir"} config ${is_worktree:+--worktree} "$@"
 }
 
 test_config_global () {
@@ -897,6 +906,15 @@ test_path_is_symlink () {
 	if ! test -h "$1"
 	then
 		echo "Symbolic link $1 doesn't exist"
+		false
+	fi
+}
+
+test_path_is_executable () {
+	test "$#" -ne 1 && BUG "1 param"
+	if ! test -x "$1"
+	then
+		echo "$1 is not executable"
 		false
 	fi
 }

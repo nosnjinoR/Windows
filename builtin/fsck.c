@@ -1,5 +1,4 @@
 #include "builtin.h"
-#include "cache.h"
 #include "gettext.h"
 #include "hex.h"
 #include "repository.h"
@@ -21,10 +20,13 @@
 #include "packfile.h"
 #include "object-file.h"
 #include "object-name.h"
-#include "object-store.h"
+#include "object-store-ll.h"
+#include "path.h"
+#include "read-cache-ll.h"
 #include "replace-object.h"
 #include "resolve-undo.h"
 #include "run-command.h"
+#include "sparse-index.h"
 #include "worktree.h"
 #include "pack-revindex.h"
 #include "pack-bitmap.h"
@@ -808,7 +810,7 @@ static int fsck_resolve_undo(struct index_state *istate,
 }
 
 static void fsck_index(struct index_state *istate, const char *index_path,
-		       int is_main_index)
+		       int is_current_worktree)
 {
 	unsigned int i;
 
@@ -830,7 +832,7 @@ static void fsck_index(struct index_state *istate, const char *index_path,
 		obj->flags |= USED;
 		fsck_put_object_name(&fsck_walk_options, &obj->oid,
 				     "%s:%s",
-				     is_main_index ? "" : index_path,
+				     is_current_worktree ? "" : index_path,
 				     istate->cache[i]->name);
 		mark_object_reachable(obj);
 	}
@@ -929,7 +931,7 @@ int cmd_fsck(int argc, const char **argv, const char *prefix)
 	fetch_if_missing = 0;
 
 	errors_found = 0;
-	read_replace_refs = 0;
+	disable_replace_refs();
 	save_commit_buffer = 0;
 
 	argc = parse_options(argc, argv, prefix, fsck_opts, fsck_usage, 0);

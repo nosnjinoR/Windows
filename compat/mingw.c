@@ -7,7 +7,6 @@
 #include <winioctl.h>
 #include "../strbuf.h"
 #include "../run-command.h"
-#include "../cache.h"
 #include "../abspath.h"
 #include "../alloc.h"
 #include "win32/exit-process.h"
@@ -299,7 +298,8 @@ int are_long_paths_enabled(void)
 	return enabled < 0 ? fallback : enabled;
 }
 
-int mingw_core_config(const char *var, const char *value, void *cb)
+int mingw_core_config(const char *var, const char *value,
+		      const struct config_context *ctx, void *cb)
 {
 	if (!strcmp(var, "core.hidedotfiles")) {
 		if (value && !strcasecmp(value, "dotgitonly"))

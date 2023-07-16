@@ -1,60 +1,14 @@
 #ifndef OBJECT_STORE_H
 #define OBJECT_STORE_H
 
-#include "object.h"
-#include "list.h"
-#include "thread-utils.h"
 #include "khash.h"
 #include "dir.h"
-#include "oidset.h"
-
-struct oidmap;
-struct oidtree;
-struct strbuf;
-
-struct object_directory {
-	struct object_directory *next;
-
-	/*
-	 * Used to store the results of readdir(3) calls when we are OK
-	 * sacrificing accuracy due to races for speed. That includes
-	 * object existence with OBJECT_INFO_QUICK, as well as
-	 * our search for unique abbreviated hashes. Don't use it for tasks
-	 * requiring greater accuracy!
-	 *
-	 * Be sure to call odb_load_loose_cache() before using.
-	 */
-	uint32_t loose_objects_subdir_seen[8]; /* 256 bits */
-	struct oidtree *loose_objects_cache;
-
-	/*
-	 * This is a temporary object store created by the tmp_objdir
-	 * facility. Disable ref updates since the objects in the store
-	 * might be discarded on rollback.
-	 */
-	int disable_ref_updates;
-
-	/*
-	 * This object store is ephemeral, so there is no need to fsync.
-	 */
-	int will_destroy;
-
-	/*
-	 * Path to the alternative object store. If this is a relative path,
-	 * it is relative to the current working directory.
-	 */
-	char *path;
-};
-
-struct input_stream {
-	const void *(*read)(struct input_stream *, unsigned long *len);
-	void *data;
-	int is_finished;
-};
+#include "object-store-ll.h"
 
 KHASH_INIT(odb_path_map, const char * /* key: odb_path */,
 	struct object_directory *, 1, fspathhash, fspatheq)
 
+<<<<<<< HEAD
 void prepare_alt_odb(struct repository *r);
 int has_alt_odb(struct repository *r);
 char *compute_alternate_path(const char *path, struct strbuf *err);
@@ -534,4 +488,6 @@ int for_each_object_in_pack(struct packed_git *p,
 int for_each_packed_object(each_packed_object_fn, void *,
 			   enum for_each_object_flags flags);
 
+=======
+>>>>>>> master
 #endif /* OBJECT_STORE_H */
