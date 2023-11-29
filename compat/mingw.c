@@ -533,6 +533,59 @@ static wchar_t *normalize_ntpath(wchar_t *wbuf)
 	return wbuf;
 }
 
+/*
+ * This is quite the bit of an NTFS hack: It is well-known that a file cannot
+ * be deleted while it is in use. It is much less well-known that a file that
+ * is in use can be renamed via `SetFileInformationByHandle()`, and the target
+ * file name can be a so-called "Alternate Data Stream" (for details, see
+ * https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams). And
+ * once the in-use file has been renamed thusly, a handle to the original path
+ * can be opened and the file can be deleted via yet another call to
+ * `SetFileInformationByHandle()`.
+ */
+static int rename_in_use_file_to_alternate_data_stream(wchar_t *wpath)
+{
+	HANDLE handle;
+	BOOL ret;
+	const wchar_t dest[] = L":delete-me";
+	char buffer[sizeof(FILE_RENAME_INFO) + sizeof(dest) + 10];
+	FILE_RENAME_INFO *rename_info = (void *)buffer;
+	FILE_DISPOSITION_INFO disposition_info = { .DeleteFile = TRUE };
+
+	if (!is_file_in_use_error(GetLastError()))
+		return 0;
+
+	handle = CreateFileW(wpath, DELETE,
+			     FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+			     NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (handle == INVALID_HANDLE_VALUE)
+		return 0;
+
+	rename_info->FileNameLength = wcslen(dest);
+	wcscpy(rename_info->FileName, dest);
+
+	ret = SetFileInformationByHandle(handle, FileRenameInfo, rename_info,
+					 sizeof(buffer));
+	CloseHandle(handle);
+	if (!ret)
+		return 0;
+
+	handle = CreateFileW(wpath, DELETE,
+			     FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+			     NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	if (handle == INVALID_HANDLE_VALUE)
+		return 0;
+
+	ret = SetFileInformationByHandle(handle, FileDispositionInfo,
+					 &disposition_info,
+					 sizeof(disposition_info));
+
+	CloseHandle(handle);
+	return !!ret;
+}
+
 int mingw_unlink(const char *pathname)
 {
 	int tries = 0;
@@ -541,6 +594,9 @@ int mingw_unlink(const char *pathname)
 		return -1;
 
 	if (DeleteFileW(wpathname))
+		return 0;
+
+	if (rename_in_use_file_to_alternate_data_stream(wpathname))
 		return 0;
 
 	do {
