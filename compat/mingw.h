@@ -729,3 +729,9 @@ int err_win_to_posix(DWORD winerr);
  * Check current process is inside Windows Container.
  */
 int is_inside_windows_container(void);
+
+#ifndef NO_UNIX_SOCKETS
+int mingw_have_unix_sockets(void);
+#undef have_unix_sockets
+#define have_unix_sockets mingw_have_unix_sockets
+#endif
