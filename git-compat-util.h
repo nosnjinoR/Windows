@@ -430,6 +430,20 @@ char *gitdirname(char *);
 #define NI_MAXSERV 32
 #endif
 
+/* PATH_MAX is inherited from mingw64/include/limits.h, with a value of 260.
+ * The problem is that even after enabling Windows long path support and
+ * 'core.longpaths' there are still some Git operations that will fail, such
+ * as cloning a submodule (see setup_explicit_git_dir).
+ *
+ * I've observed some CI runners that have temp clones in a deeply nested
+ * path which will break even some medium sized repository paths.
+ *
+ * Redefining this macro addresses that issue.
+ */
+#if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW32__)
+#undef PATH_MAX
+#endif
+
 /* On most systems <limits.h> would have given us this, but
  * not on some systems (e.g. GNU/Hurd).
  */
