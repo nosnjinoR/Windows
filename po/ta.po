@@ -17,6 +17,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+#: git-send-email.perl:2009
+#, perl-format
+msgid "(%s) Could not execute '%s'"
+msgstr "(%s) '%s' ஐ செயல்படுத்த முடியவில்லை"
+
+#: git-send-email.perl:2011
+#, perl-format
+msgid "(%s) Malformed output from '%s'"
+msgstr "(%s) தவறான வெளியீடு '%s' இலிருந்து"
+
 #: git-send-email.perl:2020
 #, perl-format
 msgid "(%s) failed to close pipe to '%s'"
@@ -44,7 +54,7 @@ msgid ""
 msgstr ""
 "அபாயகரமான: %s: %s கொக்கி மூலம் நிராகரிக்கப்பட்டது\n"
 "%s\n"
-"முன்னறிவிப்பு: திட்டுகள் எதுவும் அனுப்பப்படவில்லை"
+"முன்னறிவிப்பு: திட்டுகள் எதுவும் அனுப்பப்படவில்லை\n"
 
 #: git-send-email.perl:2167 git-send-email.perl:2220 git-send-email.perl:2230
 #, perl-format
