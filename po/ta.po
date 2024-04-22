@@ -9,13 +9,18 @@ msgstr ""
 "Report-Msgid-Bugs-To: Git Mailing List <git@vger.kernel.org>\n"
 "POT-Creation-Date: 2024-04-14 22:24+0530\n"
 "PO-Revision-Date: 2024-04-14 22:24+0530\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"Last-Translator: தமிழ்நேரம்<TamilNeram.github.io>\n"
+"Language-Team: தமிழ்நேரம்<TamilNeram.github.io>\n"
 "Language: ta\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: git-send-email.perl:1848
+#, perl-format
+msgid "(body) Adding cc: %s from line '%s'\n"
+msgstr "(உடல்) சேர்க்கிறது நகல்: %s வரி '%s' இருந்து\n"
 
 #: git-send-email.perl:2009
 #, perl-format
