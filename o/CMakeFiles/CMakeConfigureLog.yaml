@@ -1,0 +1,1480 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineSystem.cmake:205 (message)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      The system is: Windows - 10.0.19045 - AMD64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: C:/git-sdk-64/mingw64/bin/cc.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.exe"
+      
+      The C compiler identification is GNU, found in:
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/3.29.3/CompilerIdC/a.exe
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: C:/git-sdk-64/mingw64/bin/c++.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
+      
+      The CXX compiler identification is GNU, found in:
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/3.29.3/CompilerIdCXX/a.exe
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:67 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-sv6bs2"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-sv6bs2"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-sv6bs2'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_9ac01
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -v -o CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj -c "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCCompilerABI.c"
+        Using built-in specs.
+        COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\cc.exe
+        Target: x86_64-w64-mingw32
+        Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.1.0 (Rev3, Built by MSYS2 project) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/cc1.exe -quiet -v -iprefix C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/ -D_REENTRANT C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_9ac01.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=nocona -version -o C:\\Users\\sondr\\AppData\\Local\\Temp\\ccugMhs2.s
+        GNU C17 (Rev3, Built by MSYS2 project) version 14.1.0 (x86_64-w64-mingw32)
+        	compiled by GNU C version 14.1.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include"
+        ignoring nonexistent directory "D:/a/msys64/mingw64/include"
+        ignoring nonexistent directory "/mingw64/include"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed"
+        ignoring nonexistent directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"
+        ignoring nonexistent directory "D:/a/msys64/mingw64/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed
+        End of search list.
+        Compiler executable checksum: 7c3b67c3cf2202017ebc74aa340ae1c2
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/as.exe -v -o CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj C:\\Users\\sondr\\AppData\\Local\\Temp\\ccugMhs2.s
+        GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
+        COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../\x0d
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.'\x0d
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe  -v -Wl,-v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj -o cmTC_9ac01.exe -Wl,--out-implib,libcmTC_9ac01.dll.a -Wl,--major-image-version,0,--minor-image-version,0   && cd ."
+        Using built-in specs.
+        COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\cc.exe
+        COLLECT_LTO_WRAPPER=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe
+        Target: x86_64-w64-mingw32
+        Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.1.0 (Rev3, Built by MSYS2 project) 
+        COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_9ac01.exe' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_9ac01.'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cc2NQRD9.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_9ac01.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_9ac01.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o
+        collect2 version 14.1.0
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cc2NQRD9.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_9ac01.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_9ac01.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o\x0d
+        GNU ld (GNU Binutils) 2.42\x0d
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_9ac01.exe' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_9ac01.'\x0d
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:137 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        end of search list found
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include] ==> [C:/git-sdk-64/mingw64/include]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        implicit include dirs: [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include;C:/git-sdk-64/mingw64/include;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:173 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-sv6bs2']
+        ignore line: []
+        ignore line: [Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_9ac01]
+        ignore line: [[1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -v -o CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj -c "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCCompilerABI.c"]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\cc.exe]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.1.0 (Rev3  Built by MSYS2 project) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/']
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/cc1.exe -quiet -v -iprefix C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/ -D_REENTRANT C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCCompilerABI.c -quiet -dumpdir CMakeFiles/cmTC_9ac01.dir/ -dumpbase CMakeCCompilerABI.c.c -dumpbase-ext .c -mtune=generic -march=nocona -version -o C:\\Users\\sondr\\AppData\\Local\\Temp\\ccugMhs2.s]
+        ignore line: [GNU C17 (Rev3  Built by MSYS2 project) version 14.1.0 (x86_64-w64-mingw32)]
+        ignore line: [	compiled by GNU C version 14.1.0  GMP version 6.3.0  MPFR version 4.2.1  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include"]
+        ignore line: [ignoring nonexistent directory "D:/a/msys64/mingw64/include"]
+        ignore line: [ignoring nonexistent directory "/mingw64/include"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed"]
+        ignore line: [ignoring nonexistent directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"]
+        ignore line: [ignoring nonexistent directory "D:/a/msys64/mingw64/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        ignore line: [End of search list.]
+        ignore line: [Compiler executable checksum: 7c3b67c3cf2202017ebc74aa340ae1c2]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/']
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/as.exe -v -o CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj C:\\Users\\sondr\\AppData\\Local\\Temp\\ccugMhs2.s]
+        ignore line: [GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42]
+        ignore line: [COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../\x0d]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj' '-c' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.'\x0d]
+        ignore line: [[2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe  -v -Wl -v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj -o cmTC_9ac01.exe -Wl --out-implib libcmTC_9ac01.dll.a -Wl --major-image-version 0 --minor-image-version 0   && cd ."]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\cc.exe]
+        ignore line: [COLLECT_LTO_WRAPPER=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.1.0 (Rev3  Built by MSYS2 project) ]
+        ignore line: [COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_9ac01.exe' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_9ac01.']
+        link line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cc2NQRD9.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_9ac01.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_9ac01.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll] ==> ignore
+          arg [-plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe] ==> ignore
+          arg [-plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cc2NQRD9.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lpthread] ==> ignore
+          arg [-plugin-opt=-pass-through=-ladvapi32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lshell32] ==> ignore
+          arg [-plugin-opt=-pass-through=-luser32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_eh] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-m] ==> ignore
+          arg [i386pep] ==> ignore
+          arg [-Bdynamic] ==> search dynamic
+          arg [-o] ==> ignore
+          arg [cmTC_9ac01.exe] ==> ignore
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..]
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj] ==> ignore
+          arg [--out-implib] ==> ignore
+          arg [libcmTC_9ac01.dll.a] ==> ignore
+          arg [--major-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [--minor-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ladvapi32] ==> lib [advapi32]
+          arg [-lshell32] ==> lib [shell32]
+          arg [-luser32] ==> lib [user32]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lgcc_eh] ==> lib [gcc_eh]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        ignore line: [collect2 version 14.1.0]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cc2NQRD9.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_eh -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_9ac01.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_9ac01.dir/CMakeCCompilerABI.c.obj --out-implib libcmTC_9ac01.dll.a --major-image-version 0 --minor-image-version 0 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc -lgcc_eh -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o\x0d]
+        linker tool for 'C': C:/git-sdk-64/mingw64/x86_64-w64-mingw32/bin/ld.exe
+        remove lib [gcc_eh]
+        remove lib [msvcrt]
+        remove lib [gcc_eh]
+        remove lib [msvcrt]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o] ==> [C:/git-sdk-64/mingw64/lib/crt2.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o] ==> [C:/git-sdk-64/mingw64/lib/default-manifest.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc] ==> [C:/git-sdk-64/mingw64/lib/gcc]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib] ==> [C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib] ==> [C:/git-sdk-64/mingw64/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib] ==> [C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..] ==> [C:/git-sdk-64/mingw64/lib]
+        implicit libs: [mingw32;gcc;mingwex;kernel32;pthread;advapi32;shell32;user32;kernel32;mingw32;gcc;mingwex;kernel32]
+        implicit objs: [C:/git-sdk-64/mingw64/lib/crt2.o;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o;C:/git-sdk-64/mingw64/lib/default-manifest.o;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        implicit dirs: [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0;C:/git-sdk-64/mingw64/lib/gcc;C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib;C:/git-sdk-64/mingw64/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:210 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the C compiler's linker: "C:/git-sdk-64/mingw64/x86_64-w64-mingw32/bin/ld.exe" "-v"
+      GNU ld (GNU Binutils) 2.42
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:67 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-52y7bt"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-52y7bt"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-52y7bt'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_20672
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\c++.exe   -v -o CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj -c "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp"
+        Using built-in specs.
+        COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\c++.exe
+        Target: x86_64-w64-mingw32
+        Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.1.0 (Rev3, Built by MSYS2 project) 
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/cc1plus.exe -quiet -v -iprefix C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/ -D_REENTRANT C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_20672.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=nocona -version -o C:\\Users\\sondr\\AppData\\Local\\Temp\\ccVXuy0C.s
+        GNU C++17 (Rev3, Built by MSYS2 project) version 14.1.0 (x86_64-w64-mingw32)
+        	compiled by GNU C version 14.1.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
+        
+        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+        ignoring nonexistent directory "C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include"
+        ignoring nonexistent directory "D:/a/msys64/mingw64/include"
+        ignoring nonexistent directory "/mingw64/include"
+        ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed"
+        ignoring nonexistent directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"
+        ignoring nonexistent directory "D:/a/msys64/mingw64/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed
+        End of search list.
+        Compiler executable checksum: e7fc93bdd94dee4900ca4f030d792a91
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/as.exe -v -o CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj C:\\Users\\sondr\\AppData\\Local\\Temp\\ccVXuy0C.s
+        GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42
+        COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../\x0d
+        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.'\x0d
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\c++.exe  -v -Wl,-v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj -o cmTC_20672.exe -Wl,--out-implib,libcmTC_20672.dll.a -Wl,--major-image-version,0,--minor-image-version,0   && cd ."
+        Using built-in specs.
+        COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\c++.exe
+        COLLECT_LTO_WRAPPER=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe
+        Target: x86_64-w64-mingw32
+        Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++
+        Thread model: posix
+        Supported LTO compression algorithms: zlib zstd
+        gcc version 14.1.0 (Rev3, Built by MSYS2 project) 
+        COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/
+        LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/;C:/git-sdk-64/mingw64/bin/../lib/gcc/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/;C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_20672.exe' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_20672.'
+         C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cczsoPFK.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_20672.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj --out-implib libcmTC_20672.dll.a --major-image-version 0 --minor-image-version 0 -lstdc++ -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o
+        collect2 version 14.1.0
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cczsoPFK.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_20672.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj --out-implib libcmTC_20672.dll.a --major-image-version 0 --minor-image-version 0 -lstdc++ -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o\x0d
+        GNU ld (GNU Binutils) 2.42\x0d
+        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_20672.exe' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_20672.'\x0d
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:137 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include]
+          add: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        end of search list found
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0] ==> [C:/git-sdk-64/mingw64/include/c++/14.1.0]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32] ==> [C:/git-sdk-64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward] ==> [C:/git-sdk-64/mingw64/include/c++/14.1.0/backward]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include] ==> [C:/git-sdk-64/mingw64/include]
+        collapse include dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        implicit include dirs: [C:/git-sdk-64/mingw64/include/c++/14.1.0;C:/git-sdk-64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32;C:/git-sdk-64/mingw64/include/c++/14.1.0/backward;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include;C:/git-sdk-64/mingw64/include;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:173 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(\\.[a-z]+)?|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(\\.[a-z]+)?))("|,| |$)]
+        ignore line: [Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-52y7bt']
+        ignore line: []
+        ignore line: [Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_20672]
+        ignore line: [[1/2] C:\\git-sdk-64\\mingw64\\bin\\c++.exe   -v -o CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj -c "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp"]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\c++.exe]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.1.0 (Rev3  Built by MSYS2 project) ]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/']
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/cc1plus.exe -quiet -v -iprefix C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/ -D_REENTRANT C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_20672.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=nocona -version -o C:\\Users\\sondr\\AppData\\Local\\Temp\\ccVXuy0C.s]
+        ignore line: [GNU C++17 (Rev3  Built by MSYS2 project) version 14.1.0 (x86_64-w64-mingw32)]
+        ignore line: [	compiled by GNU C version 14.1.0  GMP version 6.3.0  MPFR version 4.2.1  MPC version 1.3.1  isl version isl-0.26-GMP]
+        ignore line: []
+        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
+        ignore line: [ignoring nonexistent directory "C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include"]
+        ignore line: [ignoring nonexistent directory "D:/a/msys64/mingw64/include"]
+        ignore line: [ignoring nonexistent directory "/mingw64/include"]
+        ignore line: [ignoring duplicate directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed"]
+        ignore line: [ignoring nonexistent directory "C:/git-sdk-64/mingw64/lib/gcc/../../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/include"]
+        ignore line: [ignoring nonexistent directory "D:/a/msys64/mingw64/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/x86_64-w64-mingw32]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include/c++/14.1.0/backward]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../include]
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/include-fixed]
+        ignore line: [End of search list.]
+        ignore line: [Compiler executable checksum: e7fc93bdd94dee4900ca4f030d792a91]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/']
+        ignore line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/as.exe -v -o CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj C:\\Users\\sondr\\AppData\\Local\\Temp\\ccVXuy0C.s]
+        ignore line: [GNU assembler version 2.42 (x86_64-w64-mingw32) using BFD version (GNU Binutils) 2.42]
+        ignore line: [COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../\x0d]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj' '-c' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.'\x0d]
+        ignore line: [[2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\c++.exe  -v -Wl -v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj -o cmTC_20672.exe -Wl --out-implib libcmTC_20672.dll.a -Wl --major-image-version 0 --minor-image-version 0   && cd ."]
+        ignore line: [Using built-in specs.]
+        ignore line: [COLLECT_GCC=C:\\git-sdk-64\\mingw64\\bin\\c++.exe]
+        ignore line: [COLLECT_LTO_WRAPPER=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe]
+        ignore line: [Target: x86_64-w64-mingw32]
+        ignore line: [Configured with: ../gcc-14.1.0/configure --prefix=/mingw64 --with-local-prefix=/mingw64/local --build=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --target=x86_64-w64-mingw32 --with-native-system-header-dir=/mingw64/include --libexecdir=/mingw64/lib --enable-bootstrap --enable-checking=release --with-arch=nocona --with-tune=generic --enable-languages=c,lto,c++,fortran,ada,objc,obj-c++,rust,jit --enable-shared --enable-static --enable-libatomic --enable-threads=posix --enable-graphite --enable-fully-dynamic-string --enable-libstdcxx-filesystem-ts --enable-libstdcxx-time --disable-libstdcxx-pch --enable-lto --enable-libgomp --disable-libssp --disable-multilib --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-libiconv --with-system-zlib --with-gmp=/mingw64 --with-mpfr=/mingw64 --with-mpc=/mingw64 --with-isl=/mingw64 --with-pkgversion='Rev3, Built by MSYS2 project' --with-bugurl=https://github.com/msys2/MINGW-packages/issues --with-gnu-as --with-gnu-ld --disable-libstdcxx-debug --enable-plugin --with-boot-ldflags=-static-libstdc++ --with-stage1-ldflags=-static-libstdc++]
+        ignore line: [Thread model: posix]
+        ignore line: [Supported LTO compression algorithms: zlib zstd]
+        ignore line: [gcc version 14.1.0 (Rev3  Built by MSYS2 project) ]
+        ignore line: [COMPILER_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/]
+        ignore line: [LIBRARY_PATH=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../]
+        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_20672.exe' '-shared-libgcc' '-mtune=generic' '-march=nocona' '-dumpdir' 'cmTC_20672.']
+        link line: [ C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cczsoPFK.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_20672.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj --out-implib libcmTC_20672.dll.a --major-image-version 0 --minor-image-version 0 -lstdc++ -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/collect2.exe] ==> ignore
+          arg [-plugin] ==> ignore
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll] ==> ignore
+          arg [-plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe] ==> ignore
+          arg [-plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cczsoPFK.res] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lpthread] ==> ignore
+          arg [-plugin-opt=-pass-through=-ladvapi32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lshell32] ==> ignore
+          arg [-plugin-opt=-pass-through=-luser32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingw32] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmingwex] ==> ignore
+          arg [-plugin-opt=-pass-through=-lmsvcrt] ==> ignore
+          arg [-plugin-opt=-pass-through=-lkernel32] ==> ignore
+          arg [-m] ==> ignore
+          arg [i386pep] ==> ignore
+          arg [-Bdynamic] ==> search dynamic
+          arg [-o] ==> ignore
+          arg [cmTC_20672.exe] ==> ignore
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib]
+          arg [-LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..] ==> dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..]
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj] ==> ignore
+          arg [--out-implib] ==> ignore
+          arg [libcmTC_20672.dll.a] ==> ignore
+          arg [--major-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [--minor-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lpthread] ==> lib [pthread]
+          arg [-ladvapi32] ==> lib [advapi32]
+          arg [-lshell32] ==> lib [shell32]
+          arg [-luser32] ==> lib [user32]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o]
+          arg [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o] ==> obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        ignore line: [collect2 version 14.1.0]
+        ignore line: [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe -plugin C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/liblto_plugin.dll -plugin-opt=C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/lto-wrapper.exe -plugin-opt=-fresolution=C:\\Users\\sondr\\AppData\\Local\\Temp\\cczsoPFK.res -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lpthread -plugin-opt=-pass-through=-ladvapi32 -plugin-opt=-pass-through=-lshell32 -plugin-opt=-pass-through=-luser32 -plugin-opt=-pass-through=-lkernel32 -plugin-opt=-pass-through=-lmingw32 -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lmingwex -plugin-opt=-pass-through=-lmsvcrt -plugin-opt=-pass-through=-lkernel32 -m i386pep -Bdynamic -o cmTC_20672.exe C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0 -LC:/git-sdk-64/mingw64/bin/../lib/gcc -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib -LC:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../.. -v CMakeFiles/cmTC_20672.dir/CMakeCXXCompilerABI.cpp.obj --out-implib libcmTC_20672.dll.a --major-image-version 0 --minor-image-version 0 -lstdc++ -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 -lpthread -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 -lgcc_s -lgcc -lmingwex -lmsvcrt -lkernel32 C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o\x0d]
+        linker tool for 'CXX': C:/git-sdk-64/mingw64/x86_64-w64-mingw32/bin/ld.exe
+        remove lib [msvcrt]
+        remove lib [msvcrt]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/crt2.o] ==> [C:/git-sdk-64/mingw64/lib/crt2.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib/default-manifest.o] ==> [C:/git-sdk-64/mingw64/lib/default-manifest.o]
+        collapse obj [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0] ==> [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc] ==> [C:/git-sdk-64/mingw64/lib/gcc]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib/../lib] ==> [C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../lib] ==> [C:/git-sdk-64/mingw64/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/lib] ==> [C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib]
+        collapse library dir [C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../..] ==> [C:/git-sdk-64/mingw64/lib]
+        implicit libs: [stdc++;mingw32;gcc_s;gcc;mingwex;kernel32;pthread;advapi32;shell32;user32;kernel32;mingw32;gcc_s;gcc;mingwex;kernel32]
+        implicit objs: [C:/git-sdk-64/mingw64/lib/crt2.o;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtbegin.o;C:/git-sdk-64/mingw64/lib/default-manifest.o;C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/crtend.o]
+        implicit dirs: [C:/git-sdk-64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0;C:/git-sdk-64/mingw64/lib/gcc;C:/git-sdk-64/mingw64/x86_64-w64-mingw32/lib;C:/git-sdk-64/mingw64/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CMakeDetermineLinkerId.cmake:40 (message)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompilerABI.cmake:210 (cmake_determine_linker_id)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the CXX compiler's linker: "C:/git-sdk-64/mingw64/x86_64-w64-mingw32/bin/ld.exe" "-v"
+      GNU ld (GNU Binutils) 2.42
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/FindIntl.cmake:110 (check_c_source_compiles)"
+      - "CMakeLists.txt:130 (find_package)"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-mzdonh"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-mzdonh"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "Intl_IS_BUILT_IN"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-mzdonh'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_4b9da
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DIntl_IS_BUILT_IN   -o CMakeFiles/cmTC_4b9da.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-mzdonh/src.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_4b9da.dir/src.c.obj -o cmTC_4b9da.exe -Wl,--out-implib,libcmTC_4b9da.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_4b9da.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_4b9da.dir/src.c.obj -o cmTC_4b9da.exe -Wl,--out-implib,libcmTC_4b9da.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_4b9da.dir/src.c.obj:src.c:(.text+0x18): undefined reference to `libintl_gettext'\x0d
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_4b9da.dir/src.c.obj:src.c:(.text+0x31): undefined reference to `libintl_dgettext'\x0d
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_4b9da.dir/src.c.obj:src.c:(.text+0x50): undefined reference to `libintl_dcgettext'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:312 (check_include_file)"
+    checks:
+      - "Looking for libgen.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4cjgny"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4cjgny"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_LIBGEN_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4cjgny'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_c1d3d
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_c1d3d.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4cjgny/CheckIncludeFile.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_c1d3d.dir/CheckIncludeFile.c.obj -o cmTC_c1d3d.exe -Wl,--out-implib,libcmTC_c1d3d.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:318 (check_include_file)"
+    checks:
+      - "Looking for sys/sysinfo.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_SYSINFO"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_8c8f1
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_8c8f1.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv/CheckIncludeFile.c
+        FAILED: CMakeFiles/cmTC_8c8f1.dir/CheckIncludeFile.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_8c8f1.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv/CheckIncludeFile.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1vwngv/CheckIncludeFile.c:1:10: fatal error: sys/sysinfo.h: No such file or directory
+            1 | #include <sys/sysinfo.h>
+              |          ^~~~~~~~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:323 (check_c_source_compiles)"
+    checks:
+      - "Performing Test HAVE_ALLOCA_H"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_ALLOCA_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_9e960
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_ALLOCA_H   -o CMakeFiles/cmTC_9e960.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp/src.c
+        FAILED: CMakeFiles/cmTC_9e960.dir/src.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_ALLOCA_H   -o CMakeFiles/cmTC_9e960.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp/src.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-4xpzmp/src.c:2:10: fatal error: alloca.h: No such file or directory
+            2 | #include <alloca.h>
+              |          ^~~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:339 (check_include_file)"
+    checks:
+      - "Looking for strings.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-748al8"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-748al8"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRINGS_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-748al8'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_3aaaf
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_3aaaf.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-748al8/CheckIncludeFile.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_3aaaf.dir/CheckIncludeFile.c.obj -o cmTC_3aaaf.exe -Wl,--out-implib,libcmTC_3aaaf.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:344 (check_include_file)"
+    checks:
+      - "Looking for sys/select.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_SYS_SELECT_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_c03df
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_c03df.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz/CheckIncludeFile.c
+        FAILED: CMakeFiles/cmTC_c03df.dir/CheckIncludeFile.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_c03df.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz/CheckIncludeFile.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xpw4jz/CheckIncludeFile.c:1:10: fatal error: sys/select.h: No such file or directory
+            1 | #include <sys/select.h>
+              |          ^~~~~~~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:349 (check_include_file)"
+    checks:
+      - "Looking for sys/poll.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_SYS_POLL_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_3f2ca
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_3f2ca.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8/CheckIncludeFile.c
+        FAILED: CMakeFiles/cmTC_3f2ca.dir/CheckIncludeFile.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_3f2ca.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8/CheckIncludeFile.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-5a3bb8/CheckIncludeFile.c:1:10: fatal error: sys/poll.h: No such file or directory
+            1 | #include <sys/poll.h>
+              |          ^~~~~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:354 (check_include_file)"
+    checks:
+      - "Looking for poll.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_POLL_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_c4170
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_c4170.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2/CheckIncludeFile.c
+        FAILED: CMakeFiles/cmTC_c4170.dir/CheckIncludeFile.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_c4170.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2/CheckIncludeFile.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-28zrp2/CheckIncludeFile.c:1:10: fatal error: poll.h: No such file or directory
+            1 | #include <poll.h>
+              |          ^~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:359 (check_include_file)"
+    checks:
+      - "Looking for inttypes.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vyooy3"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vyooy3"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_INTTYPES_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vyooy3'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_486ef
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_486ef.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vyooy3/CheckIncludeFile.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_486ef.dir/CheckIncludeFile.c.obj -o cmTC_486ef.exe -Wl,--out-implib,libcmTC_486ef.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckIncludeFile.cmake:90 (try_compile)"
+      - "CMakeLists.txt:364 (check_include_file)"
+    checks:
+      - "Looking for paths.h"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_PATHS_H"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_6ac13
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_6ac13.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t/CheckIncludeFile.c
+        FAILED: CMakeFiles/cmTC_6ac13.dir/CheckIncludeFile.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_6ac13.dir/CheckIncludeFile.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t/CheckIncludeFile.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1h8t9t/CheckIncludeFile.c:1:10: fatal error: paths.h: No such file or directory
+            1 | #include <paths.h>
+              |          ^~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for strcasestr"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-qaphpe"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-qaphpe"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRCASESTR"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-qaphpe'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_ac182
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=strcasestr -o CMakeFiles/cmTC_ac182.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-qaphpe/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strcasestr  CMakeFiles/cmTC_ac182.dir/CheckFunctionExists.c.obj -o cmTC_ac182.exe -Wl,--out-implib,libcmTC_ac182.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_ac182.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strcasestr  CMakeFiles/cmTC_ac182.dir/CheckFunctionExists.c.obj -o cmTC_ac182.exe -Wl,--out-implib,libcmTC_ac182.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_ac182.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `strcasestr'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for memmem"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-omn3rv"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-omn3rv"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_MEMMEM"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-omn3rv'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_fd26c
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=memmem -o CMakeFiles/cmTC_fd26c.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-omn3rv/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=memmem  CMakeFiles/cmTC_fd26c.dir/CheckFunctionExists.c.obj -o cmTC_fd26c.exe -Wl,--out-implib,libcmTC_fd26c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_fd26c.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=memmem  CMakeFiles/cmTC_fd26c.dir/CheckFunctionExists.c.obj -o cmTC_fd26c.exe -Wl,--out-implib,libcmTC_fd26c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_fd26c.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `memmem'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for strlcpy"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xudbof"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xudbof"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRLCPY"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xudbof'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_9675c
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=strlcpy -o CMakeFiles/cmTC_9675c.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xudbof/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strlcpy  CMakeFiles/cmTC_9675c.dir/CheckFunctionExists.c.obj -o cmTC_9675c.exe -Wl,--out-implib,libcmTC_9675c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_9675c.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strlcpy  CMakeFiles/cmTC_9675c.dir/CheckFunctionExists.c.obj -o cmTC_9675c.exe -Wl,--out-implib,libcmTC_9675c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_9675c.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `strlcpy'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for strtoimax"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-k16bet"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-k16bet"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRTOIMAX"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-k16bet'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_4a0fd
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=strtoimax -o CMakeFiles/cmTC_4a0fd.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-k16bet/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strtoimax  CMakeFiles/cmTC_4a0fd.dir/CheckFunctionExists.c.obj -o cmTC_4a0fd.exe -Wl,--out-implib,libcmTC_4a0fd.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for strtoumax"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yml1mr"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yml1mr"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRTOUMAX"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yml1mr'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_48dc4
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=strtoumax -o CMakeFiles/cmTC_48dc4.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yml1mr/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strtoumax  CMakeFiles/cmTC_48dc4.dir/CheckFunctionExists.c.obj -o cmTC_48dc4.exe -Wl,--out-implib,libcmTC_48dc4.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for strtoull"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-0oai69"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-0oai69"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_STRTOULL"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-0oai69'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_5301f
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=strtoull -o CMakeFiles/cmTC_5301f.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-0oai69/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=strtoull  CMakeFiles/cmTC_5301f.dir/CheckFunctionExists.c.obj -o cmTC_5301f.exe -Wl,--out-implib,libcmTC_5301f.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for setenv"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-w9lmr0"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-w9lmr0"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_SETENV"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-w9lmr0'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_82d8e
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=setenv -o CMakeFiles/cmTC_82d8e.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-w9lmr0/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=setenv  CMakeFiles/cmTC_82d8e.dir/CheckFunctionExists.c.obj -o cmTC_82d8e.exe -Wl,--out-implib,libcmTC_82d8e.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_82d8e.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=setenv  CMakeFiles/cmTC_82d8e.dir/CheckFunctionExists.c.obj -o cmTC_82d8e.exe -Wl,--out-implib,libcmTC_82d8e.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_82d8e.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `setenv'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for mkdtemp"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-dvggcf"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-dvggcf"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_MKDTEMP"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-dvggcf'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_17436
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=mkdtemp -o CMakeFiles/cmTC_17436.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-dvggcf/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=mkdtemp  CMakeFiles/cmTC_17436.dir/CheckFunctionExists.c.obj -o cmTC_17436.exe -Wl,--out-implib,libcmTC_17436.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_17436.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=mkdtemp  CMakeFiles/cmTC_17436.dir/CheckFunctionExists.c.obj -o cmTC_17436.exe -Wl,--out-implib,libcmTC_17436.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_17436.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `mkdtemp'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for poll"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vv2pcg"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vv2pcg"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_POLL"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vv2pcg'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_b1864
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=poll -o CMakeFiles/cmTC_b1864.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-vv2pcg/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=poll  CMakeFiles/cmTC_b1864.dir/CheckFunctionExists.c.obj -o cmTC_b1864.exe -Wl,--out-implib,libcmTC_b1864.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_b1864.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=poll  CMakeFiles/cmTC_b1864.dir/CheckFunctionExists.c.obj -o cmTC_b1864.exe -Wl,--out-implib,libcmTC_b1864.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_b1864.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `poll'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:381 (check_function_exists)"
+    checks:
+      - "Looking for pread"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-zo1nnp"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-zo1nnp"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_PREAD"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-zo1nnp'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_bd53c
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=pread -o CMakeFiles/cmTC_bd53c.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-zo1nnp/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=pread  CMakeFiles/cmTC_bd53c.dir/CheckFunctionExists.c.obj -o cmTC_bd53c.exe -Wl,--out-implib,libcmTC_bd53c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_bd53c.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=pread  CMakeFiles/cmTC_bd53c.dir/CheckFunctionExists.c.obj -o cmTC_bd53c.exe -Wl,--out-implib,libcmTC_bd53c.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_bd53c.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `pread'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:431 (check_function_exists)"
+    checks:
+      - "Looking for getdelim"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1ups2i"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1ups2i"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_GETDELIM"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1ups2i'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_76bae
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=getdelim -o CMakeFiles/cmTC_76bae.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1ups2i/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=getdelim  CMakeFiles/cmTC_76bae.dir/CheckFunctionExists.c.obj -o cmTC_76bae.exe -Wl,--out-implib,libcmTC_76bae.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        FAILED: cmTC_76bae.exe 
+        C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=getdelim  CMakeFiles/cmTC_76bae.dir/CheckFunctionExists.c.obj -o cmTC_76bae.exe -Wl,--out-implib,libcmTC_76bae.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        C:/git-sdk-64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/14.1.0/../../../../x86_64-w64-mingw32/bin/ld.exe: CMakeFiles/cmTC_76bae.dir/CheckFunctionExists.c.obj:CheckFunctionExists.c:(.text+0x15): undefined reference to `getdelim'\x0d
+        collect2.exe: error: ld returned 1 exit status
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "CMakeLists.txt:436 (check_function_exists)"
+    checks:
+      - "Looking for clock_gettime"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1082uv"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1082uv"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_CLOCK_GETTIME"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1082uv'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_128fd
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe   -DCHECK_FUNCTION_EXISTS=clock_gettime -o CMakeFiles/cmTC_128fd.dir/CheckFunctionExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-1082uv/CheckFunctionExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DCHECK_FUNCTION_EXISTS=clock_gettime  CMakeFiles/cmTC_128fd.dir/CheckFunctionExists.c.obj -o cmTC_128fd.exe -Wl,--out-implib,libcmTC_128fd.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckSymbolExists.cmake:66 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "CMakeLists.txt:437 (check_symbol_exists)"
+    checks:
+      - "Looking for CLOCK_MONOTONIC"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ts3v3u"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ts3v3u"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_CLOCK_MONOTONIC"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ts3v3u'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_ae74d
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe    -o CMakeFiles/cmTC_ae74d.dir/CheckSymbolExists.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ts3v3u/CheckSymbolExists.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_ae74d.dir/CheckSymbolExists.c.obj -o cmTC_ae74d.exe -Wl,--out-implib,libcmTC_ae74d.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckSourceCompiles.cmake:77 (cmake_check_source_compiles)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckStructHasMember.cmake:77 (CHECK_SOURCE_COMPILES)"
+      - "CMakeLists.txt:446 (check_struct_has_member)"
+    checks:
+      - "Performing Test STRUCT_STAT_HAS_ST_BLOCKS"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "STRUCT_STAT_HAS_ST_BLOCKS"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_d23c4
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DSTRUCT_STAT_HAS_ST_BLOCKS   -o CMakeFiles/cmTC_d23c4.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq/src.c
+        FAILED: CMakeFiles/cmTC_d23c4.dir/src.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DSTRUCT_STAT_HAS_ST_BLOCKS   -o CMakeFiles/cmTC_d23c4.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq/src.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq/src.c: In function 'main':
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-ano7mq/src.c:6:34: error: 'struct stat' has no member named 'st_blocks'
+            6 |   (void)sizeof(((struct stat *)0)->st_blocks);
+              |                                  ^~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_run-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceRuns.cmake:93 (try_run)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceRuns.cmake:52 (cmake_check_source_runs)"
+      - "CMakeLists.txt:452 (check_c_source_runs)"
+    checks:
+      - "Performing Test SNPRINTF_OK"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xuiwh8"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xuiwh8"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "SNPRINTF_OK_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xuiwh8'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_706c5
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DSNPRINTF_OK   -o CMakeFiles/cmTC_706c5.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-xuiwh8/src.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_706c5.dir/src.c.obj -o cmTC_706c5.exe -Wl,--out-implib,libcmTC_706c5.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+    runResult:
+      variable: "SNPRINTF_OK_EXITCODE"
+      cached: true
+      stdout: |
+      stderr: |
+      exitCode: 0
+  -
+    kind: "try_run-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceRuns.cmake:93 (try_run)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceRuns.cmake:52 (cmake_check_source_runs)"
+      - "CMakeLists.txt:487 (check_c_source_runs)"
+    checks:
+      - "Performing Test FREAD_READS_DIRECTORIES_NO"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-gsu74s"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-gsu74s"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "FREAD_READS_DIRECTORIES_NO_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-gsu74s'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_ea0de
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DFREAD_READS_DIRECTORIES_NO   -o CMakeFiles/cmTC_ea0de.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-gsu74s/src.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_ea0de.dir/src.c.obj -o cmTC_ea0de.exe -Wl,--out-implib,libcmTC_ea0de.dll.a -Wl,--major-image-version,0,--minor-image-version,0  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+    runResult:
+      variable: "FREAD_READS_DIRECTORIES_NO_EXITCODE"
+      cached: true
+      stdout: |
+      stderr: |
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:502 (check_c_source_compiles)"
+    checks:
+      - "Performing Test HAVE_REGEX"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_REGEX"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_00dde
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_REGEX   -o CMakeFiles/cmTC_00dde.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh/src.c
+        FAILED: CMakeFiles/cmTC_00dde.dir/src.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_REGEX   -o CMakeFiles/cmTC_00dde.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh/src.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-yj2fnh/src.c:4:2: error: #error oops we dont have it
+            4 | #error oops we dont have it
+              |  ^~~~~
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:520 (check_c_source_compiles)"
+    checks:
+      - "Performing Test HAVE_BSD_SYSCTL"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_BSD_SYSCTL"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_a4a40
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_BSD_SYSCTL   -o CMakeFiles/cmTC_a4a40.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm/src.c
+        FAILED: CMakeFiles/cmTC_a4a40.dir/src.c.obj 
+        C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_BSD_SYSCTL   -o CMakeFiles/cmTC_a4a40.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm/src.c
+        C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-8m5hjm/src.c:4:10: fatal error: sys/sysctl.h: No such file or directory
+            4 | #include <sys/sysctl.h>
+              |          ^~~~~~~~~~~~~~
+        compilation terminated.\x0d
+        ninja: build stopped: subcommand failed.
+        
+      exitCode: 1
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "CMakeLists.txt:543 (check_c_source_compiles)"
+    checks:
+      - "Performing Test HAVE_NEW_ICONV"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-da69lk"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-da69lk"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "HAVE_NEW_ICONV"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-da69lk'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_1d79a
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DHAVE_NEW_ICONV -IC:/Users/sondr/Documents/GitHub/git/compat/vcbuild/vcpkg/installed/x64-windows/include  -o CMakeFiles/cmTC_1d79a.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-da69lk/src.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_1d79a.dir/src.c.obj -o cmTC_1d79a.exe -Wl,--out-implib,libcmTC_1d79a.dll.a -Wl,--major-image-version,0,--minor-image-version,0  C:/Users/sondr/Documents/GitHub/git/compat/vcbuild/vcpkg/installed/x64-windows/lib/iconv.lib  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+  -
+    kind: "try_run-v1"
+    backtrace:
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/Internal/CheckSourceRuns.cmake:93 (try_run)"
+      - "C:/Program Files/CMake/share/cmake-3.29/Modules/CheckCSourceRuns.cmake:52 (cmake_check_source_runs)"
+      - "CMakeLists.txt:561 (check_c_source_runs)"
+    checks:
+      - "Performing Test ICONV_DOESNOT_OMIT_BOM"
+    directories:
+      source: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-niwc1b"
+      binary: "C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-niwc1b"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "ICONV_DOESNOT_OMIT_BOM_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: 'C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-niwc1b'
+        
+        Run Build Command(s): C:/PROGRA~1/Ninja/ninja.exe -v cmTC_6f26d
+        [1/2] C:\\git-sdk-64\\mingw64\\bin\\cc.exe -DICONV_DOESNOT_OMIT_BOM -IC:/Users/sondr/Documents/GitHub/git/compat/vcbuild/vcpkg/installed/x64-windows/include  -o CMakeFiles/cmTC_6f26d.dir/src.c.obj -c C:/Users/sondr/Documents/GitHub/git/o/CMakeFiles/CMakeScratch/TryCompile-niwc1b/src.c
+        [2/2] C:\\WINDOWS\\system32\\cmd.exe /C "cd . && C:\\git-sdk-64\\mingw64\\bin\\cc.exe   CMakeFiles/cmTC_6f26d.dir/src.c.obj -o cmTC_6f26d.exe -Wl,--out-implib,libcmTC_6f26d.dll.a -Wl,--major-image-version,0,--minor-image-version,0  C:/Users/sondr/Documents/GitHub/git/compat/vcbuild/vcpkg/installed/x64-windows/lib/iconv.lib  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 && cd ."
+        
+      exitCode: 0
+    runResult:
+      variable: "ICONV_DOESNOT_OMIT_BOM_EXITCODE"
+      cached: true
+      stdout: |
+      stderr: |
+        Exit code 0xc0000135
+      exitCode: "FAILED_TO_RUN"
+...
