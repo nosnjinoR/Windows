@@ -1,10 +1,11 @@
 #include "test-tool.h"
-#include "git-compat-util.h"
-#include "urlmatch.h"
+#include "components/git-compat-util.h"
+#include "components/urlmatch.h"
 
 int cmd__urlmatch_normalization(int argc, const char **argv)
 {
-	const char usage[] = "test-tool urlmatch-normalization [-p | -l] <url1> | <url1> <url2>";
+	const char usage[] =
+		"test-tool urlmatch-normalization [-p | -l] <url1> | <url1> <url2>";
 	char *url1 = NULL, *url2 = NULL;
 	int opt_p = 0, opt_l = 0;
 	int ret = 0;

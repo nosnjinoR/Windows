@@ -5,19 +5,19 @@
  *
  */
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "lockfile.h"
-#include "quote.h"
-#include "repository.h"
-#include "cache-tree.h"
-#include "parse-options.h"
-#include "entry.h"
-#include "parallel-checkout.h"
-#include "read-cache-ll.h"
-#include "setup.h"
-#include "sparse-index.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/lockfile.h"
+#include "components/quote.h"
+#include "components/repository.h"
+#include "components/cache-tree.h"
+#include "components/parse-options.h"
+#include "components/entry.h"
+#include "components/parallel-checkout.h"
+#include "components/read-cache-ll.h"
+#include "components/setup.h"
+#include "components/sparse-index.h"
 
 #define CHECKOUT_ALL 4
 static int nul_term_line;
@@ -92,8 +92,8 @@ static int checkout_file(const char *name, const char *prefix)
 		if (!ignore_skip_worktree && ce_skip_worktree(ce))
 			break;
 		is_skipped = 0;
-		if (ce_stage(ce) != checkout_stage
-		    && (CHECKOUT_ALL != checkout_stage || !ce_stage(ce)))
+		if (ce_stage(ce) != checkout_stage &&
+		    (CHECKOUT_ALL != checkout_stage || !ce_stage(ce)))
 			continue;
 		did_checkout = 1;
 		if (checkout_entry(ce, &state,
@@ -123,8 +123,9 @@ static int checkout_file(const char *name, const char *prefix)
 		else if (!is_file)
 			fprintf(stderr, "is a sparse directory");
 		else if (is_skipped)
-			fprintf(stderr, "has skip-worktree enabled; "
-					"use '--ignore-skip-worktree-bits' to checkout");
+			fprintf(stderr,
+				"has skip-worktree enabled; "
+				"use '--ignore-skip-worktree-bits' to checkout");
 		else if (checkout_stage)
 			fprintf(stderr, "does not exist at stage %d",
 				checkout_stage);
@@ -140,18 +141,20 @@ static int checkout_all(const char *prefix, int prefix_length)
 	int i, errs = 0;
 	struct cache_entry *last_ce = NULL;
 
-	for (i = 0; i < the_index.cache_nr ; i++) {
+	for (i = 0; i < the_index.cache_nr; i++) {
 		struct cache_entry *ce = the_index.cache[i];
 
 		if (S_ISSPARSEDIR(ce->ce_mode)) {
 			if (!ce_skip_worktree(ce))
-				BUG("sparse directory '%s' does not have skip-worktree set", ce->name);
+				BUG("sparse directory '%s' does not have skip-worktree set",
+				    ce->name);
 
 			/*
-			 * If the current entry is a sparse directory and skip-worktree
-			 * entries are being checked out, expand the index and continue
-			 * the loop on the current index position (now pointing to the
-			 * first entry inside the expanded sparse directory).
+			 * If the current entry is a sparse directory and
+			 * skip-worktree entries are being checked out, expand
+			 * the index and continue the loop on the current index
+			 * position (now pointing to the first entry inside the
+			 * expanded sparse directory).
 			 */
 			if (ignore_skip_worktree) {
 				ensure_full_index(&the_index);
@@ -161,16 +164,16 @@ static int checkout_all(const char *prefix, int prefix_length)
 
 		if (!ignore_skip_worktree && ce_skip_worktree(ce))
 			continue;
-		if (ce_stage(ce) != checkout_stage
-		    && (CHECKOUT_ALL != checkout_stage || !ce_stage(ce)))
+		if (ce_stage(ce) != checkout_stage &&
+		    (CHECKOUT_ALL != checkout_stage || !ce_stage(ce)))
 			continue;
 		if (prefix && *prefix &&
 		    (ce_namelen(ce) <= prefix_length ||
 		     memcmp(prefix, ce->name, prefix_length)))
 			continue;
 		if (last_ce && to_tempfile) {
-			if (ce_namelen(last_ce) != ce_namelen(ce)
-			    || memcmp(last_ce->name, ce->name, ce_namelen(ce)))
+			if (ce_namelen(last_ce) != ce_namelen(ce) ||
+			    memcmp(last_ce->name, ce->name, ce_namelen(ce)))
 				write_tempfile_record(last_ce->name, prefix);
 		}
 		if (checkout_entry(ce, &state,
@@ -184,13 +187,12 @@ static int checkout_all(const char *prefix, int prefix_length)
 	return !!errs;
 }
 
-static const char * const builtin_checkout_index_usage[] = {
-	N_("git checkout-index [<options>] [--] [<file>...]"),
-	NULL
+static const char *const builtin_checkout_index_usage[] = {
+	N_("git checkout-index [<options>] [--] [<file>...]"), NULL
 };
 
-static int option_parse_stage(const struct option *opt,
-			      const char *arg, int unset)
+static int option_parse_stage(const struct option *opt, const char *arg,
+			      int unset)
 {
 	int *stage = opt->value;
 
@@ -221,27 +223,28 @@ int cmd_checkout_index(int argc, const char **argv, const char *prefix)
 	int pc_workers, pc_threshold;
 	struct option builtin_checkout_index_options[] = {
 		OPT_BOOL('a', "all", &all,
-			N_("check out all files in the index")),
+			 N_("check out all files in the index")),
 		OPT_BOOL(0, "ignore-skip-worktree-bits", &ignore_skip_worktree,
-			N_("do not skip files with skip-worktree set")),
+			 N_("do not skip files with skip-worktree set")),
 		OPT__FORCE(&force, N_("force overwrite of existing files"), 0),
-		OPT__QUIET(&quiet,
+		OPT__QUIET(
+			&quiet,
 			N_("no warning for existing files and files not in index")),
 		OPT_BOOL('n', "no-create", &not_new,
-			N_("don't checkout new files")),
+			 N_("don't checkout new files")),
 		OPT_BOOL('u', "index", &index_opt,
 			 N_("update stat information in the index file")),
 		OPT_BOOL('z', NULL, &nul_term_line,
-			N_("paths are separated with NUL character")),
+			 N_("paths are separated with NUL character")),
 		OPT_BOOL(0, "stdin", &read_from_stdin,
-			N_("read list of paths from the standard input")),
+			 N_("read list of paths from the standard input")),
 		OPT_BOOL(0, "temp", &to_tempfile,
-			N_("write the content to temporary files")),
+			 N_("write the content to temporary files")),
 		OPT_STRING(0, "prefix", &state.base_dir, N_("string"),
-			N_("when creating files, prepend <string>")),
+			   N_("when creating files, prepend <string>")),
 		OPT_CALLBACK_F(0, "stage", &checkout_stage, "(1|2|3|all)",
-			N_("copy out the files from named stage"),
-			PARSE_OPT_NONEG, option_parse_stage),
+			       N_("copy out the files from named stage"),
+			       PARSE_OPT_NONEG, option_parse_stage),
 		OPT_END()
 	};
 
@@ -259,7 +262,7 @@ int cmd_checkout_index(int argc, const char **argv, const char *prefix)
 	}
 
 	argc = parse_options(argc, argv, prefix, builtin_checkout_index_options,
-			builtin_checkout_index_usage, 0);
+			     builtin_checkout_index_usage, 0);
 	state.istate = &the_index;
 	state.force = force;
 	state.quiet = quiet;
@@ -311,7 +314,8 @@ int cmd_checkout_index(int argc, const char **argv, const char *prefix)
 		if (all)
 			die("git checkout-index: don't mix '--all' and '--stdin'");
 
-		getline_fn = nul_term_line ? strbuf_getline_nul : strbuf_getline_lf;
+		getline_fn = nul_term_line ? strbuf_getline_nul :
+					     strbuf_getline_lf;
 		while (getline_fn(&buf, stdin) != EOF) {
 			char *p;
 			if (!nul_term_line && buf.buf[0] == '"') {

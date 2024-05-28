@@ -1,11 +1,11 @@
-#include "../../git-compat-util.h"
+#include "components/git-compat-util.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 typedef struct dirent_DIR {
-	struct DIR base_dir;  /* extend base struct DIR */
-	HANDLE dd_handle;     /* FindFirstFile handle */
-	int dd_stat;          /* 0-based index */
+	struct DIR base_dir; /* extend base struct DIR */
+	HANDLE dd_handle; /* FindFirstFile handle */
+	int dd_stat; /* 0-based index */
 	struct dirent dd_dir; /* includes d_type */
 } dirent_DIR;
 #pragma GCC diagnostic pop
@@ -18,8 +18,8 @@ static inline void finddata2dirent(struct dirent *ent, WIN32_FIND_DATAW *fdata)
 	xwcstoutf(ent->d_name, fdata->cFileName, MAX_PATH * 3);
 
 	/* Set file type, based on WIN32_FIND_DATA */
-	if ((fdata->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT)
-			&& fdata->dwReserved0 == IO_REPARSE_TAG_SYMLINK)
+	if ((fdata->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
+	    fdata->dwReserved0 == IO_REPARSE_TAG_SYMLINK)
 		ent->d_type = DT_LNK;
 	else if (fdata->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		ent->d_type = DT_DIR;
@@ -43,7 +43,8 @@ static struct dirent *dirent_readdir(dirent_DIR *dir)
 		} else {
 			DWORD lasterr = GetLastError();
 			/* POSIX says you shouldn't set errno when readdir can't
-			   find any more files; so, if another error we leave it set. */
+			   find any more files; so, if another error we leave it
+			   set. */
 			if (lasterr != ERROR_NO_MORE_FILES)
 				errno = err_win_to_posix(lasterr);
 			return NULL;
@@ -76,8 +77,8 @@ DIR *dirent_opendir(const char *name)
 
 	/* convert name to UTF-16 and check length */
 	if ((len = xutftowcs_path_ex(pattern, name, MAX_LONG_PATH, -1,
-				     MAX_PATH - 2,
-				     are_long_paths_enabled())) < 0)
+				     MAX_PATH - 2, are_long_paths_enabled())) <
+	    0)
 		return NULL;
 
 	/*
@@ -93,16 +94,18 @@ DIR *dirent_opendir(const char *name)
 	h = FindFirstFileW(pattern, &fdata);
 	if (h == INVALID_HANDLE_VALUE) {
 		DWORD err = GetLastError();
-		errno = (err == ERROR_DIRECTORY) ? ENOTDIR : err_win_to_posix(err);
+		errno = (err == ERROR_DIRECTORY) ? ENOTDIR :
+						   err_win_to_posix(err);
 		return NULL;
 	}
 
 	/* initialize DIR structure and copy first dir entry */
 	dir = xmalloc(sizeof(dirent_DIR) + MAX_LONG_PATH);
-	dir->base_dir.preaddir = (struct dirent *(*)(DIR *dir)) dirent_readdir;
-	dir->base_dir.pclosedir = (int (*)(DIR *dir)) dirent_closedir;
+	dir->base_dir.preaddir = (struct dirent * (*)(DIR * dir))
+		dirent_readdir;
+	dir->base_dir.pclosedir = (int (*)(DIR * dir)) dirent_closedir;
 	dir->dd_handle = h;
 	dir->dd_stat = 0;
 	finddata2dirent(&dir->dd_dir, &fdata);
-	return (DIR*) dir;
+	return (DIR *)dir;
 }

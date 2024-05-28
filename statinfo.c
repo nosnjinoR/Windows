@@ -1,11 +1,12 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "statinfo.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/statinfo.h"
 
 /*
  * Munge st_size into an unsigned int.
  */
-static unsigned int munge_st_size(off_t st_size) {
+static unsigned int munge_st_size(off_t st_size)
+{
 	unsigned int sd_size = st_size;
 
 	/*
@@ -77,10 +78,10 @@ int match_stat_data(const struct stat_data *sd, struct stat *st)
 #endif
 
 	if (check_stat) {
-		if (sd->sd_uid != (unsigned int) st->st_uid ||
-			sd->sd_gid != (unsigned int) st->st_gid)
+		if (sd->sd_uid != (unsigned int)st->st_uid ||
+		    sd->sd_gid != (unsigned int)st->st_gid)
 			changed |= OWNER_CHANGED;
-		if (sd->sd_ino != (unsigned int) st->st_ino)
+		if (sd->sd_ino != (unsigned int)st->st_ino)
 			changed |= INODE_CHANGED;
 	}
 
@@ -90,8 +91,8 @@ int match_stat_data(const struct stat_data *sd, struct stat *st)
 	 * clients will have different views of what "device"
 	 * the filesystem is on
 	 */
-	if (check_stat && sd->sd_dev != (unsigned int) st->st_dev)
-			changed |= INODE_CHANGED;
+	if (check_stat && sd->sd_dev != (unsigned int)st->st_dev)
+		changed |= INODE_CHANGED;
 #endif
 
 	if (sd->sd_size != munge_st_size(st->st_size))

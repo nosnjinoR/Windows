@@ -1,19 +1,19 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "entry.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "parallel-checkout.h"
-#include "pkt-line.h"
-#include "progress.h"
-#include "read-cache-ll.h"
-#include "run-command.h"
-#include "sigchain.h"
-#include "streaming.h"
-#include "symlinks.h"
-#include "thread-utils.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/entry.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/parallel-checkout.h"
+#include "components/pkt-line.h"
+#include "components/progress.h"
+#include "components/read-cache-ll.h"
+#include "components/run-command.h"
+#include "components/sigchain.h"
+#include "components/streaming.h"
+#include "components/symlinks.h"
+#include "components/thread-utils.h"
+#include "components/trace2.h"
 
 struct pc_worker {
 	struct child_process cp;
@@ -95,8 +95,10 @@ static int is_eligible_for_parallel_checkout(const struct cache_entry *ce,
 	if (!S_ISREG(ce->ce_mode))
 		return 0;
 
-	packed_item_size = sizeof(struct pc_item_fixed_portion) + ce->ce_namelen +
-		(ca->working_tree_encoding ? strlen(ca->working_tree_encoding) : 0);
+	packed_item_size =
+		sizeof(struct pc_item_fixed_portion) + ce->ce_namelen +
+		(ca->working_tree_encoding ? strlen(ca->working_tree_encoding) :
+					     0);
 
 	/*
 	 * The amount of data we send to the workers per checkout item is
@@ -197,15 +199,17 @@ static int handle_results(struct checkout *state)
 	 * in the next loop, when necessary.
 	 */
 	for (i = 0; i < parallel_checkout.nr; i++) {
-		struct parallel_checkout_item *pc_item = &parallel_checkout.items[i];
+		struct parallel_checkout_item *pc_item =
+			&parallel_checkout.items[i];
 		if (pc_item->status == PC_ITEM_WRITTEN)
 			update_ce_after_write(state, pc_item->ce, &pc_item->st);
 	}
 
 	for (i = 0; i < parallel_checkout.nr; i++) {
-		struct parallel_checkout_item *pc_item = &parallel_checkout.items[i];
+		struct parallel_checkout_item *pc_item =
+			&parallel_checkout.items[i];
 
-		switch(pc_item->status) {
+		switch (pc_item->status) {
 		case PC_ITEM_WRITTEN:
 			if (pc_item->checkout_counter)
 				(*pc_item->checkout_counter)++;
@@ -279,7 +283,8 @@ static int write_pc_item_to_fd(struct parallel_checkout_item *pc_item, int fd,
 	filter = get_stream_filter_ca(&pc_item->ca, &pc_item->ce->oid);
 	if (filter) {
 		if (stream_blob_to_fd(fd, &pc_item->ce->oid, filter, 1)) {
-			/* On error, reset fd to try writing without streaming */
+			/* On error, reset fd to try writing without streaming
+			 */
 			if (reset_fd(fd, path))
 				return -1;
 		} else {
@@ -298,8 +303,8 @@ static int write_pc_item_to_fd(struct parallel_checkout_item *pc_item, int fd,
 	 * checkout, so pass NULL. Note: if that changes, the metadata must also
 	 * be passed from the main process to the workers.
 	 */
-	ret = convert_to_working_tree_ca(&pc_item->ca, pc_item->ce->name,
-					 blob, size, &buf, NULL);
+	ret = convert_to_working_tree_ca(&pc_item->ca, pc_item->ce->name, blob,
+					 size, &buf, NULL);
 
 	if (ret) {
 		size_t newsize;
@@ -350,7 +355,8 @@ void write_pc_item(struct parallel_checkout_item *pc_item,
 	if (dir_sep && !has_dirs_only_path(path.buf, dir_sep - path.buf,
 					   state->base_dir_len)) {
 		pc_item->status = PC_ITEM_COLLIDED;
-		trace2_data_string("pcheckout", NULL, "collision/dirname", path.buf);
+		trace2_data_string("pcheckout", NULL, "collision/dirname",
+				   path.buf);
 		goto out;
 	}
 
@@ -391,8 +397,9 @@ void write_pc_item(struct parallel_checkout_item *pc_item,
 		goto out;
 	}
 
-	if (state->refresh_cache && !fstat_done && lstat(path.buf, &pc_item->st) < 0) {
-		error_errno("unable to stat just-written file '%s'",  path.buf);
+	if (state->refresh_cache && !fstat_done &&
+	    lstat(path.buf, &pc_item->st) < 0) {
+		error_errno("unable to stat just-written file '%s'", path.buf);
 		pc_item->status = PC_ITEM_FAILED;
 		goto out;
 	}
@@ -410,8 +417,8 @@ static void send_one_item(int fd, struct parallel_checkout_item *pc_item)
 	struct pc_item_fixed_portion *fixed_portion;
 	const char *working_tree_encoding = pc_item->ca.working_tree_encoding;
 	size_t name_len = pc_item->ce->ce_namelen;
-	size_t working_tree_encoding_len = working_tree_encoding ?
-					   strlen(working_tree_encoding) : 0;
+	size_t working_tree_encoding_len =
+		working_tree_encoding ? strlen(working_tree_encoding) : 0;
 
 	/*
 	 * Any changes in the calculation of the message size must also be made
@@ -439,7 +446,8 @@ static void send_one_item(int fd, struct parallel_checkout_item *pc_item)
 
 	variant = data + sizeof(*fixed_portion);
 	if (working_tree_encoding_len) {
-		memcpy(variant, working_tree_encoding, working_tree_encoding_len);
+		memcpy(variant, working_tree_encoding,
+		       working_tree_encoding_len);
 		variant += working_tree_encoding_len;
 	}
 	memcpy(variant, pc_item->ce->name, name_len);
@@ -527,7 +535,8 @@ static void finish_workers(struct pc_worker *workers, int num_workers)
 			 * already printed something useful to stderr. But a
 			 * death by signal should be mentioned to the user.
 			 */
-			error("checkout worker %d died of signal %d", i, rc - 128);
+			error("checkout worker %d died of signal %d", i,
+			      rc - 128);
 		}
 	}
 
@@ -559,7 +568,8 @@ static void parse_and_save_result(const char *buffer, int len,
 	 * just the base (i.e. no stat data), otherwise.
 	 */
 	if (res->status == PC_ITEM_WRITTEN) {
-		assert_pc_item_result_size(len, (int)sizeof(struct pc_item_result));
+		assert_pc_item_result_size(len,
+					   (int)sizeof(struct pc_item_result));
 		st = &res->st;
 	} else {
 		assert_pc_item_result_size(len, (int)PC_ITEM_RESULT_BASE_SIZE);
@@ -568,8 +578,10 @@ static void parse_and_save_result(const char *buffer, int len,
 	if (!worker->nr_items_to_complete)
 		BUG("received result from supposedly finished checkout worker");
 	if (res->id != worker->next_item_to_complete)
-		BUG("unexpected item id from checkout worker (got %"PRIuMAX", exp %"PRIuMAX")",
-		    (uintmax_t)res->id, (uintmax_t)worker->next_item_to_complete);
+		BUG("unexpected item id from checkout worker (got %" PRIuMAX
+		    ", exp %" PRIuMAX ")",
+		    (uintmax_t)res->id,
+		    (uintmax_t)worker->next_item_to_complete);
 
 	worker->next_item_to_complete++;
 	worker->nr_items_to_complete--;
@@ -644,15 +656,17 @@ static void write_items_sequentially(struct checkout *state)
 
 	flush_fscache();
 	for (i = 0; i < parallel_checkout.nr; i++) {
-		struct parallel_checkout_item *pc_item = &parallel_checkout.items[i];
+		struct parallel_checkout_item *pc_item =
+			&parallel_checkout.items[i];
 		write_pc_item(pc_item, state);
 		if (pc_item->status != PC_ITEM_COLLIDED)
 			advance_progress_meter();
 	}
 }
 
-int run_parallel_checkout(struct checkout *state, int num_workers, int threshold,
-			  struct progress *progress, unsigned int *progress_cnt)
+int run_parallel_checkout(struct checkout *state, int num_workers,
+			  int threshold, struct progress *progress,
+			  unsigned int *progress_cnt)
 {
 	int ret;
 

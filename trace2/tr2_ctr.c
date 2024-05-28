@@ -1,4 +1,4 @@
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "trace2/tr2_tgt.h"
 #include "trace2/tr2_tls.h"
 #include "trace2/tr2_ctr.h"
@@ -7,7 +7,8 @@
  * A global counter block to aggregrate values from the partial sums
  * from each thread.
  */
-static struct tr2_counter_block final_counter_block; /* access under tr2tls_mutex */
+static struct tr2_counter_block final_counter_block; /* access under
+							tr2tls_mutex */
 
 /*
  * Define metadata for each global counter.
@@ -94,8 +95,7 @@ void tr2_emit_per_thread_counters(tr2_tgt_evt_counter_t *fn_apply)
 		if (tr2_counter_metadata[cid].want_per_thread_events &&
 		    ctx->counter_block.counter[cid].value)
 			fn_apply(&tr2_counter_metadata[cid],
-				 &ctx->counter_block.counter[cid],
-				 0);
+				 &ctx->counter_block.counter[cid], 0);
 }
 
 void tr2_emit_final_counters(tr2_tgt_evt_counter_t *fn_apply)
@@ -110,6 +110,5 @@ void tr2_emit_final_counters(tr2_tgt_evt_counter_t *fn_apply)
 	for (cid = 0; cid < TRACE2_NUMBER_OF_COUNTERS; cid++)
 		if (final_counter_block.counter[cid].value)
 			fn_apply(&tr2_counter_metadata[cid],
-				 &final_counter_block.counter[cid],
-				 1);
+				 &final_counter_block.counter[cid], 1);
 }

@@ -1,7 +1,6 @@
 #include "test-tool.h"
-#include "gpg-interface.h"
-#include "strbuf.h"
-
+#include "components/gpg-interface.h"
+#include "components/strbuf.h"
 
 int cmd__delete_gpgsig(int argc, const char **argv)
 {
@@ -44,8 +43,7 @@ int cmd__delete_gpgsig(int argc, const char **argv)
 		deleting = 0;
 
 		/* Does the line match the prefix? */
-		if (((bufptr + plen) < eol) &&
-		    !memcmp(bufptr, pattern, plen) &&
+		if (((bufptr + plen) < eol) && !memcmp(bufptr, pattern, plen) &&
 		    (bufptr[plen] == ' ')) {
 			deleting = 1;
 			bufptr = eol + 1;

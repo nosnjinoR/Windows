@@ -1,7 +1,7 @@
 #include "test-tool.h"
-#include "config.h"
-#include "setup.h"
-#include "string-list.h"
+#include "components/config.h"
+#include "components/setup.h"
+#include "components/string-list.h"
 
 /*
  * This program exposes the C API of the configuration mechanism
@@ -22,8 +22,8 @@
  *
  * get_string -> print string value for the entered key or die
  *
- * configset_get_value -> returns value with the highest priority for the entered key
- * 			from a config_set constructed from files entered as arguments.
+ * configset_get_value -> returns value with the highest priority for the
+ *entered key from a config_set constructed from files entered as arguments.
  *
  * configset_get_value_multi -> returns value_list for the entered key sorted in
  * 				ascending order of priority from a config_set
@@ -43,8 +43,7 @@
  */
 
 static int iterate_cb(const char *var, const char *value,
-		      const struct config_context *ctx,
-		      void *data UNUSED)
+		      const struct config_context *ctx, void *data UNUSED)
 {
 	const struct key_value_info *kvi = ctx->kvi;
 	static int nr;
@@ -75,8 +74,7 @@ static int parse_int_cb(const char *var, const char *value,
 }
 
 static int early_config_cb(const char *var, const char *value,
-			   const struct config_context *ctx UNUSED,
-			   void *vdata)
+			   const struct config_context *ctx UNUSED, void *vdata)
 {
 	const char *key = vdata;
 
@@ -103,7 +101,8 @@ int cmd__config(int argc, const char **argv)
 	git_configset_init(&cs);
 
 	if (argc < 2) {
-		fprintf(stderr, "Please, provide a command name on the command-line\n");
+		fprintf(stderr,
+			"Please, provide a command name on the command-line\n");
 		goto exit1;
 	} else if (argc == 3 && !strcmp(argv[1], "get_value")) {
 		if (!git_config_get_value(argv[2], &v)) {
@@ -178,7 +177,9 @@ int cmd__config(int argc, const char **argv)
 		for (i = 3; i < argc; i++) {
 			int err;
 			if ((err = git_configset_add_file(&cs, argv[i]))) {
-				fprintf(stderr, "Error (%d) reading configuration file %s.\n", err, argv[i]);
+				fprintf(stderr,
+					"Error (%d) reading configuration file %s.\n",
+					err, argv[i]);
 				goto exit2;
 			}
 		}
@@ -196,7 +197,9 @@ int cmd__config(int argc, const char **argv)
 		for (i = 3; i < argc; i++) {
 			int err;
 			if ((err = git_configset_add_file(&cs, argv[i]))) {
-				fprintf(stderr, "Error (%d) reading configuration file %s.\n", err, argv[i]);
+				fprintf(stderr,
+					"Error (%d) reading configuration file %s.\n",
+					err, argv[i]);
 				goto exit2;
 			}
 		}
@@ -217,7 +220,7 @@ int cmd__config(int argc, const char **argv)
 		git_config(iterate_cb, NULL);
 		goto exit0;
 	} else if (argc == 3 && !strcmp(argv[1], "git_config_int")) {
-		git_config(parse_int_cb, (void *) argv[2]);
+		git_config(parse_int_cb, (void *)argv[2]);
 		goto exit0;
 	}
 

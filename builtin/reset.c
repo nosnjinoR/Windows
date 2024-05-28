@@ -8,39 +8,39 @@
  * Copyright (c) 2005, 2006 Linus Torvalds and Junio C Hamano
  */
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "advice.h"
-#include "config.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "lockfile.h"
-#include "object.h"
-#include "pretty.h"
-#include "refs.h"
-#include "diff.h"
-#include "diffcore.h"
-#include "tree.h"
-#include "branch.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "path.h"
-#include "unpack-trees.h"
-#include "cache-tree.h"
-#include "setup.h"
-#include "sparse-index.h"
-#include "submodule.h"
-#include "trace.h"
-#include "trace2.h"
-#include "dir.h"
-#include "add-interactive.h"
-#include "strbuf.h"
-#include "quote.h"
+#include "components/builtin.h"
+#include "components/advice.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/lockfile.h"
+#include "components/object.h"
+#include "components/pretty.h"
+#include "components/refs.h"
+#include "components/diff.h"
+#include "components/diffcore.h"
+#include "components/tree.h"
+#include "components/branch.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/unpack-trees.h"
+#include "components/cache-tree.h"
+#include "components/setup.h"
+#include "components/sparse-index.h"
+#include "components/submodule.h"
+#include "components/trace.h"
+#include "components/trace2.h"
+#include "components/dir.h"
+#include "components/add-interactive.h"
+#include "components/strbuf.h"
+#include "components/quote.h"
 
 #define REFRESH_INDEX_DELAY_WARNING_IN_MS (2 * 1000)
 
-static const char * const git_reset_usage[] = {
+static const char *const git_reset_usage[] = {
 	N_("git reset [--mixed | --soft | --hard | --merge | --keep] [-q] [<commit>]"),
 	N_("git reset [-q] [<tree-ish>] [--] <pathspec>..."),
 	N_("git reset [-q] [--pathspec-from-file [--pathspec-file-nul]] [<tree-ish>]"),
@@ -50,16 +50,16 @@ static const char * const git_reset_usage[] = {
 };
 
 enum reset_type { MIXED, SOFT, HARD, MERGE, KEEP, NONE };
-static const char *reset_type_names[] = {
-	N_("mixed"), N_("soft"), N_("hard"), N_("merge"), N_("keep"), NULL
-};
+static const char *reset_type_names[] = { N_("mixed"), N_("soft"), N_("hard"),
+					  N_("merge"), N_("keep"), NULL };
 
 static inline int is_merge(void)
 {
 	return !access(git_path_merge_head(the_repository), F_OK);
 }
 
-static int reset_index(const char *ref, const struct object_id *oid, int reset_type, int quiet)
+static int reset_index(const char *ref, const struct object_id *oid,
+		       int reset_type, int quiet)
 {
 	int i, nr = 0;
 	struct tree_desc desc[2];
@@ -139,7 +139,8 @@ static void print_new_head_line(struct commit *commit)
 	struct strbuf buf = STRBUF_INIT;
 
 	printf(_("HEAD is now at %s"),
-		repo_find_unique_abbrev(the_repository, &commit->object.oid, DEFAULT_ABBREV));
+	       repo_find_unique_abbrev(the_repository, &commit->object.oid,
+				       DEFAULT_ABBREV));
 
 	pp_commit_easy(CMIT_FMT_ONELINE, commit, &buf);
 	if (buf.len > 0)
@@ -149,8 +150,7 @@ static void print_new_head_line(struct commit *commit)
 }
 
 static void update_index_from_diff(struct diff_queue_struct *q,
-				   struct diff_options *opt UNUSED,
-				   void *data)
+				   struct diff_options *opt UNUSED, void *data)
 {
 	int i;
 	int intent_to_add = *(int *)data;
@@ -166,20 +166,21 @@ static void update_index_from_diff(struct diff_queue_struct *q,
 			continue;
 		}
 
-		ce = make_cache_entry(&the_index, one->mode, &one->oid, one->path,
-				      0, 0);
+		ce = make_cache_entry(&the_index, one->mode, &one->oid,
+				      one->path, 0, 0);
 
 		/*
 		 * If the file 1) corresponds to an existing index entry with
 		 * skip-worktree set, or 2) does not exist in the index but is
-		 * outside the sparse checkout definition, add a skip-worktree bit
-		 * to the new index entry. Note that a sparse index will be expanded
-		 * if this entry is outside the sparse cone - this is necessary
-		 * to properly construct the reset sparse directory.
+		 * outside the sparse checkout definition, add a skip-worktree
+		 * bit to the new index entry. Note that a sparse index will be
+		 * expanded if this entry is outside the sparse cone - this is
+		 * necessary to properly construct the reset sparse directory.
 		 */
 		pos = index_name_pos(&the_index, one->path, strlen(one->path));
 		if ((pos >= 0 && ce_skip_worktree(the_index.cache[pos])) ||
-		    (pos < 0 && !path_in_sparse_checkout(one->path, &the_index)))
+		    (pos < 0 &&
+		     !path_in_sparse_checkout(one->path, &the_index)))
 			ce->ce_flags |= CE_SKIP_WORKTREE;
 
 		if (!ce)
@@ -195,8 +196,7 @@ static void update_index_from_diff(struct diff_queue_struct *q,
 }
 
 static int read_from_tree(const struct pathspec *pathspec,
-			  struct object_id *tree_oid,
-			  int intent_to_add)
+			  struct object_id *tree_oid, int intent_to_add)
 {
 	struct diff_options opt;
 
@@ -241,13 +241,10 @@ static void die_if_unmerged_cache(int reset_type)
 	if (is_merge() || unmerged_index(&the_index))
 		die(_("Cannot do a %s reset in the middle of a merge."),
 		    _(reset_type_names[reset_type]));
-
 }
 
-static void parse_args(struct pathspec *pathspec,
-		       const char **argv, const char *prefix,
-		       int patch_mode,
-		       const char **rev_ret)
+static void parse_args(struct pathspec *pathspec, const char **argv,
+		       const char *prefix, int patch_mode, const char **rev_ret)
 {
 	const char *rev = "HEAD";
 	struct object_id unused;
@@ -275,8 +272,11 @@ static void parse_args(struct pathspec *pathspec,
 		 * has to be unambiguous. If there is a single argument, it
 		 * can not be a tree
 		 */
-		else if ((!argv[1] && !repo_get_oid_committish(the_repository, argv[0], &unused)) ||
-			 (argv[1] && !repo_get_oid_treeish(the_repository, argv[0], &unused))) {
+		else if ((!argv[1] &&
+			  !repo_get_oid_committish(the_repository, argv[0],
+						   &unused)) ||
+			 (argv[1] && !repo_get_oid_treeish(the_repository,
+							   argv[0], &unused))) {
 			/*
 			 * Ok, argv[0] looks like a commit/tree; it should not
 			 * be a filename.
@@ -294,7 +294,7 @@ static void parse_args(struct pathspec *pathspec,
 
 	parse_pathspec(pathspec, 0,
 		       PATHSPEC_PREFER_FULL |
-		       (patch_mode ? PATHSPEC_PREFIX_ORIGIN : 0),
+			       (patch_mode ? PATHSPEC_PREFIX_ORIGIN : 0),
 		       prefix, argv);
 }
 
@@ -302,8 +302,7 @@ static int reset_refs(const char *rev, const struct object_id *oid)
 {
 	int update_ref_status;
 	struct strbuf msg = STRBUF_INIT;
-	struct object_id *orig = NULL, oid_orig,
-		*old_orig = NULL, oid_old_orig;
+	struct object_id *orig = NULL, oid_orig, *old_orig = NULL, oid_old_orig;
 
 	if (!repo_get_oid(the_repository, "ORIG_HEAD", &oid_old_orig))
 		old_orig = &oid_old_orig;
@@ -344,46 +343,50 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 	const struct option options[] = {
 		OPT__QUIET(&quiet, N_("be quiet, only report errors")),
 		OPT_BOOL(0, "no-refresh", &no_refresh,
-				N_("skip refreshing the index after reset")),
+			 N_("skip refreshing the index after reset")),
 		OPT_SET_INT_F(0, "mixed", &reset_type,
-			      N_("reset HEAD and index"),
-			      MIXED, PARSE_OPT_NONEG),
-		OPT_SET_INT_F(0, "soft", &reset_type,
-			      N_("reset only HEAD"),
+			      N_("reset HEAD and index"), MIXED,
+			      PARSE_OPT_NONEG),
+		OPT_SET_INT_F(0, "soft", &reset_type, N_("reset only HEAD"),
 			      SOFT, PARSE_OPT_NONEG),
 		OPT_SET_INT_F(0, "hard", &reset_type,
-			      N_("reset HEAD, index and working tree"),
-			      HARD, PARSE_OPT_NONEG),
+			      N_("reset HEAD, index and working tree"), HARD,
+			      PARSE_OPT_NONEG),
 		OPT_SET_INT_F(0, "merge", &reset_type,
-			      N_("reset HEAD, index and working tree"),
-			      MERGE, PARSE_OPT_NONEG),
+			      N_("reset HEAD, index and working tree"), MERGE,
+			      PARSE_OPT_NONEG),
 		OPT_SET_INT_F(0, "keep", &reset_type,
-			      N_("reset HEAD but keep local changes"),
-			      KEEP, PARSE_OPT_NONEG),
-		OPT_CALLBACK_F(0, "recurse-submodules", NULL,
-			       "reset", "control recursive updating of submodules",
+			      N_("reset HEAD but keep local changes"), KEEP,
+			      PARSE_OPT_NONEG),
+		OPT_CALLBACK_F(0, "recurse-submodules", NULL, "reset",
+			       "control recursive updating of submodules",
 			       PARSE_OPT_OPTARG,
 			       option_parse_recurse_submodules_worktree_updater),
-		OPT_BOOL('p', "patch", &patch_mode, N_("select hunks interactively")),
-		OPT_BOOL('N', "intent-to-add", &intent_to_add,
-				N_("record only the fact that removed paths will be added later")),
+		OPT_BOOL('p', "patch", &patch_mode,
+			 N_("select hunks interactively")),
+		OPT_BOOL(
+			'N', "intent-to-add", &intent_to_add,
+			N_("record only the fact that removed paths will be added later")),
 		OPT_PATHSPEC_FROM_FILE(&pathspec_from_file),
 		OPT_PATHSPEC_FILE_NUL(&pathspec_file_nul),
-		OPT_BOOL('z', NULL, &nul_term_line,
+		OPT_BOOL(
+			'z', NULL, &nul_term_line,
 			N_("DEPRECATED (use --pathspec-file-nul instead): paths are separated with NUL character")),
-		OPT_BOOL(0, "stdin", &read_from_stdin,
-				N_("DEPRECATED (use --pathspec-from-file=- instead): read paths from <stdin>")),
+		OPT_BOOL(
+			0, "stdin", &read_from_stdin,
+			N_("DEPRECATED (use --pathspec-from-file=- instead): read paths from <stdin>")),
 		OPT_END()
 	};
 
 	git_config(git_reset_config, NULL);
 
 	argc = parse_options(argc, argv, prefix, options, git_reset_usage,
-						PARSE_OPT_KEEP_DASHDASH);
+			     PARSE_OPT_KEEP_DASHDASH);
 	parse_args(&pathspec, argv, prefix, patch_mode, &rev);
 
 	if (read_from_stdin) {
-		warning(_("--stdin is deprecated, please use --pathspec-from-file=- instead"));
+		warning(_(
+			"--stdin is deprecated, please use --pathspec-from-file=- instead"));
 		free(pathspec_from_file);
 		pathspec_from_file = xstrdup("-");
 		if (nul_term_line)
@@ -392,27 +395,30 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 
 	if (pathspec_from_file) {
 		if (patch_mode)
-			die(_("options '%s' and '%s' cannot be used together"), "--pathspec-from-file", "--patch");
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--pathspec-from-file", "--patch");
 
 		if (pathspec.nr)
-			die(_("'%s' and pathspec arguments cannot be used together"), "--pathspec-from-file");
+			die(_("'%s' and pathspec arguments cannot be used together"),
+			    "--pathspec-from-file");
 
-		parse_pathspec_file(&pathspec, 0,
-				    PATHSPEC_PREFER_FULL,
-				    prefix, pathspec_from_file, pathspec_file_nul);
+		parse_pathspec_file(&pathspec, 0, PATHSPEC_PREFER_FULL, prefix,
+				    pathspec_from_file, pathspec_file_nul);
 	} else if (pathspec_file_nul) {
-		die(_("the option '%s' requires '%s'"), "--pathspec-file-nul", "--pathspec-from-file");
+		die(_("the option '%s' requires '%s'"), "--pathspec-file-nul",
+		    "--pathspec-from-file");
 	}
 
-	unborn = !strcmp(rev, "HEAD") && repo_get_oid(the_repository, "HEAD",
-						      &oid);
+	unborn = !strcmp(rev, "HEAD") &&
+		 repo_get_oid(the_repository, "HEAD", &oid);
 	if (unborn) {
 		/* reset on unborn branch: treat as reset to empty tree */
 		oidcpy(&oid, the_hash_algo->empty_tree);
 	} else if (!pathspec.nr && !patch_mode) {
 		struct commit *commit;
 		if (repo_get_oid_committish(the_repository, rev, &oid))
-			die(_("Failed to resolve '%s' as a valid revision."), rev);
+			die(_("Failed to resolve '%s' as a valid revision."),
+			    rev);
 		commit = lookup_commit_reference(the_repository, &oid);
 		if (!commit)
 			die(_("Could not parse object '%s'."), rev);
@@ -429,10 +435,11 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 
 	if (patch_mode) {
 		if (reset_type != NONE)
-			die(_("options '%s' and '%s' cannot be used together"), "--patch", "--{hard,mixed,soft}");
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--patch", "--{hard,mixed,soft}");
 		trace2_cmd_mode("patch-interactive");
-		update_ref_status = !!run_add_p(the_repository, ADD_P_RESET, rev,
-				   &pathspec);
+		update_ref_status = !!run_add_p(the_repository, ADD_P_RESET,
+						rev, &pathspec);
 		goto cleanup;
 	}
 
@@ -441,10 +448,11 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 	 * affecting the working tree nor HEAD. */
 	if (pathspec.nr) {
 		if (reset_type == MIXED)
-			warning(_("--mixed with paths is deprecated; use 'git reset -- <paths>' instead."));
+			warning(_(
+				"--mixed with paths is deprecated; use 'git reset -- <paths>' instead."));
 		else if (reset_type != NONE)
 			die(_("Cannot do %s reset with paths."),
-					_(reset_type_names[reset_type]));
+			    _(reset_type_names[reset_type]));
 	}
 	if (reset_type == NONE)
 		reset_type = MIXED; /* by default */
@@ -481,7 +489,8 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 		repo_hold_locked_index(the_repository, &lock,
 				       LOCK_DIE_ON_ERROR);
 		if (reset_type == MIXED) {
-			int flags = quiet ? REFRESH_QUIET : REFRESH_IN_PORCELAIN;
+			int flags = quiet ? REFRESH_QUIET :
+					    REFRESH_IN_PORCELAIN;
 			if (read_from_tree(&pathspec, &oid, intent_to_add)) {
 				update_ref_status = 1;
 				goto cleanup;
@@ -491,12 +500,19 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 				uint64_t t_begin, t_delta_in_ms;
 
 				t_begin = getnanotime();
-				refresh_index(&the_index, flags, NULL, NULL,
-					      _("Unstaged changes after reset:"));
-				t_delta_in_ms = (getnanotime() - t_begin) / 1000000;
-				if (!quiet && advice_enabled(ADVICE_RESET_NO_REFRESH_WARNING) && t_delta_in_ms > REFRESH_INDEX_DELAY_WARNING_IN_MS) {
+				refresh_index(
+					&the_index, flags, NULL, NULL,
+					_("Unstaged changes after reset:"));
+				t_delta_in_ms =
+					(getnanotime() - t_begin) / 1000000;
+				if (!quiet &&
+				    advice_enabled(
+					    ADVICE_RESET_NO_REFRESH_WARNING) &&
+				    t_delta_in_ms >
+					    REFRESH_INDEX_DELAY_WARNING_IN_MS) {
 					advise(_("It took %.2f seconds to refresh the index after reset.  You can use\n"
-						 "'--no-refresh' to avoid this."), t_delta_in_ms / 1000.0);
+						 "'--no-refresh' to avoid this."),
+					       t_delta_in_ms / 1000.0);
 				}
 			}
 		} else {
@@ -504,8 +520,8 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 			char *ref = NULL;
 			int err;
 
-			repo_dwim_ref(the_repository, rev, strlen(rev),
-				      &dummy, &ref, 0);
+			repo_dwim_ref(the_repository, rev, strlen(rev), &dummy,
+				      &ref, 0);
 			if (ref && !starts_with(ref, "refs/"))
 				FREE_AND_NULL(ref);
 
@@ -513,7 +529,8 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 			if (reset_type == KEEP && !err)
 				err = reset_index(ref, &oid, MIXED, quiet);
 			if (err)
-				die(_("Could not reset index file to revision '%s'."), rev);
+				die(_("Could not reset index file to revision '%s'."),
+				    rev);
 			free(ref);
 		}
 
@@ -527,7 +544,8 @@ int cmd_reset(int argc, const char **argv, const char *prefix)
 		update_ref_status = reset_refs(rev, &oid);
 
 		if (reset_type == HARD && !update_ref_status && !quiet)
-			print_new_head_line(lookup_commit_reference(the_repository, &oid));
+			print_new_head_line(
+				lookup_commit_reference(the_repository, &oid));
 	}
 	if (!pathspec.nr)
 		remove_branch_state(the_repository, 0);

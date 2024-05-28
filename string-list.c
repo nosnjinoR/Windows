@@ -1,5 +1,5 @@
-#include "git-compat-util.h"
-#include "string-list.h"
+#include "components/git-compat-util.h"
+#include "components/string-list.h"
 
 void string_list_init_nodup(struct string_list *list)
 {
@@ -16,7 +16,7 @@ void string_list_init_dup(struct string_list *list)
 /* if there is no exact match, point to the index where the entry could be
  * inserted */
 static int get_entry_index(const struct string_list *list, const char *string,
-		int *exact_match)
+			   int *exact_match)
 {
 	int left = -1, right = list->nr;
 	compare_strings_fn cmp = list->cmp ? list->cmp : strcmp;
@@ -39,27 +39,31 @@ static int get_entry_index(const struct string_list *list, const char *string,
 }
 
 /* returns -1-index if already exists */
-static int add_entry(int insert_at, struct string_list *list, const char *string)
+static int add_entry(int insert_at, struct string_list *list,
+		     const char *string)
 {
 	int exact_match = 0;
-	int index = insert_at != -1 ? insert_at : get_entry_index(list, string, &exact_match);
+	int index = insert_at != -1 ?
+			    insert_at :
+			    get_entry_index(list, string, &exact_match);
 
 	if (exact_match)
 		return -1 - index;
 
-	ALLOC_GROW(list->items, list->nr+1, list->alloc);
+	ALLOC_GROW(list->items, list->nr + 1, list->alloc);
 	if (index < list->nr)
 		MOVE_ARRAY(list->items + index + 1, list->items + index,
 			   list->nr - index);
-	list->items[index].string = list->strdup_strings ?
-		xstrdup(string) : (char *)string;
+	list->items[index].string = list->strdup_strings ? xstrdup(string) :
+							   (char *)string;
 	list->items[index].util = NULL;
 	list->nr++;
 
 	return index;
 }
 
-struct string_list_item *string_list_insert(struct string_list *list, const char *string)
+struct string_list_item *string_list_insert(struct string_list *list,
+					    const char *string)
 {
 	int index = add_entry(-1, list, string);
 
@@ -93,7 +97,8 @@ int string_list_has_string(const struct string_list *list, const char *string)
 	return exact_match;
 }
 
-int string_list_find_insert_index(const struct string_list *list, const char *string,
+int string_list_find_insert_index(const struct string_list *list,
+				  const char *string,
 				  int negative_existing_index)
 {
 	int exact_match;
@@ -103,7 +108,8 @@ int string_list_find_insert_index(const struct string_list *list, const char *st
 	return index;
 }
 
-struct string_list_item *string_list_lookup(struct string_list *list, const char *string)
+struct string_list_item *string_list_lookup(struct string_list *list,
+					    const char *string)
 {
 	int exact_match, i = get_entry_index(list, string, &exact_match);
 	if (!exact_match)
@@ -117,7 +123,8 @@ void string_list_remove_duplicates(struct string_list *list, int free_util)
 		int src, dst;
 		compare_strings_fn cmp = list->cmp ? list->cmp : strcmp;
 		for (src = dst = 1; src < list->nr; src++) {
-			if (!cmp(list->items[dst - 1].string, list->items[src].string)) {
+			if (!cmp(list->items[dst - 1].string,
+				 list->items[src].string)) {
 				if (list->strdup_strings)
 					free(list->items[src].string);
 				if (free_util)
@@ -129,8 +136,8 @@ void string_list_remove_duplicates(struct string_list *list, int free_util)
 	}
 }
 
-int for_each_string_list(struct string_list *list,
-			 string_list_each_func_t fn, void *cb_data)
+int for_each_string_list(struct string_list *list, string_list_each_func_t fn,
+			 void *cb_data)
 {
 	int i, ret = 0;
 	for (i = 0; i < list->nr; i++)
@@ -184,13 +191,15 @@ void string_list_clear(struct string_list *list, int free_util)
 	list->nr = list->alloc = 0;
 }
 
-void string_list_clear_func(struct string_list *list, string_list_clear_func_t clearfunc)
+void string_list_clear_func(struct string_list *list,
+			    string_list_clear_func_t clearfunc)
 {
 	if (list->items) {
 		int i;
 		if (clearfunc) {
 			for (i = 0; i < list->nr; i++)
-				clearfunc(list->items[i].util, list->items[i].string);
+				clearfunc(list->items[i].util,
+					  list->items[i].string);
 		}
 		if (list->strdup_strings) {
 			for (i = 0; i < list->nr; i++)
@@ -226,16 +235,14 @@ struct string_list_item *string_list_append(struct string_list *list,
 					    const char *string)
 {
 	return string_list_append_nodup(
-			list,
-			list->strdup_strings ? xstrdup(string) : (char *)string);
+		list, list->strdup_strings ? xstrdup(string) : (char *)string);
 }
 
 /*
  * Encapsulate the compare function pointer because ISO C99 forbids
  * casting from void * to a function pointer and vice versa.
  */
-struct string_list_sort_ctx
-{
+struct string_list_sort_ctx {
 	compare_strings_fn cmp;
 };
 
@@ -249,7 +256,8 @@ static int cmp_items(const void *a, const void *b, void *ctx)
 
 void string_list_sort(struct string_list *list)
 {
-	struct string_list_sort_ctx sort_ctx = {list->cmp ? list->cmp : strcmp};
+	struct string_list_sort_ctx sort_ctx = { list->cmp ? list->cmp :
+							     strcmp };
 
 	QSORT_S(list->items, list->nr, cmp_items, &sort_ctx);
 }
@@ -260,7 +268,7 @@ struct string_list_item *unsorted_string_list_lookup(struct string_list *list,
 	struct string_list_item *item;
 	compare_strings_fn cmp = list->cmp ? list->cmp : strcmp;
 
-	for_each_string_list_item(item, list)
+	for_each_string_list_item (item, list)
 		if (!cmp(string, item->string))
 			return item;
 	return NULL;
@@ -272,18 +280,19 @@ int unsorted_string_list_has_string(struct string_list *list,
 	return unsorted_string_list_lookup(list, string) != NULL;
 }
 
-void unsorted_string_list_delete_item(struct string_list *list, int i, int free_util)
+void unsorted_string_list_delete_item(struct string_list *list, int i,
+				      int free_util)
 {
 	if (list->strdup_strings)
 		free(list->items[i].string);
 	if (free_util)
 		free(list->items[i].util);
-	list->items[i] = list->items[list->nr-1];
+	list->items[i] = list->items[list->nr - 1];
 	list->nr--;
 }
 
-int string_list_split(struct string_list *list, const char *string,
-		      int delim, int maxsplit)
+int string_list_split(struct string_list *list, const char *string, int delim,
+		      int maxsplit)
 {
 	int count = 0;
 	const char *p = string, *end;

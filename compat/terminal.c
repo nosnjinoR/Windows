@@ -1,11 +1,11 @@
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "compat/terminal.h"
-#include "gettext.h"
-#include "sigchain.h"
-#include "strbuf.h"
-#include "run-command.h"
-#include "string-list.h"
-#include "hashmap.h"
+#include "components/gettext.h"
+#include "components/sigchain.h"
+#include "components/strbuf.h"
+#include "components/run-command.h"
+#include "components/string-list.h"
+#include "components/hashmap.h"
 
 #if defined(HAVE_DEV_TTY) || defined(GIT_WINDOWS_NATIVE)
 
@@ -96,7 +96,7 @@ static void restore_terminal_on_suspend(int signo)
 	sa.sa_handler = print_background_resume_msg;
 	sa.sa_flags = SA_RESTART;
 	sigaction(SIGTTOU, &sa, &old_sa);
- again:
+again:
 	ttou_received = 0;
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 	res = tcsetattr(term_fd, TCSAFLUSH, &t);
@@ -106,7 +106,7 @@ static void restore_terminal_on_suspend(int signo)
 	else if (res < 0)
 		write_err(restore_error_msg);
 	sigaction(SIGTTOU, &old_sa, NULL);
- out:
+out:
 	errno = saved_errno;
 }
 
@@ -145,9 +145,9 @@ int save_term(enum save_term_flags flags)
 	struct sigaction sa;
 
 	if (term_fd < 0)
-		term_fd = ((flags & SAVE_TERM_STDIN)
-			   ? 0
-			   : open("/dev/tty", O_RDWR));
+		term_fd = ((flags & SAVE_TERM_STDIN) ?
+				   0 :
+				   open("/dev/tty", O_RDWR));
 	if (term_fd < 0)
 		return -1;
 	term_fd_needs_closing = !(flags & SAVE_TERM_STDIN);
@@ -165,7 +165,8 @@ int save_term(enum save_term_flags flags)
 		return 0;
 
 	/* avoid calling gettext() from signal handler */
-	background_resume_msg = _("cannot resume in the background, please use 'fg' to resume");
+	background_resume_msg =
+		_("cannot resume in the background, please use 'fg' to resume");
 	restore_error_msg = _("cannot restore terminal settings");
 	sa.sa_handler = restore_terminal_on_suspend;
 	sa.sa_flags = SA_RESTART;
@@ -223,7 +224,7 @@ static int getchar_with_timeout(int timeout)
 	fd_set readfds;
 	int res;
 
- again:
+again:
 	if (timeout >= 0) {
 		tv.tv_sec = timeout / 1000;
 		tv.tv_usec = (timeout % 1000) * 1000;
@@ -292,15 +293,15 @@ void restore_term(void)
 int save_term(enum save_term_flags flags)
 {
 	hconin = CreateFileA("CONIN$", GENERIC_READ | GENERIC_WRITE,
-	    FILE_SHARE_READ, NULL, OPEN_EXISTING,
-	    FILE_ATTRIBUTE_NORMAL, NULL);
+			     FILE_SHARE_READ, NULL, OPEN_EXISTING,
+			     FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hconin == INVALID_HANDLE_VALUE)
 		return -1;
 
 	if (flags & SAVE_TERM_DUPLEX) {
 		hconout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL, NULL);
+				      FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+				      FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hconout == INVALID_HANDLE_VALUE)
 			goto error;
 
@@ -330,7 +331,8 @@ static int disable_bits(enum save_term_flags flags, DWORD bits)
 			 * POSIX allows VMIN and VTIME to overlap with VEOF and
 			 * VEOL - let's hope that is not the case on windows.
 			 */
-			strvec_pushl(&cp.args, "-icanon", "min", "1", "time", "0", NULL);
+			strvec_pushl(&cp.args, "-icanon", "min", "1", "time",
+				     "0", NULL);
 		}
 
 		if (bits & ENABLE_ECHO_INPUT) {
@@ -374,8 +376,8 @@ static int disable_echo(enum save_term_flags flags)
 
 static int enable_non_canonical(enum save_term_flags flags)
 {
-	return disable_bits(flags,
-			    ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
+	return disable_bits(flags, ENABLE_ECHO_INPUT | ENABLE_LINE_INPUT |
+					   ENABLE_PROCESSED_INPUT);
 }
 
 /*
@@ -422,10 +424,12 @@ static int getchar_with_timeout(int timeout)
 static char *shell_prompt(const char *prompt, int echo)
 {
 	const char *read_input[] = {
-		/* Note: call 'bash' explicitly, as 'read -s' is bash-specific */
-		"bash", "-c", echo ?
-		"cat >/dev/tty && read -r line </dev/tty && echo \"$line\"" :
-		"cat >/dev/tty && read -r -s line </dev/tty && echo \"$line\" && echo >/dev/tty",
+		/* Note: call 'bash' explicitly, as 'read -s' is bash-specific
+		 */
+		"bash",
+		"-c",
+		echo ? "cat >/dev/tty && read -r line </dev/tty && echo \"$line\"" :
+		       "cat >/dev/tty && read -r -s line </dev/tty && echo \"$line\" && echo >/dev/tty",
 		NULL
 	};
 	struct child_process child = CHILD_PROCESS_INIT;
@@ -542,8 +546,10 @@ static int sequence_entry_cmp(const void *hashmap_cmp_fn_data UNUSED,
 			      const void *keydata)
 {
 	const struct escape_sequence_entry
-		*e1 = container_of(he1, const struct escape_sequence_entry, entry),
-		*e2 = container_of(he2, const struct escape_sequence_entry, entry);
+		*e1 = container_of(he1, const struct escape_sequence_entry,
+				   entry),
+		*e2 = container_of(he2, const struct escape_sequence_entry,
+				   entry);
 	return strcmp(e1->sequence, keydata ? keydata : e2->sequence);
 }
 

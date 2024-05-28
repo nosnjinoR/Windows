@@ -1,9 +1,9 @@
-#include "git-compat-util.h"
-#include "copy.h"
-#include "path.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "abspath.h"
+#include "components/git-compat-util.h"
+#include "components/copy.h"
+#include "components/path.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/abspath.h"
 
 int copy_fd(int ifd, int ofd)
 {
@@ -91,8 +91,8 @@ int do_files_match(const char *path1, const char *path2)
 	int fd1 = -1, fd2 = -1, ret = 1;
 	char buf1[8192], buf2[8192];
 
-	if ((fd1 = open_nofollow(path1, O_RDONLY)) < 0 ||
-	    fstat(fd1, &st1) || !S_ISREG(st1.st_mode)) {
+	if ((fd1 = open_nofollow(path1, O_RDONLY)) < 0 || fstat(fd1, &st1) ||
+	    !S_ISREG(st1.st_mode)) {
 		if (fd1 < 0 && errno == ELOOP)
 			/* maybe this is a symbolic link? */
 			return do_symlinks_match(path1, path2);

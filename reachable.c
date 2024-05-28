@@ -1,23 +1,23 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hex.h"
-#include "refs.h"
-#include "commit.h"
-#include "blob.h"
-#include "diff.h"
-#include "revision.h"
-#include "reachable.h"
-#include "cache-tree.h"
-#include "progress.h"
-#include "list-objects.h"
-#include "packfile.h"
-#include "worktree.h"
-#include "object-store-ll.h"
-#include "pack-bitmap.h"
-#include "pack-mtimes.h"
-#include "config.h"
-#include "run-command.h"
-#include "sequencer.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/refs.h"
+#include "components/commit.h"
+#include "components/blob.h"
+#include "components/diff.h"
+#include "components/revision.h"
+#include "components/reachable.h"
+#include "components/cache-tree.h"
+#include "components/progress.h"
+#include "components/list-objects.h"
+#include "components/packfile.h"
+#include "components/worktree.h"
+#include "components/object-store-ll.h"
+#include "components/pack-bitmap.h"
+#include "components/pack-mtimes.h"
+#include "components/config.h"
+#include "components/run-command.h"
+#include "components/sequencer.h"
 
 struct connectivity_progress {
 	struct progress *progress;
@@ -77,8 +77,8 @@ static void add_rebase_files(struct rev_info *revs)
 	free_worktrees(worktrees);
 }
 
-static int add_one_ref(const char *path, const struct object_id *oid,
-		       int flag, void *cb_data)
+static int add_one_ref(const char *path, const struct object_id *oid, int flag,
+		       void *cb_data)
 {
 	struct rev_info *revs = (struct rev_info *)cb_data;
 	struct object *object;
@@ -98,8 +98,7 @@ static int add_one_ref(const char *path, const struct object_id *oid,
  * The traversal will have already marked us as SEEN, so we
  * only need to handle any progress reporting here.
  */
-static void mark_object(struct object *obj UNUSED,
-			const char *name UNUSED,
+static void mark_object(struct object *obj UNUSED, const char *name UNUSED,
 			void *data)
 {
 	update_progress(data);
@@ -120,8 +119,7 @@ struct recent_data {
 	int extra_recent_oids_loaded;
 };
 
-static int run_one_gc_recent_objects_hook(struct oidset *set,
-					    const char *args)
+static int run_one_gc_recent_objects_hook(struct oidset *set, const char *args)
 {
 	struct child_process cmd = CHILD_PROCESS_INIT;
 	struct strbuf buf = STRBUF_INIT;
@@ -142,7 +140,8 @@ static int run_one_gc_recent_objects_hook(struct oidset *set,
 		const char *rest;
 
 		if (parse_oid_hex(buf.buf, &oid, &rest) || *rest) {
-			ret = error(_("invalid extra cruft tip: '%s'"), buf.buf);
+			ret = error(_("invalid extra cruft tip: '%s'"),
+				    buf.buf);
 			break;
 		}
 
@@ -169,7 +168,7 @@ static void load_gc_recent_objects(struct recent_data *data)
 
 	for (i = 0; i < programs->nr; i++) {
 		ret = run_one_gc_recent_objects_hook(&data->extra_recent_oids,
-						       programs->items[i].string);
+						     programs->items[i].string);
 		if (ret)
 			die(_("unable to enumerate additional recent objects"));
 	}
@@ -187,10 +186,8 @@ static int obj_is_recent(const struct object_id *oid, timestamp_t mtime,
 }
 
 static void add_recent_object(const struct object_id *oid,
-			      struct packed_git *pack,
-			      off_t offset,
-			      timestamp_t mtime,
-			      struct recent_data *data)
+			      struct packed_git *pack, off_t offset,
+			      timestamp_t mtime, struct recent_data *data)
 {
 	struct object *obj;
 	enum object_type type;
@@ -221,8 +218,8 @@ static void add_recent_object(const struct object_id *oid,
 		obj = (struct object *)lookup_blob(the_repository, oid);
 		break;
 	default:
-		die("unknown object type for %s: %s",
-		    oid_to_hex(oid), type_name(type));
+		die("unknown object type for %s: %s", oid_to_hex(oid),
+		    type_name(type));
 	}
 
 	if (!obj)
@@ -242,8 +239,8 @@ static int want_recent_object(struct recent_data *data,
 	return 1;
 }
 
-static int add_recent_loose(const struct object_id *oid,
-			    const char *path, void *data)
+static int add_recent_loose(const struct object_id *oid, const char *path,
+			    void *data)
 {
 	struct stat st;
 	struct object *obj;
@@ -272,10 +269,8 @@ static int add_recent_loose(const struct object_id *oid,
 	return 0;
 }
 
-static int add_recent_packed(const struct object_id *oid,
-			     struct packed_git *p,
-			     uint32_t pos,
-			     void *data)
+static int add_recent_packed(const struct object_id *oid, struct packed_git *p,
+			     uint32_t pos, void *data)
 {
 	struct object *obj;
 	timestamp_t mtime = p->mtime;
@@ -292,7 +287,8 @@ static int add_recent_packed(const struct object_id *oid,
 			die(_("could not load cruft pack .mtimes"));
 		mtime = nth_packed_mtime(p, pos);
 	}
-	add_recent_object(oid, p, nth_packed_object_offset(p, pos), mtime, data);
+	add_recent_object(oid, p, nth_packed_object_offset(p, pos), mtime,
+			  data);
 	return 0;
 }
 
@@ -330,12 +326,10 @@ done:
 	return r;
 }
 
-static int mark_object_seen(const struct object_id *oid,
-			     enum object_type type,
-			     int exclude UNUSED,
-			     uint32_t name_hash UNUSED,
-			     struct packed_git *found_pack UNUSED,
-			     off_t found_offset UNUSED)
+static int mark_object_seen(const struct object_id *oid, enum object_type type,
+			    int exclude UNUSED, uint32_t name_hash UNUSED,
+			    struct packed_git *found_pack UNUSED,
+			    off_t found_offset UNUSED)
 {
 	struct object *obj = lookup_object_by_type(the_repository, oid, type);
 	if (!obj)

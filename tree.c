@@ -1,21 +1,19 @@
-#include "git-compat-util.h"
-#include "hex.h"
-#include "tree.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "commit.h"
-#include "alloc.h"
-#include "tree-walk.h"
-#include "repository.h"
-#include "environment.h"
+#include "components/git-compat-util.h"
+#include "components/hex.h"
+#include "components/tree.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/commit.h"
+#include "components/alloc.h"
+#include "components/tree-walk.h"
+#include "components/repository.h"
+#include "components/environment.h"
 
 const char *tree_type = "tree";
 
-int read_tree_at(struct repository *r,
-		 struct tree *tree, struct strbuf *base,
-		 int depth,
-		 const struct pathspec *pathspec,
-		 read_tree_fn_t fn, void *context)
+int read_tree_at(struct repository *r, struct tree *tree, struct strbuf *base,
+		 int depth, const struct pathspec *pathspec, read_tree_fn_t fn,
+		 void *context)
 {
 	struct tree_desc desc;
 	struct name_entry entry;
@@ -33,16 +31,15 @@ int read_tree_at(struct repository *r,
 
 	while (tree_entry(&desc, &entry)) {
 		if (retval != all_entries_interesting) {
-			retval = tree_entry_interesting(r->index, &entry,
-							base, pathspec);
+			retval = tree_entry_interesting(r->index, &entry, base,
+							pathspec);
 			if (retval == all_entries_not_interesting)
 				break;
 			if (retval == entry_not_interesting)
 				continue;
 		}
 
-		switch (fn(&entry.oid, base,
-			   entry.path, entry.mode, context)) {
+		switch (fn(&entry.oid, base, entry.path, entry.mode, context)) {
 		case 0:
 			continue;
 		case READ_TREE_RECURSIVE:
@@ -59,25 +56,23 @@ int read_tree_at(struct repository *r,
 			commit = lookup_commit(r, &entry.oid);
 			if (!commit)
 				die("Commit %s in submodule path %s%s not found",
-				    oid_to_hex(&entry.oid),
-				    base->buf, entry.path);
+				    oid_to_hex(&entry.oid), base->buf,
+				    entry.path);
 
 			if (repo_parse_commit(r, commit))
 				die("Invalid commit %s in submodule path %s%s",
-				    oid_to_hex(&entry.oid),
-				    base->buf, entry.path);
+				    oid_to_hex(&entry.oid), base->buf,
+				    entry.path);
 
 			oidcpy(&oid, get_commit_tree_oid(commit));
-		}
-		else
+		} else
 			continue;
 
 		len = tree_entry_len(&entry);
 		strbuf_add(base, entry.path, len);
 		strbuf_addch(base, '/');
-		retval = read_tree_at(r, lookup_tree(r, &oid),
-				      base, depth + 1, pathspec,
-				      fn, context);
+		retval = read_tree_at(r, lookup_tree(r, &oid), base, depth + 1,
+				      pathspec, fn, context);
 		strbuf_setlen(base, oldlen);
 		if (retval)
 			return -1;
@@ -85,10 +80,8 @@ int read_tree_at(struct repository *r,
 	return 0;
 }
 
-int read_tree(struct repository *r,
-	      struct tree *tree,
-	      const struct pathspec *pathspec,
-	      read_tree_fn_t fn, void *context)
+int read_tree(struct repository *r, struct tree *tree,
+	      const struct pathspec *pathspec, read_tree_fn_t fn, void *context)
 {
 	struct strbuf sb = STRBUF_INIT;
 	int ret = read_tree_at(r, tree, &sb, 0, pathspec, fn, context);
@@ -185,18 +178,18 @@ int parse_tree_buffer(struct tree *item, void *buffer, unsigned long size)
 
 int parse_tree_gently(struct tree *item, int quiet_on_missing)
 {
-	 enum object_type type;
-	 void *buffer;
-	 unsigned long size;
+	enum object_type type;
+	void *buffer;
+	unsigned long size;
 
 	if (item->object.parsed)
 		return 0;
-	buffer = repo_read_object_file(the_repository, &item->object.oid,
-				       &type, &size);
+	buffer = repo_read_object_file(the_repository, &item->object.oid, &type,
+				       &size);
 	if (!buffer)
 		return quiet_on_missing ? -1 :
-			error("Could not read %s",
-			     oid_to_hex(&item->object.oid));
+					  error("Could not read %s",
+						oid_to_hex(&item->object.oid));
 	if (type != OBJ_TREE) {
 		free(buffer);
 		return error("Object %s not a tree",

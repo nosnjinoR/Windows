@@ -1,12 +1,12 @@
 /*
  * Various trivial helper wrappers around standard functions
  */
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "parse.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/parse.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/trace2.h"
 
 #ifdef HAVE_RTLGENRANDOM
 /* This is required to get access to RtlGenRandom. */
@@ -25,11 +25,13 @@ static int memory_limit_check(size_t size, int gentle)
 	}
 	if (size > limit) {
 		if (gentle) {
-			error("attempting to allocate %"PRIuMAX" over limit %"PRIuMAX,
+			error("attempting to allocate %" PRIuMAX
+			      " over limit %" PRIuMAX,
 			      (uintmax_t)size, (uintmax_t)limit);
 			return -1;
 		} else
-			die("attempting to allocate %"PRIuMAX" over limit %"PRIuMAX,
+			die("attempting to allocate %" PRIuMAX
+			    " over limit %" PRIuMAX,
 			    (uintmax_t)size, (uintmax_t)limit);
 	}
 	return 0;
@@ -85,7 +87,7 @@ static void *do_xmallocz(size_t size, int gentle)
 	}
 	ret = do_xmalloc(size + 1, gentle);
 	if (ret)
-		((char*)ret)[size] = 0;
+		((char *)ret)[size] = 0;
 	return ret;
 }
 
@@ -191,7 +193,9 @@ int xopen(const char *path, int oflag, ...)
 		if ((oflag & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL))
 			die_errno(_("unable to create '%s'"), path);
 		else if ((oflag & O_RDWR) == O_RDWR)
-			die_errno(_("could not open '%s' for reading and writing"), path);
+			die_errno(
+				_("could not open '%s' for reading and writing"),
+				path);
 		else if ((oflag & O_WRONLY) == O_WRONLY)
 			die_errno(_("could not open '%s' for writing"), path);
 		else
@@ -361,7 +365,9 @@ FILE *xfopen(const char *path, const char *mode)
 			continue;
 
 		if (*mode && mode[1] == '+')
-			die_errno(_("could not open '%s' for reading and writing"), path);
+			die_errno(
+				_("could not open '%s' for reading and writing"),
+				path);
 		else if (*mode == 'w' || *mode == 'a')
 			die_errno(_("could not open '%s' for writing"), path);
 		else
@@ -433,7 +439,7 @@ int xmkstemp(char *filename_template)
 		nonrelative_template = absolute_path(filename_template);
 		errno = saved_errno;
 		die_errno("Unable to create temporary file '%s'",
-			nonrelative_template);
+			  nonrelative_template);
 	}
 	return fd;
 }
@@ -445,10 +451,9 @@ int xmkstemp(char *filename_template)
 
 int git_mkstemps_mode(char *pattern, int suffix_len, int mode)
 {
-	static const char letters[] =
-		"abcdefghijklmnopqrstuvwxyz"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		"0123456789";
+	static const char letters[] = "abcdefghijklmnopqrstuvwxyz"
+				      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+				      "0123456789";
 	static const int num_letters = ARRAY_SIZE(letters) - 1;
 	static const char x_pattern[] = "XXXXXX";
 	static const int num_x = ARRAY_SIZE(x_pattern) - 1;
@@ -477,7 +482,8 @@ int git_mkstemps_mode(char *pattern, int suffix_len, int mode)
 		int i;
 		uint64_t v;
 		if (csprng_bytes(&v, sizeof(v)) < 0)
-			return error_errno("unable to get random bytes for temporary file");
+			return error_errno(
+				"unable to get random bytes for temporary file");
 
 		/* Fill in the random bits. */
 		for (i = 0; i < num_x; i++) {
@@ -523,7 +529,7 @@ int xmkstemp_mode(char *filename_template, int mode)
 		nonrelative_template = absolute_path(filename_template);
 		errno = saved_errno;
 		die_errno("Unable to create temporary file '%s'",
-			nonrelative_template);
+			  nonrelative_template);
 	}
 	return fd;
 }
@@ -565,9 +571,10 @@ int git_fsync(int fd, enum fsync_action action)
 		 * (potentially in a disk-side cache) before we continue.
 		 */
 
-		return sync_file_range(fd, 0, 0, SYNC_FILE_RANGE_WAIT_BEFORE |
-						 SYNC_FILE_RANGE_WRITE |
-						 SYNC_FILE_RANGE_WAIT_AFTER);
+		return sync_file_range(fd, 0, 0,
+				       SYNC_FILE_RANGE_WAIT_BEFORE |
+					       SYNC_FILE_RANGE_WRITE |
+					       SYNC_FILE_RANGE_WAIT_AFTER);
 #endif
 
 #ifdef fsync_no_flush
@@ -615,8 +622,7 @@ int unlink_or_msg(const char *file, struct strbuf *err)
 	if (!rc || errno == ENOENT)
 		return 0;
 
-	strbuf_addf(err, "unable to unlink '%s': %s",
-		    file, strerror(errno));
+	strbuf_addf(err, "unable to unlink '%s': %s", file, strerror(errno));
 	return -1;
 }
 

@@ -1,9 +1,9 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "json-writer.h"
-#include "repository.h"
-#include "run-command.h"
-#include "version.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/json-writer.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/version.h"
 #include "trace2/tr2_dst.h"
 #include "trace2/tr2_tbuf.h"
 #include "trace2/tr2_sid.h"
@@ -265,7 +265,8 @@ static void fn_command_path_fl(const char *file, int line, const char *pathname)
 	jw_release(&jw);
 }
 
-static void fn_command_ancestry_fl(const char *file, int line, const char **parent_names)
+static void fn_command_ancestry_fl(const char *file, int line,
+				   const char **parent_names)
 {
 	const char *event_name = "cmd_ancestry";
 	const char *parent_name = NULL;
@@ -367,9 +368,8 @@ static void fn_child_start_fl(const char *file, int line,
 }
 
 static void fn_child_exit_fl(const char *file, int line,
-			     uint64_t us_elapsed_absolute UNUSED,
-			     int cid, int pid,
-			     int code, uint64_t us_elapsed_child)
+			     uint64_t us_elapsed_absolute UNUSED, int cid,
+			     int pid, int code, uint64_t us_elapsed_child)
 {
 	const char *event_name = "child_exit";
 	struct json_writer jw = JSON_WRITER_INIT;
@@ -389,9 +389,9 @@ static void fn_child_exit_fl(const char *file, int line,
 }
 
 static void fn_child_ready_fl(const char *file, int line,
-			      uint64_t us_elapsed_absolute UNUSED,
-			      int cid, int pid,
-			      const char *ready, uint64_t us_elapsed_child)
+			      uint64_t us_elapsed_absolute UNUSED, int cid,
+			      int pid, const char *ready,
+			      uint64_t us_elapsed_child)
 {
 	const char *event_name = "child_ready";
 	struct json_writer jw = JSON_WRITER_INIT;
@@ -442,8 +442,8 @@ static void fn_thread_exit_fl(const char *file, int line,
 }
 
 static void fn_exec_fl(const char *file, int line,
-		       uint64_t us_elapsed_absolute UNUSED,
-		       int exec_id, const char *exe, const char **argv)
+		       uint64_t us_elapsed_absolute UNUSED, int exec_id,
+		       const char *exe, const char **argv)
 {
 	const char *event_name = "exec";
 	struct json_writer jw = JSON_WRITER_INIT;
@@ -463,8 +463,8 @@ static void fn_exec_fl(const char *file, int line,
 }
 
 static void fn_exec_result_fl(const char *file, int line,
-			      uint64_t us_elapsed_absolute UNUSED,
-			      int exec_id, int code)
+			      uint64_t us_elapsed_absolute UNUSED, int exec_id,
+			      int code)
 {
 	const char *event_name = "exec_result";
 	struct json_writer jw = JSON_WRITER_INIT;
@@ -623,8 +623,7 @@ static void fn_data_json_fl(const char *file, int line,
 }
 
 static void fn_timer(const struct tr2_timer_metadata *meta,
-		     const struct tr2_timer *timer,
-		     int is_final_data)
+		     const struct tr2_timer *timer, int is_final_data)
 {
 	const char *event_name = is_final_data ? "timer" : "th_timer";
 	struct json_writer jw = JSON_WRITER_INIT;
@@ -647,8 +646,7 @@ static void fn_timer(const struct tr2_timer_metadata *meta,
 }
 
 static void fn_counter(const struct tr2_counter_metadata *meta,
-		       const struct tr2_counter *counter,
-		       int is_final_data)
+		       const struct tr2_counter *counter, int is_final_data)
 {
 	const char *event_name = is_final_data ? "counter" : "th_counter";
 	struct json_writer jw = JSON_WRITER_INIT;

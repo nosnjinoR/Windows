@@ -1,35 +1,38 @@
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "config.h"
-#include "attr.h"
-#include "environment.h"
-#include "gettext.h"
-#include "object-name.h"
-#include "quote.h"
-#include "repository.h"
-#include "setup.h"
-#include "parse-options.h"
-#include "write-or-die.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/attr.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/object-name.h"
+#include "components/quote.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/parse-options.h"
+#include "components/write-or-die.h"
 
 static int all_attrs;
 static int cached_attrs;
 static int stdin_paths;
 static char *source;
-static const char * const check_attr_usage[] = {
-N_("git check-attr [--source <tree-ish>] [-a | --all | <attr>...] [--] <pathname>..."),
-N_("git check-attr --stdin [-z] [--source <tree-ish>] [-a | --all | <attr>...]"),
-NULL
+static const char *const check_attr_usage[] = {
+	N_("git check-attr [--source <tree-ish>] [-a | --all | <attr>...] [--] <pathname>..."),
+	N_("git check-attr --stdin [-z] [--source <tree-ish>] [-a | --all | <attr>...]"),
+	NULL
 };
 
 static int nul_term_line;
 
 static const struct option check_attr_options[] = {
-	OPT_BOOL('a', "all", &all_attrs, N_("report all attributes set on file")),
-	OPT_BOOL(0,  "cached", &cached_attrs, N_("use .gitattributes only from the index")),
-	OPT_BOOL(0 , "stdin", &stdin_paths, N_("read file names from stdin")),
+	OPT_BOOL('a', "all", &all_attrs,
+		 N_("report all attributes set on file")),
+	OPT_BOOL(0, "cached", &cached_attrs,
+		 N_("use .gitattributes only from the index")),
+	OPT_BOOL(0, "stdin", &stdin_paths, N_("read file names from stdin")),
 	OPT_BOOL('z', NULL, &nul_term_line,
 		 N_("terminate input and output records by a NUL character")),
-	OPT_STRING(0, "source", &source, N_("<tree-ish>"), N_("which tree-ish to check attributes at")),
+	OPT_STRING(0, "source", &source, N_("<tree-ish>"),
+		   N_("which tree-ish to check attributes at")),
 	OPT_END()
 };
 
@@ -52,8 +55,8 @@ static void output_attr(struct attr_check *check, const char *file)
 			printf("%s%c" /* path */
 			       "%s%c" /* attrname */
 			       "%s%c" /* attrvalue */,
-			       file, 0,
-			       git_attr_name(check->items[j].attr), 0, value, 0);
+			       file, 0, git_attr_name(check->items[j].attr), 0,
+			       value, 0);
 		} else {
 			quote_c_style(file, NULL, stdout, 0);
 			printf(": %s: %s\n",
@@ -63,8 +66,7 @@ static void output_attr(struct attr_check *check, const char *file)
 }
 
 static void check_attr(const char *prefix, struct attr_check *check,
-		       int collect_all,
-		       const char *file)
+		       int collect_all, const char *file)
 
 {
 	char *full_path =

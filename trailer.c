@@ -1,12 +1,12 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "environment.h"
-#include "gettext.h"
-#include "string-list.h"
-#include "run-command.h"
-#include "commit.h"
-#include "trailer.h"
-#include "list.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/string-list.h"
+#include "components/run-command.h"
+#include "components/commit.h"
+#include "components/trailer.h"
+#include "components/list.h"
 /*
  * Copyright (c) 2013, 2014 Christian Couder <chriscool@tuxfamily.org>
  */
@@ -49,16 +49,13 @@ static int configured;
 #define TRAILER_ARG_STRING "$ARG"
 
 static const char *git_generated_prefixes[] = {
-	"Signed-off-by: ",
-	"(cherry picked from commit ",
-	NULL
+	"Signed-off-by: ", "(cherry picked from commit ", NULL
 };
 
 /* Iterate over the elements of the list. */
-#define list_for_each_dir(pos, head, is_reverse) \
-	for (pos = is_reverse ? (head)->prev : (head)->next; \
-		pos != (head); \
-		pos = is_reverse ? pos->prev : pos->next)
+#define list_for_each_dir(pos, head, is_reverse)                            \
+	for (pos = is_reverse ? (head)->prev : (head)->next; pos != (head); \
+	     pos = is_reverse ? pos->prev : pos->next)
 
 static int after_or_end(enum trailer_where where)
 {
@@ -110,7 +107,8 @@ static inline int is_blank_line(const char *str)
 	return !*s || *s == '\n';
 }
 
-static inline void strbuf_replace(struct strbuf *sb, const char *a, const char *b)
+static inline void strbuf_replace(struct strbuf *sb, const char *a,
+				  const char *b)
 {
 	const char *ptr = strstr(sb->buf, a);
 	if (ptr)
@@ -166,8 +164,7 @@ static void add_arg_to_input_list(struct trailer_item *on_tok,
 }
 
 static int check_if_different(struct trailer_item *in_tok,
-			      struct arg_item *arg_tok,
-			      int check_all,
+			      struct arg_item *arg_tok, int check_all,
 			      struct list_head *head)
 {
 	enum trailer_where where = arg_tok->conf.where;
@@ -179,8 +176,8 @@ static int check_if_different(struct trailer_item *in_tok,
 		 * if we want to add a trailer after another one,
 		 * we have to check those before this one
 		 */
-		next_head = after_or_end(where) ? in_tok->list.prev
-						: in_tok->list.next;
+		next_head = after_or_end(where) ? in_tok->list.prev :
+						  in_tok->list.next;
 		if (next_head == head)
 			break;
 		in_tok = list_entry(next_head, struct trailer_item, list);
@@ -223,7 +220,8 @@ static char *apply_command(struct conf_info *conf, const char *arg)
 	return result;
 }
 
-static void apply_item_command(struct trailer_item *in_tok, struct arg_item *arg_tok)
+static void apply_item_command(struct trailer_item *in_tok,
+			       struct arg_item *arg_tok)
 {
 	if (arg_tok->conf.command || arg_tok->conf.cmd) {
 		const char *arg;
@@ -274,8 +272,7 @@ static void apply_arg_if_exists(struct trailer_item *in_tok,
 			free_arg_item(arg_tok);
 		break;
 	default:
-		BUG("trailer.c: unhandled value %d",
-		    arg_tok->conf.if_exists);
+		BUG("trailer.c: unhandled value %d", arg_tok->conf.if_exists);
 	}
 }
 
@@ -299,8 +296,7 @@ static void apply_arg_if_missing(struct list_head *head,
 			list_add(&to_add->list, head);
 		break;
 	default:
-		BUG("trailer.c: unhandled value %d",
-		    arg_tok->conf.if_missing);
+		BUG("trailer.c: unhandled value %d", arg_tok->conf.if_missing);
 	}
 }
 
@@ -320,10 +316,9 @@ static int find_same_and_apply_arg(struct list_head *head,
 		return 0;
 
 	start_tok = list_entry(backwards ? head->prev : head->next,
-			       struct trailer_item,
-			       list);
+			       struct trailer_item, list);
 
-	list_for_each_dir(pos, head, backwards) {
+	list_for_each_dir (pos, head, backwards) {
 		in_tok = list_entry(pos, struct trailer_item, list);
 		if (!same_token(in_tok, arg_tok))
 			continue;
@@ -334,13 +329,12 @@ static int find_same_and_apply_arg(struct list_head *head,
 	return 0;
 }
 
-void process_trailers_lists(struct list_head *head,
-			    struct list_head *arg_head)
+void process_trailers_lists(struct list_head *head, struct list_head *arg_head)
 {
 	struct list_head *pos, *p;
 	struct arg_item *arg_tok;
 
-	list_for_each_safe(pos, p, arg_head) {
+	list_for_each_safe (pos, p, arg_head) {
 		int applied = 0;
 		arg_tok = list_entry(pos, struct arg_item, list);
 
@@ -417,7 +411,7 @@ static struct arg_item *get_conf_item(const char *name)
 	struct arg_item *item;
 
 	/* Look up item with same name */
-	list_for_each(pos, &conf_head) {
+	list_for_each (pos, &conf_head) {
 		item = list_entry(pos, struct arg_item, list);
 		if (!strcasecmp(item->conf.name, name))
 			return item;
@@ -433,20 +427,24 @@ static struct arg_item *get_conf_item(const char *name)
 	return item;
 }
 
-enum trailer_info_type { TRAILER_KEY, TRAILER_COMMAND, TRAILER_CMD,
-			TRAILER_WHERE, TRAILER_IF_EXISTS, TRAILER_IF_MISSING };
+enum trailer_info_type {
+	TRAILER_KEY,
+	TRAILER_COMMAND,
+	TRAILER_CMD,
+	TRAILER_WHERE,
+	TRAILER_IF_EXISTS,
+	TRAILER_IF_MISSING
+};
 
 static struct {
 	const char *name;
 	enum trailer_info_type type;
-} trailer_config_items[] = {
-	{ "key", TRAILER_KEY },
-	{ "command", TRAILER_COMMAND },
-	{ "cmd", TRAILER_CMD },
-	{ "where", TRAILER_WHERE },
-	{ "ifexists", TRAILER_IF_EXISTS },
-	{ "ifmissing", TRAILER_IF_MISSING }
-};
+} trailer_config_items[] = { { "key", TRAILER_KEY },
+			     { "command", TRAILER_COMMAND },
+			     { "cmd", TRAILER_CMD },
+			     { "where", TRAILER_WHERE },
+			     { "ifexists", TRAILER_IF_EXISTS },
+			     { "ifmissing", TRAILER_IF_MISSING } };
 
 static int git_trailer_default_config(const char *conf_key, const char *value,
 				      const struct config_context *ctx UNUSED,
@@ -460,8 +458,8 @@ static int git_trailer_default_config(const char *conf_key, const char *value,
 	variable_name = strrchr(trailer_item, '.');
 	if (!variable_name) {
 		if (!strcmp(trailer_item, "where")) {
-			if (trailer_set_where(&default_conf_info.where,
-					      value) < 0)
+			if (trailer_set_where(&default_conf_info.where, value) <
+			    0)
 				warning(_("unknown value '%s' for key '%s'"),
 					value, conf_key);
 		} else if (!strcmp(trailer_item, "ifexists")) {
@@ -470,8 +468,8 @@ static int git_trailer_default_config(const char *conf_key, const char *value,
 				warning(_("unknown value '%s' for key '%s'"),
 					value, conf_key);
 		} else if (!strcmp(trailer_item, "ifmissing")) {
-			if (trailer_set_if_missing(&default_conf_info.if_missing,
-						   value) < 0)
+			if (trailer_set_if_missing(
+				    &default_conf_info.if_missing, value) < 0)
 				warning(_("unknown value '%s' for key '%s'"),
 					value, conf_key);
 		} else if (!strcmp(trailer_item, "separators")) {
@@ -505,7 +503,7 @@ static int git_trailer_config(const char *conf_key, const char *value,
 	for (i = 0; i < ARRAY_SIZE(trailer_config_items); i++) {
 		if (strcmp(trailer_config_items[i].name, variable_name))
 			continue;
-		name = xstrndup(trailer_item,  variable_name - trailer_item - 1);
+		name = xstrndup(trailer_item, variable_name - trailer_item - 1);
 		type = trailer_config_items[i].type;
 		break;
 	}
@@ -541,15 +539,18 @@ static int git_trailer_config(const char *conf_key, const char *value,
 		break;
 	case TRAILER_WHERE:
 		if (trailer_set_where(&conf->where, value))
-			warning(_("unknown value '%s' for key '%s'"), value, conf_key);
+			warning(_("unknown value '%s' for key '%s'"), value,
+				conf_key);
 		break;
 	case TRAILER_IF_EXISTS:
 		if (trailer_set_if_exists(&conf->if_exists, value))
-			warning(_("unknown value '%s' for key '%s'"), value, conf_key);
+			warning(_("unknown value '%s' for key '%s'"), value,
+				conf_key);
 		break;
 	case TRAILER_IF_MISSING:
 		if (trailer_set_if_missing(&conf->if_missing, value))
-			warning(_("unknown value '%s' for key '%s'"), value, conf_key);
+			warning(_("unknown value '%s' for key '%s'"), value,
+				conf_key);
 		break;
 	default:
 		BUG("trailer.c: unhandled type %d", type);
@@ -580,7 +581,8 @@ static const char *token_from_item(struct arg_item *item, char *tok)
 	return item->conf.name;
 }
 
-static int token_matches_item(const char *tok, struct arg_item *item, size_t tok_len)
+static int token_matches_item(const char *tok, struct arg_item *item,
+			      size_t tok_len)
 {
 	if (!strncasecmp(tok, item->conf.name, tok_len))
 		return 1;
@@ -624,8 +626,8 @@ static ssize_t find_separator(const char *line, const char *separators)
  * If separator_pos is -1, interpret the whole trailer as a token.
  */
 static void parse_trailer(struct strbuf *tok, struct strbuf *val,
-			 const struct conf_info **conf, const char *trailer,
-			 ssize_t separator_pos)
+			  const struct conf_info **conf, const char *trailer,
+			  ssize_t separator_pos)
 {
 	struct arg_item *item;
 	size_t tok_len;
@@ -645,7 +647,7 @@ static void parse_trailer(struct strbuf *tok, struct strbuf *val,
 	tok_len = token_len_without_separator(tok->buf, tok->len);
 	if (conf)
 		*conf = &default_conf_info;
-	list_for_each(pos, &conf_head) {
+	list_for_each (pos, &conf_head) {
 		item = list_entry(pos, struct arg_item, list);
 		if (token_matches_item(tok->buf, item, tok_len)) {
 			char *tok_buf = strbuf_detach(tok, NULL);
@@ -682,7 +684,8 @@ static void add_arg_item(struct list_head *arg_head, char *tok, char *val,
 		if (new_trailer_item->if_exists != EXISTS_DEFAULT)
 			new_item->conf.if_exists = new_trailer_item->if_exists;
 		if (new_trailer_item->if_missing != MISSING_DEFAULT)
-			new_item->conf.if_missing = new_trailer_item->if_missing;
+			new_item->conf.if_missing =
+				new_trailer_item->if_missing;
 	}
 	list_add_tail(&new_item->list, arg_head);
 }
@@ -693,13 +696,12 @@ void parse_trailers_from_config(struct list_head *config_head)
 	struct list_head *pos;
 
 	/* Add an arg item for each configured trailer with a command */
-	list_for_each(pos, &conf_head) {
+	list_for_each (pos, &conf_head) {
 		item = list_entry(pos, struct arg_item, list);
 		if (item->conf.command)
 			add_arg_item(config_head,
 				     xstrdup(token_from_item(item, NULL)),
-				     xstrdup(""),
-				     &item->conf, NULL);
+				     xstrdup(""), &item->conf, NULL);
 	}
 }
 
@@ -718,7 +720,7 @@ void parse_trailers_from_command_line_args(struct list_head *arg_head,
 	char *cl_separators = xstrfmt("=%s", separators);
 
 	/* Add an arg item for each trailer on the command line */
-	list_for_each(pos, new_trailer_head) {
+	list_for_each (pos, new_trailer_head) {
 		struct new_trailer_item *tr =
 			list_entry(pos, struct new_trailer_item, list);
 		ssize_t separator_pos = find_separator(tr->text, cl_separators);
@@ -728,15 +730,13 @@ void parse_trailers_from_command_line_args(struct list_head *arg_head,
 			strbuf_addstr(&sb, tr->text);
 			strbuf_trim(&sb);
 			error(_("empty trailer token in trailer '%.*s'"),
-			      (int) sb.len, sb.buf);
+			      (int)sb.len, sb.buf);
 			strbuf_release(&sb);
 		} else {
 			parse_trailer(&tok, &val, &conf, tr->text,
 				      separator_pos);
-			add_arg_item(arg_head,
-				     strbuf_detach(&tok, NULL),
-				     strbuf_detach(&val, NULL),
-				     conf, tr);
+			add_arg_item(arg_head, strbuf_detach(&tok, NULL),
+				     strbuf_detach(&val, NULL), conf, tr);
 		}
 	}
 
@@ -852,8 +852,7 @@ static size_t find_trailer_block_start(const char *buf, size_t len)
 	 * trailers, or (ii) contains at least one Git-generated trailer and
 	 * consists of at least 25% trailers.
 	 */
-	for (l = last_line(buf, len);
-	     l >= end_of_title;
+	for (l = last_line(buf, len); l >= end_of_title;
 	     l = last_line(buf, l)) {
 		const char *bol = buf + l;
 		const char **p;
@@ -894,7 +893,7 @@ static size_t find_trailer_block_start(const char *buf, size_t len)
 			possible_continuation_lines = 0;
 			if (recognized_prefix)
 				continue;
-			list_for_each(pos, &conf_head) {
+			list_for_each (pos, &conf_head) {
 				struct arg_item *item;
 				item = list_entry(pos, struct arg_item, list);
 				if (token_matches_item(bol, item,
@@ -910,8 +909,7 @@ static size_t find_trailer_block_start(const char *buf, size_t len)
 			non_trailer_lines += possible_continuation_lines;
 			possible_continuation_lines = 0;
 		}
-continue_outer_loop:
-		;
+	continue_outer_loop:;
 	}
 
 	return len;
@@ -957,8 +955,7 @@ static void unfold_value(struct strbuf *val)
  * linked list structure.
  */
 void parse_trailers(const struct process_trailer_options *opts,
-		    struct trailer_info *info,
-		    const char *str,
+		    struct trailer_info *info, const char *str,
 		    struct list_head *head)
 {
 	struct strbuf tok = STRBUF_INIT;
@@ -974,19 +971,15 @@ void parse_trailers(const struct process_trailer_options *opts,
 			continue;
 		separator_pos = find_separator(trailer, separators);
 		if (separator_pos >= 1) {
-			parse_trailer(&tok, &val, NULL, trailer,
-				      separator_pos);
+			parse_trailer(&tok, &val, NULL, trailer, separator_pos);
 			if (opts->unfold)
 				unfold_value(&val);
-			add_trailer_item(head,
-					 strbuf_detach(&tok, NULL),
+			add_trailer_item(head, strbuf_detach(&tok, NULL),
 					 strbuf_detach(&val, NULL));
 		} else if (!opts->only_trailers) {
 			strbuf_addstr(&val, trailer);
 			strbuf_strip_suffix(&val, "\n");
-			add_trailer_item(head,
-					 NULL,
-					 strbuf_detach(&val, NULL));
+			add_trailer_item(head, NULL, strbuf_detach(&val, NULL));
 		}
 	}
 }
@@ -994,15 +987,14 @@ void parse_trailers(const struct process_trailer_options *opts,
 void free_trailers(struct list_head *trailers)
 {
 	struct list_head *pos, *p;
-	list_for_each_safe(pos, p, trailers) {
+	list_for_each_safe (pos, p, trailers) {
 		list_del(pos);
 		free_trailer_item(list_entry(pos, struct trailer_item, list));
 	}
 }
 
 void trailer_info_get(const struct process_trailer_options *opts,
-		      const char *str,
-		      struct trailer_info *info)
+		      const char *str, struct trailer_info *info)
 {
 	size_t end_of_log_message = 0, trailer_block_start = 0;
 	struct strbuf **trailer_lines, **ptr;
@@ -1015,10 +1007,9 @@ void trailer_info_get(const struct process_trailer_options *opts,
 	end_of_log_message = find_end_of_log_message(str, opts->no_divider);
 	trailer_block_start = find_trailer_block_start(str, end_of_log_message);
 
-	trailer_lines = strbuf_split_buf(str + trailer_block_start,
-					 end_of_log_message - trailer_block_start,
-					 '\n',
-					 0);
+	trailer_lines = strbuf_split_buf(
+		str + trailer_block_start,
+		end_of_log_message - trailer_block_start, '\n', 0);
 	for (ptr = trailer_lines; *ptr; ptr++) {
 		if (last && isspace((*ptr)->buf[0])) {
 			struct strbuf sb = STRBUF_INIT;
@@ -1029,15 +1020,15 @@ void trailer_info_get(const struct process_trailer_options *opts,
 		}
 		ALLOC_GROW(trailer_strings, nr + 1, alloc);
 		trailer_strings[nr] = strbuf_detach(*ptr, NULL);
-		last = find_separator(trailer_strings[nr], separators) >= 1
-			? &trailer_strings[nr]
-			: NULL;
+		last = find_separator(trailer_strings[nr], separators) >= 1 ?
+			       &trailer_strings[nr] :
+			       NULL;
 		nr++;
 	}
 	strbuf_list_free(trailer_lines);
 
-	info->blank_line_before_trailer = ends_with_blank_line(str,
-							       trailer_block_start);
+	info->blank_line_before_trailer =
+		ends_with_blank_line(str, trailer_block_start);
 	info->trailer_block_start = trailer_block_start;
 	info->trailer_block_end = end_of_log_message;
 	info->trailers = trailer_strings;
@@ -1053,14 +1044,13 @@ void trailer_info_release(struct trailer_info *info)
 }
 
 void format_trailers(const struct process_trailer_options *opts,
-		     struct list_head *trailers,
-		     struct strbuf *out)
+		     struct list_head *trailers, struct strbuf *out)
 {
 	size_t origlen = out->len;
 	struct list_head *pos;
 	struct trailer_item *item;
 
-	list_for_each(pos, trailers) {
+	list_for_each (pos, trailers) {
 		item = list_entry(pos, struct trailer_item, list);
 		if (item->token) {
 			struct strbuf tok = STRBUF_INIT;
@@ -1077,18 +1067,24 @@ void format_trailers(const struct process_trailer_options *opts,
 			if (opts->trim_empty && !strlen(item->value))
 				continue;
 
-			if (!opts->filter || opts->filter(&tok, opts->filter_data)) {
+			if (!opts->filter ||
+			    opts->filter(&tok, opts->filter_data)) {
 				if (opts->separator && out->len != origlen)
 					strbuf_addbuf(out, opts->separator);
 				if (!opts->value_only)
 					strbuf_addbuf(out, &tok);
 				if (!opts->key_only && !opts->value_only) {
 					if (opts->key_value_separator)
-						strbuf_addbuf(out, opts->key_value_separator);
+						strbuf_addbuf(
+							out,
+							opts->key_value_separator);
 					else {
-						char c = last_non_space_char(tok.buf);
+						char c = last_non_space_char(
+							tok.buf);
 						if (c && !strchr(separators, c))
-							strbuf_addf(out, "%c ", separators[0]);
+							strbuf_addf(
+								out, "%c ",
+								separators[0]);
 					}
 				}
 				if (!opts->key_only)
@@ -1113,8 +1109,7 @@ void format_trailers(const struct process_trailer_options *opts,
 }
 
 void format_trailers_from_commit(const struct process_trailer_options *opts,
-				 const char *msg,
-				 struct strbuf *out)
+				 const char *msg, struct strbuf *out)
 {
 	LIST_HEAD(trailer_objects);
 	struct trailer_info info;
@@ -1147,7 +1142,8 @@ void trailer_iterator_init(struct trailer_iterator *iter, const char *msg)
 int trailer_iterator_advance(struct trailer_iterator *iter)
 {
 	while (iter->internal.cur < iter->internal.info.trailer_nr) {
-		char *trailer = iter->internal.info.trailers[iter->internal.cur++];
+		char *trailer =
+			iter->internal.info.trailers[iter->internal.cur++];
 		int separator_pos = find_separator(trailer, separators);
 
 		if (separator_pos < 1)
@@ -1155,8 +1151,8 @@ int trailer_iterator_advance(struct trailer_iterator *iter)
 
 		strbuf_reset(&iter->key);
 		strbuf_reset(&iter->val);
-		parse_trailer(&iter->key, &iter->val, NULL,
-			      trailer, separator_pos);
+		parse_trailer(&iter->key, &iter->val, NULL, trailer,
+			      separator_pos);
 		/* Always unfold values during iteration. */
 		unfold_value(&iter->val);
 		return 1;

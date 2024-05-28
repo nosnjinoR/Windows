@@ -1,18 +1,17 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "path.h"
-#include "repository.h"
-#include "run-command.h"
-#include "string-list.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/string-list.h"
 
-static const char * const for_each_repo_usage[] = {
-	N_("git for-each-repo --config=<config> [--] <arguments>"),
-	NULL
+static const char *const for_each_repo_usage[] = {
+	N_("git for-each-repo --config=<config> [--] <arguments>"), NULL
 };
 
-static int run_command_on_repo(const char *path, int argc, const char ** argv)
+static int run_command_on_repo(const char *path, int argc, const char **argv)
 {
 	int i;
 	struct child_process child = CHILD_PROCESS_INIT;
@@ -56,7 +55,8 @@ int cmd_for_each_repo(int argc, const char **argv, const char *prefix)
 		return 0;
 
 	for (i = 0; !result && i < values->nr; i++)
-		result = run_command_on_repo(values->items[i].string, argc, argv);
+		result = run_command_on_repo(values->items[i].string, argc,
+					     argv);
 
 	return result;
 }

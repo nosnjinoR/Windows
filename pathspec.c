@@ -1,18 +1,18 @@
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "parse.h"
-#include "dir.h"
-#include "environment.h"
-#include "gettext.h"
-#include "pathspec.h"
-#include "attr.h"
-#include "read-cache.h"
-#include "repository.h"
-#include "setup.h"
-#include "strvec.h"
-#include "symlinks.h"
-#include "quote.h"
-#include "wildmatch.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/parse.h"
+#include "components/dir.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/pathspec.h"
+#include "components/attr.h"
+#include "components/read-cache.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/strvec.h"
+#include "components/symlinks.h"
+#include "components/quote.h"
+#include "components/wildmatch.h"
 
 /*
  * Finds which of the given pathspecs match items in the index.
@@ -28,8 +28,7 @@
  * to use find_pathspecs_matching_against_index() instead.
  */
 void add_pathspec_matches_against_index(const struct pathspec *pathspec,
-					struct index_state *istate,
-					char *seen,
+					struct index_state *istate, char *seen,
 					enum ps_skip_worktree_action sw_action)
 {
 	int num_unmatched = 0, i;
@@ -48,7 +47,8 @@ void add_pathspec_matches_against_index(const struct pathspec *pathspec,
 	for (i = 0; i < istate->cache_nr; i++) {
 		const struct cache_entry *ce = istate->cache[i];
 		if (sw_action == PS_IGNORE_SKIP_WORKTREE &&
-		    (ce_skip_worktree(ce) || !path_in_sparse_checkout(ce->name, istate)))
+		    (ce_skip_worktree(ce) ||
+		     !path_in_sparse_checkout(ce->name, istate)))
 			continue;
 		ce_path_match(istate, ce, pathspec, seen);
 	}
@@ -62,9 +62,10 @@ void add_pathspec_matches_against_index(const struct pathspec *pathspec,
  * nature of the "closest" (i.e. most specific) matches which each of the
  * given pathspecs achieves against all items in the index.
  */
-char *find_pathspecs_matching_against_index(const struct pathspec *pathspec,
-					    struct index_state *istate,
-					    enum ps_skip_worktree_action sw_action)
+char *
+find_pathspecs_matching_against_index(const struct pathspec *pathspec,
+				      struct index_state *istate,
+				      enum ps_skip_worktree_action sw_action)
 {
 	char *seen = xcalloc(pathspec->nr, 1);
 	add_pathspec_matches_against_index(pathspec, istate, seen, sw_action);
@@ -79,8 +80,9 @@ char *find_pathspecs_matching_skip_worktree(const struct pathspec *pathspec)
 
 	for (i = 0; i < istate->cache_nr; i++) {
 		struct cache_entry *ce = istate->cache[i];
-		if (ce_skip_worktree(ce) || !path_in_sparse_checkout(ce->name, istate))
-		    ce_path_match(istate, ce, pathspec, seen);
+		if (ce_skip_worktree(ce) ||
+		    !path_in_sparse_checkout(ce->name, istate))
+			ce_path_match(istate, ce, pathspec, seen);
 	}
 
 	return seen;
@@ -101,16 +103,16 @@ static struct pathspec_magic {
 	char mnemonic; /* this cannot be ':'! */
 	const char *name;
 } pathspec_magic[] = {
-	{ PATHSPEC_FROMTOP,  '/', "top" },
+	{ PATHSPEC_FROMTOP, '/', "top" },
 	{ PATHSPEC_LITERAL, '\0', "literal" },
-	{ PATHSPEC_GLOB,    '\0', "glob" },
-	{ PATHSPEC_ICASE,   '\0', "icase" },
-	{ PATHSPEC_EXCLUDE,  '!', "exclude" },
-	{ PATHSPEC_ATTR,    '\0', "attr" },
+	{ PATHSPEC_GLOB, '\0', "glob" },
+	{ PATHSPEC_ICASE, '\0', "icase" },
+	{ PATHSPEC_EXCLUDE, '!', "exclude" },
+	{ PATHSPEC_ATTR, '\0', "attr" },
 };
 
-static void prefix_magic(struct strbuf *sb, int prefixlen,
-			 unsigned magic, const char *element)
+static void prefix_magic(struct strbuf *sb, int prefixlen, unsigned magic,
+			 const char *element)
 {
 	/* No magic was found in element, just add prefix magic */
 	if (!magic) {
@@ -136,7 +138,8 @@ static void prefix_magic(struct strbuf *sb, int prefixlen,
 			}
 		}
 	} else {
-		/* For the longhand form, we copy everything up to the final ')' */
+		/* For the longhand form, we copy everything up to the final ')'
+		 */
 		size_t len = strchr(element, ')') - element;
 		strbuf_add(sb, element, len);
 	}
@@ -188,7 +191,8 @@ static char *attr_value_unescape(const char *value)
 	return ret;
 }
 
-static void parse_pathspec_attr_match(struct pathspec_item *item, const char *value)
+static void parse_pathspec_attr_match(struct pathspec_item *item,
+				      const char *value)
 {
 	struct string_list_item *si;
 	struct string_list list = STRING_LIST_INIT_DUP;
@@ -205,7 +209,7 @@ static void parse_pathspec_attr_match(struct pathspec_item *item, const char *va
 	item->attr_check = attr_check_alloc();
 	CALLOC_ARRAY(item->attr_match, list.nr);
 
-	for_each_string_list_item(si, &list) {
+	for_each_string_list_item (si, &list) {
 		size_t attr_len;
 		char *attr_name;
 		const struct git_attr *a;
@@ -374,7 +378,7 @@ static const char *parse_long_magic(unsigned *magic, int *prefix_len,
 
 		if (ARRAY_SIZE(pathspec_magic) <= i)
 			die(_("Invalid pathspec magic '%.*s' in '%s'"),
-			    (int) len, pos, elem);
+			    (int)len, pos, elem);
 	}
 
 	if (*pos != ')')
@@ -416,8 +420,8 @@ static const char *parse_short_magic(unsigned *magic, const char *elem)
 		}
 
 		if (ARRAY_SIZE(pathspec_magic) <= i)
-			die(_("Unimplemented pathspec magic '%c' in '%s'"),
-			    ch, elem);
+			die(_("Unimplemented pathspec magic '%c' in '%s'"), ch,
+			    elem);
 	}
 
 	if (*pos == ':')
@@ -460,18 +464,15 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	if (flags & PATHSPEC_LITERAL_PATH) {
 		magic = PATHSPEC_LITERAL;
 	} else {
-		copyfrom = parse_element_magic(&element_magic,
-					       &pathspec_prefix,
-					       item,
-					       elt);
+		copyfrom = parse_element_magic(&element_magic, &pathspec_prefix,
+					       item, elt);
 		magic |= element_magic;
 		magic |= get_global_magic(element_magic);
 	}
 
 	item->magic = magic;
 
-	if (pathspec_prefix >= 0 &&
-	    (prefixlen || (prefix && *prefix)))
+	if (pathspec_prefix >= 0 && (prefixlen || (prefix && *prefix)))
 		BUG("'prefix' magic is supposed to be used at worktree's root");
 
 	if ((magic & PATHSPEC_LITERAL) && (magic & PATHSPEC_GLOB))
@@ -485,8 +486,8 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 		match = xstrdup(copyfrom);
 		prefixlen = 0;
 	} else {
-		match = prefix_path_gently(prefix, prefixlen,
-					   &prefixlen, copyfrom);
+		match = prefix_path_gently(prefix, prefixlen, &prefixlen,
+					   copyfrom);
 		if (!match) {
 			const char *hint_path;
 
@@ -509,8 +510,7 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	 * Prefix the pathspec (keep all magic) and assign to
 	 * original. Useful for passing to another command.
 	 */
-	if ((flags & PATHSPEC_PREFIX_ORIGIN) &&
-	    !get_literal_global()) {
+	if ((flags & PATHSPEC_PREFIX_ORIGIN) && !get_literal_global()) {
 		struct strbuf sb = STRBUF_INIT;
 
 		/* Preserve the actual prefix length of each pattern */
@@ -544,8 +544,7 @@ static void init_pathspec_item(struct pathspec_item *item, unsigned flags,
 	}
 
 	/* sanity checks, pathspec matchers assume these are sane */
-	if (item->nowildcard_len > item->len ||
-	    item->prefix         > item->len) {
+	if (item->nowildcard_len > item->len || item->prefix > item->len) {
 		BUG("error initializing pathspec_item");
 	}
 }
@@ -570,15 +569,14 @@ void pathspec_magic_names(unsigned magic, struct strbuf *out)
 			strbuf_addstr(out, ", ");
 
 		if (m->mnemonic)
-			strbuf_addf(out, _("'%s' (mnemonic: '%c')"),
-				    m->name, m->mnemonic);
+			strbuf_addf(out, _("'%s' (mnemonic: '%c')"), m->name,
+				    m->mnemonic);
 		else
 			strbuf_addf(out, "'%s'", m->name);
 	}
 }
 
-static void NORETURN unsupported_magic(const char *pattern,
-				       unsigned magic)
+static void NORETURN unsupported_magic(const char *pattern, unsigned magic)
 {
 	struct strbuf sb = STRBUF_INIT;
 	pathspec_magic_names(magic, &sb);
@@ -587,13 +585,12 @@ static void NORETURN unsupported_magic(const char *pattern,
 	 * name. E.g. when "git add -p" or "git add -i" dies when running
 	 * "checkout -p"
 	 */
-	die(_("%s: pathspec magic not supported by this command: %s"),
-	    pattern, sb.buf);
+	die(_("%s: pathspec magic not supported by this command: %s"), pattern,
+	    sb.buf);
 }
 
-void parse_pathspec(struct pathspec *pathspec,
-		    unsigned magic_mask, unsigned flags,
-		    const char *prefix, const char **argv)
+void parse_pathspec(struct pathspec *pathspec, unsigned magic_mask,
+		    unsigned flags, const char *prefix, const char **argv)
 {
 	struct pathspec_item *item;
 	const char *entry = argv ? *argv : NULL;
@@ -608,8 +605,7 @@ void parse_pathspec(struct pathspec *pathspec,
 	if (!entry && !prefix)
 		return;
 
-	if ((flags & PATHSPEC_PREFER_CWD) &&
-	    (flags & PATHSPEC_PREFER_FULL))
+	if ((flags & PATHSPEC_PREFER_CWD) && (flags & PATHSPEC_PREFER_FULL))
 		BUG("PATHSPEC_PREFER_CWD and PATHSPEC_PREFER_FULL are incompatible");
 
 	/* No arguments with prefix -> prefix pathspec */
@@ -633,7 +629,7 @@ void parse_pathspec(struct pathspec *pathspec,
 	while (argv[n]) {
 		if (*argv[n] == '\0')
 			die("empty string is not a valid pathspec. "
-				  "please use . instead if you meant to match all paths");
+			    "please use . instead if you meant to match all paths");
 		n++;
 	}
 
@@ -654,7 +650,8 @@ void parse_pathspec(struct pathspec *pathspec,
 
 		if ((flags & PATHSPEC_SYMLINK_LEADING_PATH) &&
 		    has_symlink_leading_path(item[i].match, item[i].len)) {
-			die(_("pathspec '%s' is beyond a symbolic link"), entry);
+			die(_("pathspec '%s' is beyond a symbolic link"),
+			    entry);
 		}
 
 		if (item[i].nowildcard_len < item[i].len)
@@ -680,8 +677,8 @@ void parse_pathspec(struct pathspec *pathspec,
 }
 
 void parse_pathspec_file(struct pathspec *pathspec, unsigned magic_mask,
-			 unsigned flags, const char *prefix,
-			 const char *file, int nul_term_line)
+			 unsigned flags, const char *prefix, const char *file,
+			 int nul_term_line)
 {
 	struct strvec parsed_file = STRVEC_INIT;
 	strbuf_getline_fn getline_fn = nul_term_line ? strbuf_getline_nul :
@@ -759,9 +756,8 @@ void clear_pathspec(struct pathspec *pathspec)
 	pathspec->nr = 0;
 }
 
-int match_pathspec_attrs(struct index_state *istate,
-			 const char *name, int namelen,
-			 const struct pathspec_item *item)
+int match_pathspec_attrs(struct index_state *istate, const char *name,
+			 int namelen, const struct pathspec_item *item)
 {
 	int i;
 	char *to_free = NULL;
@@ -821,29 +817,34 @@ int pathspec_needs_expanded_index(struct index_state *istate,
 		struct pathspec_item item = pathspec->items[i];
 
 		/*
-		 * If the pathspec item has a wildcard, the index should be expanded
-		 * if the pathspec has the possibility of matching a subset of entries inside
-		 * of a sparse directory (but not the entire directory).
+		 * If the pathspec item has a wildcard, the index should be
+		 * expanded if the pathspec has the possibility of matching a
+		 * subset of entries inside of a sparse directory (but not the
+		 * entire directory).
 		 *
-		 * If the pathspec item is a literal path, the index only needs to be expanded
-		 * if a) the pathspec isn't in the sparse checkout cone (to make sure we don't
-		 * expand for in-cone files) and b) it doesn't match any sparse directories
-		 * (since we can reset whole sparse directories without expanding them).
+		 * If the pathspec item is a literal path, the index only needs
+		 * to be expanded if a) the pathspec isn't in the sparse
+		 * checkout cone (to make sure we don't expand for in-cone
+		 * files) and b) it doesn't match any sparse directories (since
+		 * we can reset whole sparse directories without expanding
+		 * them).
 		 */
 		if (item.nowildcard_len < item.len) {
 			/*
-			 * Special case: if the pattern is a path inside the cone
-			 * followed by only wildcards, the pattern cannot match
-			 * partial sparse directories, so we know we don't need to
-			 * expand the index.
+			 * Special case: if the pattern is a path inside the
+			 * cone followed by only wildcards, the pattern cannot
+			 * match partial sparse directories, so we know we don't
+			 * need to expand the index.
 			 *
 			 * Examples:
 			 * - in-cone/foo***: doesn't need expanded index
 			 * - not-in-cone/bar*: may need expanded index
 			 * - **.c: may need expanded index
 			 */
-			if (strspn(item.original + item.nowildcard_len, "*") == item.len - item.nowildcard_len &&
-			    path_in_cone_mode_sparse_checkout(item.original, istate))
+			if (strspn(item.original + item.nowildcard_len, "*") ==
+				    item.len - item.nowildcard_len &&
+			    path_in_cone_mode_sparse_checkout(item.original,
+							      istate))
 				continue;
 
 			for (pos = 0; pos < istate->cache_nr; pos++) {
@@ -853,29 +854,35 @@ int pathspec_needs_expanded_index(struct index_state *istate,
 					continue;
 
 				/*
-				 * If the pre-wildcard length is longer than the sparse
-				 * directory name and the sparse directory is the first
-				 * component of the pathspec, need to expand the index.
+				 * If the pre-wildcard length is longer than the
+				 * sparse directory name and the sparse
+				 * directory is the first component of the
+				 * pathspec, need to expand the index.
 				 */
 				if (item.nowildcard_len > ce_namelen(ce) &&
-				    !strncmp(item.original, ce->name, ce_namelen(ce))) {
+				    !strncmp(item.original, ce->name,
+					     ce_namelen(ce))) {
 					res = 1;
 					break;
 				}
 
 				/*
-				 * If the pre-wildcard length is shorter than the sparse
-				 * directory and the pathspec does not match the whole
-				 * directory, need to expand the index.
+				 * If the pre-wildcard length is shorter than
+				 * the sparse directory and the pathspec does
+				 * not match the whole directory, need to expand
+				 * the index.
 				 */
-				if (!strncmp(item.original, ce->name, item.nowildcard_len) &&
+				if (!strncmp(item.original, ce->name,
+					     item.nowildcard_len) &&
 				    wildmatch(item.original, ce->name, 0)) {
 					res = 1;
 					break;
 				}
 			}
-		} else if (!path_in_cone_mode_sparse_checkout(item.original, istate) &&
-			   !matches_skip_worktree(pathspec, i, &skip_worktree_seen))
+		} else if (!path_in_cone_mode_sparse_checkout(item.original,
+							      istate) &&
+			   !matches_skip_worktree(pathspec, i,
+						  &skip_worktree_seen))
 			res = 1;
 
 		if (res > 0)

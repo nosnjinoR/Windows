@@ -1,29 +1,29 @@
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "tree-walk.h"
-#include "xdiff-interface.h"
-#include "help.h"
-#include "gettext.h"
-#include "hex.h"
-#include "commit.h"
-#include "commit-reach.h"
-#include "merge-ort.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "parse-options.h"
-#include "repository.h"
-#include "blob.h"
-#include "merge-blobs.h"
-#include "quote.h"
-#include "tree.h"
-#include "config.h"
-#include "strvec.h"
+#include "components/builtin.h"
+#include "components/tree-walk.h"
+#include "components/xdiff-interface.h"
+#include "components/help.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/commit.h"
+#include "components/commit-reach.h"
+#include "components/merge-ort.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/parse-options.h"
+#include "components/repository.h"
+#include "components/blob.h"
+#include "components/merge-blobs.h"
+#include "components/quote.h"
+#include "components/tree.h"
+#include "components/config.h"
+#include "components/strvec.h"
 
 static int line_termination = '\n';
 
 struct merge_list {
 	struct merge_list *next;
-	struct merge_list *link;	/* other stages for this object */
+	struct merge_list *link; /* other stages for this object */
 
 	unsigned int stage : 2;
 	unsigned int mode;
@@ -74,9 +74,8 @@ static void *result(struct merge_list *entry, unsigned long *size)
 	const char *path = entry->path;
 
 	if (!entry->stage)
-		return repo_read_object_file(the_repository,
-					     &entry->blob->object.oid, &type,
-					     size);
+		return repo_read_object_file(
+			the_repository, &entry->blob->object.oid, &type, size);
 	base = NULL;
 	if (entry->stage == 1) {
 		base = entry->blob;
@@ -90,8 +89,7 @@ static void *result(struct merge_list *entry, unsigned long *size)
 	their = NULL;
 	if (entry)
 		their = entry->blob;
-	return merge_blobs(the_repository->index, path,
-			   base, our, their, size);
+	return merge_blobs(the_repository->index, path, base, our, their, size);
 }
 
 static void *origin(struct merge_list *entry, unsigned long *size)
@@ -111,7 +109,7 @@ static int show_outf(void *priv UNUSED, mmbuffer_t *mb, int nbuf)
 {
 	int i;
 	for (i = 0; i < nbuf; i++)
-		printf("%.*s", (int) mb[i].size, mb[i].ptr);
+		printf("%.*s", (int)mb[i].size, mb[i].ptr);
 	return 0;
 }
 
@@ -147,8 +145,10 @@ static void show_result_list(struct merge_list *entry)
 	printf("%s\n", explanation(entry));
 	do {
 		struct merge_list *link = entry->link;
-		static const char *desc[4] = { "result", "base", "our", "their" };
-		printf("  %-6s %o %s %s\n", desc[entry->stage], entry->mode, oid_to_hex(&entry->blob->object.oid), entry->path);
+		static const char *desc[4] = { "result", "base", "our",
+					       "their" };
+		printf("  %-6s %o %s %s\n", desc[entry->stage], entry->mode,
+		       oid_to_hex(&entry->blob->object.oid), entry->path);
 		entry = link;
 	} while (entry);
 }
@@ -168,10 +168,8 @@ static void show_result(void)
 /* An empty entry never compares same, not even to another empty entry */
 static int same_entry(struct name_entry *a, struct name_entry *b)
 {
-	return	!is_null_oid(&a->oid) &&
-		!is_null_oid(&b->oid) &&
-		oideq(&a->oid, &b->oid) &&
-		a->mode == b->mode;
+	return !is_null_oid(&a->oid) && !is_null_oid(&b->oid) &&
+	       oideq(&a->oid, &b->oid) && a->mode == b->mode;
 }
 
 static int both_empty(struct name_entry *a, struct name_entry *b)
@@ -179,7 +177,9 @@ static int both_empty(struct name_entry *a, struct name_entry *b)
 	return is_null_oid(&a->oid) && is_null_oid(&b->oid);
 }
 
-static struct merge_list *create_entry(unsigned stage, unsigned mode, const struct object_id *oid, const char *path)
+static struct merge_list *create_entry(unsigned stage, unsigned mode,
+				       const struct object_id *oid,
+				       const char *path)
 {
 	struct merge_list *res = xcalloc(1, sizeof(*res));
 
@@ -190,14 +190,16 @@ static struct merge_list *create_entry(unsigned stage, unsigned mode, const stru
 	return res;
 }
 
-static char *traverse_path(const struct traverse_info *info, const struct name_entry *n)
+static char *traverse_path(const struct traverse_info *info,
+			   const struct name_entry *n)
 {
 	struct strbuf buf = STRBUF_INIT;
 	strbuf_make_traverse_path(&buf, info, n->path, n->pathlen);
 	return strbuf_detach(&buf, NULL);
 }
 
-static void resolve(const struct traverse_info *info, struct name_entry *ours, struct name_entry *result)
+static void resolve(const struct traverse_info *info, struct name_entry *ours,
+		    struct name_entry *result)
 {
 	struct merge_list *orig, *final;
 	const char *path;
@@ -247,8 +249,10 @@ static void unresolved_directory(const struct traverse_info *info,
 	free(newbase);
 }
 
-
-static struct merge_list *link_entry(unsigned stage, const struct traverse_info *info, struct name_entry *n, struct merge_list *entry)
+static struct merge_list *link_entry(unsigned stage,
+				     const struct traverse_info *info,
+				     struct name_entry *n,
+				     struct merge_list *entry)
 {
 	const char *path;
 	struct merge_list *link;
@@ -326,19 +330,21 @@ static void unresolved(const struct traverse_info *info, struct name_entry n[3])
  */
 static int threeway_callback(int n UNUSED, unsigned long mask,
 			     unsigned long dirmask UNUSED,
-			     struct name_entry *entry, struct traverse_info *info)
+			     struct name_entry *entry,
+			     struct traverse_info *info)
 {
 	/* Same in both? */
-	if (same_entry(entry+1, entry+2) || both_empty(entry+1, entry+2)) {
+	if (same_entry(entry + 1, entry + 2) ||
+	    both_empty(entry + 1, entry + 2)) {
 		/* Modified, added or removed identically */
-		resolve(info, NULL, entry+1);
+		resolve(info, NULL, entry + 1);
 		return mask;
 	}
 
-	if (same_entry(entry+0, entry+1)) {
+	if (same_entry(entry + 0, entry + 1)) {
 		if (!is_null_oid(&entry[2].oid) && !S_ISDIR(entry[2].mode)) {
 			/* We did not touch, they modified -- take theirs */
-			resolve(info, entry+1, entry+2);
+			resolve(info, entry + 1, entry + 2);
 			return mask;
 		}
 		/*
@@ -348,9 +354,11 @@ static int threeway_callback(int n UNUSED, unsigned long mask,
 		 */
 	}
 
-	if (same_entry(entry+0, entry+2) || both_empty(entry+0, entry+2)) {
-		/* We added, modified or removed, they did not touch -- take ours */
-		resolve(info, NULL, entry+1);
+	if (same_entry(entry + 0, entry + 2) ||
+	    both_empty(entry + 0, entry + 2)) {
+		/* We added, modified or removed, they did not touch -- take
+		 * ours */
+		resolve(info, NULL, entry + 1);
 		return mask;
 	}
 
@@ -367,8 +375,7 @@ static void trivial_merge_trees(struct tree_desc t[3], const char *base)
 	traverse_trees(&the_index, 3, t, &info);
 }
 
-static void *get_tree_descriptor(struct repository *r,
-				 struct tree_desc *desc,
+static void *get_tree_descriptor(struct repository *r, struct tree_desc *desc,
 				 const char *rev)
 {
 	struct object_id oid;
@@ -382,17 +389,16 @@ static void *get_tree_descriptor(struct repository *r,
 	return buf;
 }
 
-static int trivial_merge(const char *base,
-			 const char *branch1,
+static int trivial_merge(const char *base, const char *branch1,
 			 const char *branch2)
 {
 	struct repository *r = the_repository;
 	struct tree_desc t[3];
 	void *buf1, *buf2, *buf3;
 
-	buf1 = get_tree_descriptor(r, t+0, base);
-	buf2 = get_tree_descriptor(r, t+1, branch1);
-	buf3 = get_tree_descriptor(r, t+2, branch2);
+	buf1 = get_tree_descriptor(r, t + 0, base);
+	buf2 = get_tree_descriptor(r, t + 1, branch1);
+	buf3 = get_tree_descriptor(r, t + 2, branch2);
 	trivial_merge_trees(t, "");
 	free(buf1);
 	free(buf2);
@@ -417,8 +423,7 @@ struct merge_tree_options {
 	struct merge_options merge_options;
 };
 
-static int real_merge(struct merge_tree_options *o,
-		      const char *merge_base,
+static int real_merge(struct merge_tree_options *o, const char *merge_base,
 		      const char *branch1, const char *branch2,
 		      const char *prefix)
 {
@@ -447,20 +452,24 @@ static int real_merge(struct merge_tree_options *o,
 			die(_("could not parse as tree '%s'"), merge_base);
 		base_tree = parse_tree_indirect(&base_oid);
 		if (!base_tree)
-			die(_("unable to read tree (%s)"), oid_to_hex(&base_oid));
+			die(_("unable to read tree (%s)"),
+			    oid_to_hex(&base_oid));
 		if (repo_get_oid_treeish(the_repository, branch1, &head_oid))
 			die(_("could not parse as tree '%s'"), branch1);
 		parent1_tree = parse_tree_indirect(&head_oid);
 		if (!parent1_tree)
-			die(_("unable to read tree (%s)"), oid_to_hex(&head_oid));
+			die(_("unable to read tree (%s)"),
+			    oid_to_hex(&head_oid));
 		if (repo_get_oid_treeish(the_repository, branch2, &merge_oid))
 			die(_("could not parse as tree '%s'"), branch2);
 		parent2_tree = parse_tree_indirect(&merge_oid);
 		if (!parent2_tree)
-			die(_("unable to read tree (%s)"), oid_to_hex(&merge_oid));
+			die(_("unable to read tree (%s)"),
+			    oid_to_hex(&merge_oid));
 
 		opt.ancestor = merge_base;
-		merge_incore_nonrecursive(&opt, base_tree, parent1_tree, parent2_tree, &result);
+		merge_incore_nonrecursive(&opt, base_tree, parent1_tree,
+					  parent2_tree, &result);
 	} else {
 		parent1 = get_merge_parent(branch1);
 		if (!parent1)
@@ -476,13 +485,14 @@ static int real_merge(struct merge_tree_options *o,
 		 * Get the merge bases, in reverse order; see comment above
 		 * merge_incore_recursive in merge-ort.h
 		 */
-		if (repo_get_merge_bases(the_repository, parent1,
-					 parent2, &merge_bases) < 0)
+		if (repo_get_merge_bases(the_repository, parent1, parent2,
+					 &merge_bases) < 0)
 			exit(128);
 		if (!merge_bases && !o->allow_unrelated_histories)
 			die(_("refusing to merge unrelated histories"));
 		merge_bases = reverse_commit_list(merge_bases);
-		merge_incore_recursive(&opt, merge_bases, parent1, parent2, &result);
+		merge_incore_recursive(&opt, merge_bases, parent1, parent2,
+				       &result);
 	}
 
 	if (result.clean < 0)
@@ -504,12 +514,12 @@ static int real_merge(struct merge_tree_options *o,
 			const char *name = conflicted_files.items[i].string;
 			struct stage_info *c = conflicted_files.items[i].util;
 			if (!o->name_only)
-				printf("%06o %s %d\t",
-				       c->mode, oid_to_hex(&c->oid), c->stage);
+				printf("%06o %s %d\t", c->mode,
+				       oid_to_hex(&c->oid), c->stage);
 			else if (last && !strcmp(last, name))
 				continue;
-			write_name_quoted_relative(
-				name, prefix, stdout, line_termination);
+			write_name_quoted_relative(name, prefix, stdout,
+						   line_termination);
 			last = name;
 		}
 		string_list_clear(&conflicted_files, 1);
@@ -534,7 +544,7 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 	int original_argc;
 	const char *merge_base = NULL;
 
-	const char * const merge_tree_usage[] = {
+	const char *const merge_tree_usage[] = {
 		N_("git merge-tree [--write-tree] [<options>] <branch1> <branch2>"),
 		N_("git merge-tree [--trivial-merge] <base-tree> <branch1> <branch2>"),
 		NULL
@@ -549,24 +559,20 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 			 N_("also show informational/conflict messages")),
 		OPT_SET_INT('z', NULL, &line_termination,
 			    N_("separate paths with the NUL character"), '\0'),
-		OPT_BOOL_F(0, "name-only",
-			   &o.name_only,
+		OPT_BOOL_F(0, "name-only", &o.name_only,
 			   N_("list filenames without modes/oids/stages"),
 			   PARSE_OPT_NONEG),
 		OPT_BOOL_F(0, "allow-unrelated-histories",
 			   &o.allow_unrelated_histories,
 			   N_("allow merging unrelated histories"),
 			   PARSE_OPT_NONEG),
-		OPT_BOOL_F(0, "stdin",
-			   &o.use_stdin,
+		OPT_BOOL_F(0, "stdin", &o.use_stdin,
 			   N_("perform multiple merges, one per line of input"),
 			   PARSE_OPT_NONEG),
-		OPT_STRING(0, "merge-base",
-			   &merge_base,
-			   N_("tree-ish"),
+		OPT_STRING(0, "merge-base", &merge_base, N_("tree-ish"),
 			   N_("specify a merge-base for the merge")),
 		OPT_STRVEC('X', "strategy-option", &xopts, N_("option=value"),
-			N_("option for selected merge strategy")),
+			   N_("option for selected merge strategy")),
 		OPT_END()
 	};
 
@@ -575,8 +581,8 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 
 	/* Parse arguments */
 	original_argc = argc - 1; /* ignoring argv[0] */
-	argc = parse_options(argc, argv, prefix, mt_options,
-			     merge_tree_usage, PARSE_OPT_STOP_AT_NON_OPTION);
+	argc = parse_options(argc, argv, prefix, mt_options, merge_tree_usage,
+			     PARSE_OPT_STOP_AT_NON_OPTION);
 
 	if (xopts.nr && o.mode == MODE_TRIVIAL)
 		die(_("--trivial-merge is incompatible with all other options"));
@@ -610,18 +616,23 @@ int cmd_merge_tree(int argc, const char **argv, const char *prefix)
 				input_merge_base = split[0]->buf;
 			}
 
-			if (input_merge_base && split[2] && split[3] && !split[4]) {
+			if (input_merge_base && split[2] && split[3] &&
+			    !split[4]) {
 				strbuf_rtrim(split[2]);
 				strbuf_rtrim(split[3]);
-				result = real_merge(&o, input_merge_base, split[2]->buf, split[3]->buf, prefix);
+				result = real_merge(&o, input_merge_base,
+						    split[2]->buf,
+						    split[3]->buf, prefix);
 			} else if (!input_merge_base && !split[2]) {
-				result = real_merge(&o, NULL, split[0]->buf, split[1]->buf, prefix);
+				result = real_merge(&o, NULL, split[0]->buf,
+						    split[1]->buf, prefix);
 			} else {
 				die(_("malformed input line: '%s'."), buf.buf);
 			}
 
 			if (result < 0)
-				die(_("merging cannot continue; got unclean result of %d"), result);
+				die(_("merging cannot continue; got unclean result of %d"),
+				    result);
 			strbuf_list_free(split);
 		}
 		strbuf_release(&buf);

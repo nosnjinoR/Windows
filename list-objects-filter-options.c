@@ -1,16 +1,15 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "gettext.h"
-#include "list-objects-filter-options.h"
-#include "promisor-remote.h"
-#include "trace.h"
-#include "url.h"
-#include "parse-options.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/list-objects-filter-options.h"
+#include "components/promisor-remote.h"
+#include "components/trace.h"
+#include "components/url.h"
+#include "components/parse-options.h"
 
-static int parse_combine_filter(
-	struct list_objects_filter_options *filter_options,
-	const char *arg,
-	struct strbuf *errbuf);
+static int
+parse_combine_filter(struct list_objects_filter_options *filter_options,
+		     const char *arg, struct strbuf *errbuf);
 
 const char *list_object_filter_config_name(enum list_objects_filter_choice c)
 {
@@ -38,8 +37,7 @@ const char *list_object_filter_config_name(enum list_objects_filter_choice c)
 }
 
 int gently_parse_list_objects_filter(
-	struct list_objects_filter_options *filter_options,
-	const char *arg,
+	struct list_objects_filter_options *filter_options, const char *arg,
 	struct strbuf *errbuf)
 {
 	const char *v0;
@@ -84,8 +82,10 @@ int gently_parse_list_objects_filter(
 	} else if (skip_prefix(arg, "object:type=", &v0)) {
 		int type = type_from_string_gently(v0, strlen(v0), 1);
 		if (type < 0) {
-			strbuf_addf(errbuf, _("'%s' for 'object:type=<type>' is "
-					      "not a valid object type"), v0);
+			strbuf_addf(errbuf,
+				    _("'%s' for 'object:type=<type>' is "
+				      "not a valid object type"),
+				    v0);
 			return 1;
 		}
 
@@ -96,7 +96,6 @@ int gently_parse_list_objects_filter(
 
 	} else if (skip_prefix(arg, "combine:", &v0)) {
 		return parse_combine_filter(filter_options, v0, errbuf);
-
 	}
 	/*
 	 * Please update _git_fetch() in git-completion.bash when you
@@ -111,8 +110,8 @@ int gently_parse_list_objects_filter(
 
 static const char *RESERVED_NON_WS = "~`!@#$^&*()[]{}\\;'\",<>?";
 
-static int has_reserved_character(
-	struct strbuf *sub_spec, struct strbuf *errbuf)
+static int has_reserved_character(struct strbuf *sub_spec,
+				  struct strbuf *errbuf)
 {
 	const char *c = sub_spec->buf;
 	while (*c) {
@@ -129,10 +128,9 @@ static int has_reserved_character(
 	return 0;
 }
 
-static int parse_combine_subfilter(
-	struct list_objects_filter_options *filter_options,
-	struct strbuf *subspec,
-	struct strbuf *errbuf)
+static int
+parse_combine_subfilter(struct list_objects_filter_options *filter_options,
+			struct strbuf *subspec, struct strbuf *errbuf)
 {
 	size_t new_index = filter_options->sub_nr;
 	char *decoded;
@@ -145,17 +143,16 @@ static int parse_combine_subfilter(
 	decoded = url_percent_decode(subspec->buf);
 
 	result = has_reserved_character(subspec, errbuf) ||
-		gently_parse_list_objects_filter(
-			&filter_options->sub[new_index], decoded, errbuf);
+		 gently_parse_list_objects_filter(
+			 &filter_options->sub[new_index], decoded, errbuf);
 
 	free(decoded);
 	return result;
 }
 
-static int parse_combine_filter(
-	struct list_objects_filter_options *filter_options,
-	const char *arg,
-	struct strbuf *errbuf)
+static int
+parse_combine_filter(struct list_objects_filter_options *filter_options,
+		     const char *arg, struct strbuf *errbuf)
 {
 	struct strbuf **subspecs = strbuf_split_str(arg, '+', 0);
 	size_t sub;
@@ -177,8 +174,8 @@ static int parse_combine_filter(
 			assert(subspecs[sub]->buf[last] == '+');
 			strbuf_remove(subspecs[sub], last, 1);
 		}
-		result = parse_combine_subfilter(
-			filter_options, subspecs[sub], errbuf);
+		result = parse_combine_subfilter(filter_options, subspecs[sub],
+						 errbuf);
 	}
 
 	filter_options->choice = LOFC_COMBINE;
@@ -197,8 +194,9 @@ static int allow_unencoded(char ch)
 	return !strchr(RESERVED_NON_WS, ch);
 }
 
-static void filter_spec_append_urlencode(
-	struct list_objects_filter_options *filter, const char *raw)
+static void
+filter_spec_append_urlencode(struct list_objects_filter_options *filter,
+			     const char *raw)
 {
 	size_t orig_len = filter->filter_spec.len;
 	strbuf_addstr_urlencode(&filter->filter_spec, raw, allow_unencoded);
@@ -210,8 +208,8 @@ static void filter_spec_append_urlencode(
  * Changes filter_options into an equivalent LOFC_COMBINE filter options
  * instance. Does not do anything if filter_options is already LOFC_COMBINE.
  */
-static void transform_to_combine_type(
-	struct list_objects_filter_options *filter_options)
+static void
+transform_to_combine_type(struct list_objects_filter_options *filter_options)
 {
 	assert(filter_options->choice);
 	if (filter_options->choice == LOFC_COMBINE)
@@ -246,8 +244,7 @@ void list_objects_filter_die_if_populated(
 }
 
 void parse_list_objects_filter(
-	struct list_objects_filter_options *filter_options,
-	const char *arg)
+	struct list_objects_filter_options *filter_options, const char *arg)
 {
 	struct strbuf errbuf = STRBUF_INIT;
 	int parse_error;
@@ -258,8 +255,8 @@ void parse_list_objects_filter(
 	if (!filter_options->choice) {
 		strbuf_addstr(&filter_options->filter_spec, arg);
 
-		parse_error = gently_parse_list_objects_filter(
-			filter_options, arg, &errbuf);
+		parse_error = gently_parse_list_objects_filter(filter_options,
+							       arg, &errbuf);
 	} else {
 		struct list_objects_filter_options *sub;
 
@@ -276,15 +273,15 @@ void parse_list_objects_filter(
 		sub = &filter_options->sub[filter_options->sub_nr - 1];
 
 		list_objects_filter_init(sub);
-		parse_error = gently_parse_list_objects_filter(sub, arg,
-							       &errbuf);
+		parse_error =
+			gently_parse_list_objects_filter(sub, arg, &errbuf);
 	}
 	if (parse_error)
 		die("%s", errbuf.buf);
 }
 
-int opt_parse_list_objects_filter(const struct option *opt,
-				  const char *arg, int unset)
+int opt_parse_list_objects_filter(const struct option *opt, const char *arg,
+				  int unset)
 {
 	struct list_objects_filter_options *filter_options = opt->value;
 
@@ -302,8 +299,8 @@ const char *list_objects_filter_spec(struct list_objects_filter_options *filter)
 	return filter->filter_spec.buf;
 }
 
-const char *expand_list_objects_filter_spec(
-	struct list_objects_filter_options *filter)
+const char *
+expand_list_objects_filter_spec(struct list_objects_filter_options *filter)
 {
 	if (filter->choice == LOFC_BLOB_LIMIT) {
 		strbuf_release(&filter->filter_spec);
@@ -329,16 +326,16 @@ void list_objects_filter_release(
 	list_objects_filter_init(filter_options);
 }
 
-void partial_clone_register(
-	const char *remote,
-	struct list_objects_filter_options *filter_options)
+void partial_clone_register(const char *remote,
+			    struct list_objects_filter_options *filter_options)
 {
 	struct promisor_remote *promisor_remote;
 	char *cfg_name;
 	char *filter_name;
 
 	/* Check if it is already registered */
-	if ((promisor_remote = repo_promisor_remote_find(the_repository, remote))) {
+	if ((promisor_remote =
+		     repo_promisor_remote_find(the_repository, remote))) {
 		if (promisor_remote->partial_clone_filter)
 			/*
 			 * Remote is already registered and a filter is already
@@ -370,11 +367,10 @@ void partial_clone_register(
 }
 
 void partial_clone_get_default_filter_spec(
-	struct list_objects_filter_options *filter_options,
-	const char *remote)
+	struct list_objects_filter_options *filter_options, const char *remote)
 {
-	struct promisor_remote *promisor = repo_promisor_remote_find(the_repository,
-								     remote);
+	struct promisor_remote *promisor =
+		repo_promisor_remote_find(the_repository, remote);
 	struct strbuf errbuf = STRBUF_INIT;
 
 	/*
@@ -385,15 +381,13 @@ void partial_clone_get_default_filter_spec(
 
 	strbuf_addstr(&filter_options->filter_spec,
 		      promisor->partial_clone_filter);
-	gently_parse_list_objects_filter(filter_options,
-					 promisor->partial_clone_filter,
-					 &errbuf);
+	gently_parse_list_objects_filter(
+		filter_options, promisor->partial_clone_filter, &errbuf);
 	strbuf_release(&errbuf);
 }
 
-void list_objects_filter_copy(
-	struct list_objects_filter_options *dest,
-	const struct list_objects_filter_options *src)
+void list_objects_filter_copy(struct list_objects_filter_options *dest,
+			      const struct list_objects_filter_options *src)
 {
 	int i;
 

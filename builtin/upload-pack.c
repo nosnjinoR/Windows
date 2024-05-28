@@ -1,17 +1,17 @@
-#include "builtin.h"
-#include "exec-cmd.h"
-#include "gettext.h"
-#include "pkt-line.h"
-#include "parse-options.h"
-#include "path.h"
-#include "protocol.h"
-#include "replace-object.h"
-#include "upload-pack.h"
-#include "serve.h"
-#include "commit.h"
-#include "environment.h"
+#include "components/builtin.h"
+#include "components/exec-cmd.h"
+#include "components/gettext.h"
+#include "components/pkt-line.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/protocol.h"
+#include "components/replace-object.h"
+#include "components/upload-pack.h"
+#include "components/serve.h"
+#include "components/commit.h"
+#include "components/environment.h"
 
-static const char * const upload_pack_usage[] = {
+static const char *const upload_pack_usage[] = {
 	N_("git-upload-pack [--[no-]strict] [--timeout=<n>] [--stateless-rpc]\n"
 	   "                [--advertise-refs] <directory>"),
 	NULL
@@ -27,13 +27,16 @@ int cmd_upload_pack(int argc, const char **argv, const char *prefix)
 	struct option options[] = {
 		OPT_BOOL(0, "stateless-rpc", &stateless_rpc,
 			 N_("quit after a single request/response exchange")),
-		OPT_HIDDEN_BOOL(0, "http-backend-info-refs", &advertise_refs,
-				N_("serve up the info/refs for git-http-backend")),
+		OPT_HIDDEN_BOOL(
+			0, "http-backend-info-refs", &advertise_refs,
+			N_("serve up the info/refs for git-http-backend")),
 		OPT_ALIAS(0, "advertise-refs", "http-backend-info-refs"),
-		OPT_BOOL(0, "strict", &strict,
-			 N_("do not try <directory>/.git/ if <directory> is no Git directory")),
-		OPT_INTEGER(0, "timeout", &timeout,
-			    N_("interrupt transfer after <n> seconds of inactivity")),
+		OPT_BOOL(
+			0, "strict", &strict,
+			N_("do not try <directory>/.git/ if <directory> is no Git directory")),
+		OPT_INTEGER(
+			0, "timeout", &timeout,
+			N_("interrupt transfer after <n> seconds of inactivity")),
 		OPT_END()
 	};
 

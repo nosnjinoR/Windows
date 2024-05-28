@@ -7,13 +7,12 @@
  * files. Useful when you write a file that you want to be
  * able to verify hasn't been messed with afterwards.
  */
-#include "git-compat-util.h"
-#include "progress.h"
-#include "csum-file.h"
-#include "hash.h"
+#include "components/git-compat-util.h"
+#include "components/progress.h"
+#include "components/csum-file.h"
+#include "components/hash.h"
 
-static void verify_buffer_or_die(struct hashfile *f,
-				 const void *buf,
+static void verify_buffer_or_die(struct hashfile *f, const void *buf,
 				 unsigned int count)
 {
 	ssize_t ret = read_in_full(f->check_fd, f->check_buffer, count);
@@ -33,7 +32,8 @@ static void flush(struct hashfile *f, const void *buf, unsigned int count)
 
 	if (write_in_full(f->fd, buf, count) < 0) {
 		if (errno == ENOSPC)
-			die("sha1 file '%s' write error. Out of diskspace", f->name);
+			die("sha1 file '%s' write error. Out of diskspace",
+			    f->name);
 		die_errno("sha1 file '%s' write error", f->name);
 	}
 
@@ -88,8 +88,9 @@ int finalize_hashfile(struct hashfile *f, unsigned char *result,
 		char discard;
 		int cnt = read_in_full(f->check_fd, &discard, 1);
 		if (cnt < 0)
-			die_errno("%s: error when reading the tail of sha1 file",
-				  f->name);
+			die_errno(
+				"%s: error when reading the tail of sha1 file",
+				f->name);
 		if (cnt)
 			die("%s: sha1 file has trailing garbage", f->name);
 		if (close(f->check_fd))
@@ -131,7 +132,7 @@ void hashwrite(struct hashfile *f, const void *buf, unsigned int count)
 		}
 
 		count -= nr;
-		buf = (char *) buf + nr;
+		buf = (char *)buf + nr;
 	}
 }
 
@@ -150,8 +151,7 @@ struct hashfile *hashfd_check(const char *name)
 }
 
 static struct hashfile *hashfd_internal(int fd, const char *name,
-					struct progress *tp,
-					size_t buffer_len)
+					struct progress *tp, size_t buffer_len)
 {
 	struct hashfile *f = xmalloc(sizeof(*f));
 	f->fd = fd;
@@ -181,7 +181,8 @@ struct hashfile *hashfd(int fd, const char *name)
 	return hashfd_internal(fd, name, NULL, 128 * 1024);
 }
 
-struct hashfile *hashfd_throughput(int fd, const char *name, struct progress *tp)
+struct hashfile *hashfd_throughput(int fd, const char *name,
+				   struct progress *tp)
 {
 	/*
 	 * Since we are expecting to report progress of the
@@ -192,14 +193,16 @@ struct hashfile *hashfd_throughput(int fd, const char *name, struct progress *tp
 	return hashfd_internal(fd, name, tp, 8 * 1024);
 }
 
-void hashfile_checkpoint(struct hashfile *f, struct hashfile_checkpoint *checkpoint)
+void hashfile_checkpoint(struct hashfile *f,
+			 struct hashfile_checkpoint *checkpoint)
 {
 	hashflush(f);
 	checkpoint->offset = f->total;
 	the_hash_algo->clone_fn(&checkpoint->ctx, &f->ctx);
 }
 
-int hashfile_truncate(struct hashfile *f, struct hashfile_checkpoint *checkpoint)
+int hashfile_truncate(struct hashfile *f,
+		      struct hashfile_checkpoint *checkpoint)
 {
 	off_t offset = checkpoint->offset;
 

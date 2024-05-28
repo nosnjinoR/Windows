@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "hex.h"
-#include "repository.h"
-#include "hash-ll.h"
-#include "hash.h"
-#include "object.h"
-#include "loose.h"
-#include "commit.h"
-#include "gpg-interface.h"
-#include "object-file-convert.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/hex.h"
+#include "components/repository.h"
+#include "components/hash-ll.h"
+#include "components/hash.h"
+#include "components/object.h"
+#include "components/loose.h"
+#include "components/commit.h"
+#include "components/gpg-interface.h"
+#include "components/object-file-convert.h"
 
 int repo_oid_to_algop(struct repository *repo, const struct object_id *src,
 		      const struct git_hash_algo *to, struct object_id *dest)
@@ -18,8 +18,8 @@ int repo_oid_to_algop(struct repository *repo, const struct object_id *src,
 	 * If the source algorithm is not set, then we're using the
 	 * default hash algorithm for that object.
 	 */
-	const struct git_hash_algo *from =
-		src->algo ? &hash_algos[src->algo] : repo->hash_algo;
+	const struct git_hash_algo *from = src->algo ? &hash_algos[src->algo] :
+						       repo->hash_algo;
 
 	if (from == to) {
 		if (src != dest)
@@ -75,8 +75,10 @@ static int convert_tree_object(struct strbuf *out,
 		if (decode_tree_entry_raw(&entry_oid, &path, &pathlen, from, p,
 					  end - p))
 			return error(_("failed to decode tree entry"));
-		if (repo_oid_to_algop(the_repository, &entry_oid, to, &mapped_oid))
-			return error(_("failed to map tree entry for %s"), oid_to_hex(&entry_oid));
+		if (repo_oid_to_algop(the_repository, &entry_oid, to,
+				      &mapped_oid))
+			return error(_("failed to map tree entry for %s"),
+				     oid_to_hex(&entry_oid));
 		strbuf_add(out, p, path - p);
 		strbuf_add(out, path, pathlen);
 		strbuf_add(out, mapped_oid.hash, to->rawsz);
@@ -90,15 +92,16 @@ static int convert_tag_object(struct strbuf *out,
 			      const struct git_hash_algo *to,
 			      const char *buffer, size_t size)
 {
-	struct strbuf payload = STRBUF_INIT, oursig = STRBUF_INIT, othersig = STRBUF_INIT;
+	struct strbuf payload = STRBUF_INIT, oursig = STRBUF_INIT,
+		      othersig = STRBUF_INIT;
 	const int entry_len = from->hexsz + 7;
 	size_t payload_size;
 	struct object_id oid, mapped_oid;
 	const char *p;
 
 	/* Consume the object line */
-	if ((entry_len >= size) ||
-	    memcmp(buffer, "object ", 7) || buffer[entry_len] != '\n')
+	if ((entry_len >= size) || memcmp(buffer, "object ", 7) ||
+	    buffer[entry_len] != '\n')
 		return error("bogus tag object");
 	if (parse_oid_hex_algop(buffer + 7, &oid, &p, from) < 0)
 		return error("bad tag object ID");
@@ -116,7 +119,8 @@ static int convert_tag_object(struct strbuf *out,
 	}
 
 	/* Now, is there a signature for the other algorithm? */
-	parse_buffer_signed_by_header(buffer, payload_size, &payload, &othersig, to);
+	parse_buffer_signed_by_header(buffer, payload_size, &payload, &othersig,
+				      to);
 	/*
 	 * Our payload is now in payload and we may have up to two signatrures
 	 * in oursig and othersig.
@@ -155,33 +159,35 @@ static int convert_commit_object(struct strbuf *out,
 		if (!eol)
 			return error(_("bad %s in commit"), "line");
 
-		if (((bufptr + 5) < eol) && !memcmp(bufptr, "tree ", 5))
-		{
+		if (((bufptr + 5) < eol) && !memcmp(bufptr, "tree ", 5)) {
 			if (((bufptr + tree_entry_len) != eol) ||
 			    parse_oid_hex_algop(bufptr + 5, &oid, &p, from) ||
 			    (p != eol))
 				return error(_("bad %s in commit"), "tree");
 
-			if (repo_oid_to_algop(the_repository, &oid, to, &mapped_oid))
-				return error(_("unable to map %s %s in commit object"),
-					     "tree", oid_to_hex(&oid));
+			if (repo_oid_to_algop(the_repository, &oid, to,
+					      &mapped_oid))
+				return error(
+					_("unable to map %s %s in commit object"),
+					"tree", oid_to_hex(&oid));
 			strbuf_addf(out, "tree %s\n", oid_to_hex(&mapped_oid));
-		}
-		else if (((bufptr + 7) < eol) && !memcmp(bufptr, "parent ", 7))
-		{
+		} else if (((bufptr + 7) < eol) &&
+			   !memcmp(bufptr, "parent ", 7)) {
 			if (((bufptr + parent_entry_len) != eol) ||
 			    parse_oid_hex_algop(bufptr + 7, &oid, &p, from) ||
 			    (p != eol))
 				return error(_("bad %s in commit"), "parent");
 
-			if (repo_oid_to_algop(the_repository, &oid, to, &mapped_oid))
-				return error(_("unable to map %s %s in commit object"),
-					     "parent", oid_to_hex(&oid));
+			if (repo_oid_to_algop(the_repository, &oid, to,
+					      &mapped_oid))
+				return error(
+					_("unable to map %s %s in commit object"),
+					"parent", oid_to_hex(&oid));
 
-			strbuf_addf(out, "parent %s\n", oid_to_hex(&mapped_oid));
-		}
-		else if (((bufptr + 9) < eol) && !memcmp(bufptr, "mergetag ", 9))
-		{
+			strbuf_addf(out, "parent %s\n",
+				    oid_to_hex(&mapped_oid));
+		} else if (((bufptr + 9) < eol) &&
+			   !memcmp(bufptr, "mergetag ", 9)) {
 			struct strbuf tag = STRBUF_INIT, new_tag = STRBUF_INIT;
 
 			/* Recover the tag object from the mergetag */
@@ -192,14 +198,17 @@ static int convert_commit_object(struct strbuf *out,
 				eol = memchr(bufptr, '\n', tail - bufptr);
 				if (!eol) {
 					strbuf_release(&tag);
-					return error(_("bad %s in commit"), "mergetag continuation");
+					return error(_("bad %s in commit"),
+						     "mergetag continuation");
 				}
-				strbuf_add(&tag, bufptr + 1, (eol - (bufptr + 1)) + 1);
+				strbuf_add(&tag, bufptr + 1,
+					   (eol - (bufptr + 1)) + 1);
 				bufptr = eol + 1;
 			}
 
 			/* Compute the new tag object */
-			if (convert_tag_object(&new_tag, from, to, tag.buf, tag.len)) {
+			if (convert_tag_object(&new_tag, from, to, tag.buf,
+					       tag.len)) {
 				strbuf_release(&tag);
 				strbuf_release(&new_tag);
 				return -1;
@@ -210,12 +219,14 @@ static int convert_commit_object(struct strbuf *out,
 			strbuf_add_lines(out, " ", new_tag.buf, new_tag.len);
 			strbuf_release(&tag);
 			strbuf_release(&new_tag);
-		}
-		else if (((bufptr + 7) < tail) && !memcmp(bufptr, "author ", 7))
+		} else if (((bufptr + 7) < tail) &&
+			   !memcmp(bufptr, "author ", 7))
 			strbuf_add(out, bufptr, (eol - bufptr) + 1);
-		else if (((bufptr + 10) < tail) && !memcmp(bufptr, "committer ", 10))
+		else if (((bufptr + 10) < tail) &&
+			 !memcmp(bufptr, "committer ", 10))
 			strbuf_add(out, bufptr, (eol - bufptr) + 1);
-		else if (((bufptr + 9) < tail) && !memcmp(bufptr, "encoding ", 9))
+		else if (((bufptr + 9) < tail) &&
+			 !memcmp(bufptr, "encoding ", 9))
 			strbuf_add(out, bufptr, (eol - bufptr) + 1);
 		else if (((bufptr + 6) < tail) && !memcmp(bufptr, "gpgsig", 6))
 			strbuf_add(out, bufptr, (eol - bufptr) + 1);
@@ -228,7 +239,8 @@ static int convert_commit_object(struct strbuf *out,
 		while ((bufptr < tail) && (*bufptr == ' ')) {
 			eol = memchr(bufptr, '\n', tail - bufptr);
 			if (!eol)
-				return error(_("bad %s in commit"), "continuation");
+				return error(_("bad %s in commit"),
+					     "continuation");
 			strbuf_add(out, bufptr, (eol - bufptr) + 1);
 			bufptr = eol + 1;
 		}
@@ -238,12 +250,9 @@ static int convert_commit_object(struct strbuf *out,
 	return 0;
 }
 
-int convert_object_file(struct strbuf *outbuf,
-			const struct git_hash_algo *from,
-			const struct git_hash_algo *to,
-			const void *buf, size_t len,
-			enum object_type type,
-			int gentle)
+int convert_object_file(struct strbuf *outbuf, const struct git_hash_algo *from,
+			const struct git_hash_algo *to, const void *buf,
+			size_t len, enum object_type type, int gentle)
 {
 	int ret;
 
@@ -272,6 +281,5 @@ int convert_object_file(struct strbuf *outbuf,
 		strbuf_release(outbuf);
 		return ret;
 	}
-	die(_("Failed to convert object from %s to %s"),
-		from->name, to->name);
+	die(_("Failed to convert object from %s to %s"), from->name, to->name);
 }

@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
-#include "hex.h"
+#include "components/git-compat-util.h"
+#include "components/hex.h"
 #include "refs-internal.h"
-#include "string-list.h"
-#include "trace.h"
+#include "components/string-list.h"
+#include "components/trace.h"
 
 static struct trace_key trace_refs = TRACE_KEY_INIT(REFS);
 
@@ -13,7 +13,8 @@ struct debug_ref_store {
 
 extern struct ref_storage_be refs_be_debug;
 
-struct ref_store *maybe_debug_wrap_ref_store(const char *gitdir, struct ref_store *store)
+struct ref_store *maybe_debug_wrap_ref_store(const char *gitdir,
+					     struct ref_store *store)
 {
 	struct debug_ref_store *res;
 	struct ref_storage_be *be_copy;
@@ -69,9 +70,10 @@ static void print_update(int i, const char *refname,
 
 	type &= 0xf; /* see refs.h REF_* */
 	flags &= REF_HAVE_NEW | REF_HAVE_OLD | REF_NO_DEREF |
-		REF_FORCE_CREATE_REFLOG;
-	trace_printf_key(&trace_refs, "%d: %s %s -> %s (F=0x%x, T=0x%x) \"%s\"\n", i, refname,
-		o, n, flags, type, msg);
+		 REF_FORCE_CREATE_REFLOG;
+	trace_printf_key(&trace_refs,
+			 "%d: %s %s -> %s (F=0x%x, T=0x%x) \"%s\"\n", i,
+			 refname, o, n, flags, type, msg);
 }
 
 static void print_transaction(struct ref_transaction *transaction)
@@ -123,7 +125,8 @@ static int debug_initial_transaction_commit(struct ref_store *refs,
 	return res;
 }
 
-static int debug_pack_refs(struct ref_store *ref_store, struct pack_refs_opts *opts)
+static int debug_pack_refs(struct ref_store *ref_store,
+			   struct pack_refs_opts *opts)
 {
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
 	int res = drefs->refs->be->pack_refs(drefs->refs, opts);
@@ -138,8 +141,8 @@ static int debug_create_symref(struct ref_store *ref_store,
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
 	int res = drefs->refs->be->create_symref(drefs->refs, ref_name, target,
 						 logmsg);
-	trace_printf_key(&trace_refs, "create_symref: %s -> %s \"%s\": %d\n", ref_name,
-		target, logmsg, res);
+	trace_printf_key(&trace_refs, "create_symref: %s -> %s \"%s\": %d\n",
+			 ref_name, target, logmsg, res);
 	return res;
 }
 
@@ -149,8 +152,8 @@ static int debug_rename_ref(struct ref_store *ref_store, const char *oldref,
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
 	int res = drefs->refs->be->rename_ref(drefs->refs, oldref, newref,
 					      logmsg);
-	trace_printf_key(&trace_refs, "rename_ref: %s -> %s \"%s\": %d\n", oldref, newref,
-		logmsg, res);
+	trace_printf_key(&trace_refs, "rename_ref: %s -> %s \"%s\": %d\n",
+			 oldref, newref, logmsg, res);
 	return res;
 }
 
@@ -160,8 +163,8 @@ static int debug_copy_ref(struct ref_store *ref_store, const char *oldref,
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
 	int res =
 		drefs->refs->be->copy_ref(drefs->refs, oldref, newref, logmsg);
-	trace_printf_key(&trace_refs, "copy_ref: %s -> %s \"%s\": %d\n", oldref, newref,
-		logmsg, res);
+	trace_printf_key(&trace_refs, "copy_ref: %s -> %s \"%s\": %d\n", oldref,
+			 newref, logmsg, res);
 	return res;
 }
 
@@ -179,7 +182,7 @@ static int debug_ref_iterator_advance(struct ref_iterator *ref_iterator)
 		trace_printf_key(&trace_refs, "iterator_advance: (%d)\n", res);
 	else
 		trace_printf_key(&trace_refs, "iterator_advance: %s (0)\n",
-			diter->iter->refname);
+				 diter->iter->refname);
 
 	diter->base.refname = diter->iter->refname;
 	diter->base.oid = diter->iter->oid;
@@ -193,7 +196,8 @@ static int debug_ref_iterator_peel(struct ref_iterator *ref_iterator,
 	struct debug_ref_iterator *diter =
 		(struct debug_ref_iterator *)ref_iterator;
 	int res = diter->iter->vtable->peel(diter->iter, peeled);
-	trace_printf_key(&trace_refs, "iterator_peel: %s: %d\n", diter->iter->refname, res);
+	trace_printf_key(&trace_refs, "iterator_peel: %s: %d\n",
+			 diter->iter->refname, res);
 	return res;
 }
 
@@ -217,9 +221,8 @@ debug_ref_iterator_begin(struct ref_store *ref_store, const char *prefix,
 			 const char **exclude_patterns, unsigned int flags)
 {
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
-	struct ref_iterator *res =
-		drefs->refs->be->iterator_begin(drefs->refs, prefix,
-						exclude_patterns, flags);
+	struct ref_iterator *res = drefs->refs->be->iterator_begin(
+		drefs->refs, prefix, exclude_patterns, flags);
 	struct debug_ref_iterator *diter = xcalloc(1, sizeof(*diter));
 	base_ref_iterator_init(&diter->base, &debug_ref_iterator_vtable);
 	diter->iter = res;
@@ -240,8 +243,10 @@ static int debug_read_raw_ref(struct ref_store *ref_store, const char *refname,
 					    type, failure_errno);
 
 	if (res == 0) {
-		trace_printf_key(&trace_refs, "read_raw_ref: %s: %s (=> %s) type %x: %d\n",
-			refname, oid_to_hex(oid), referent->buf, *type, res);
+		trace_printf_key(&trace_refs,
+				 "read_raw_ref: %s: %s (=> %s) type %x: %d\n",
+				 refname, oid_to_hex(oid), referent->buf, *type,
+				 res);
 	} else {
 		trace_printf_key(&trace_refs,
 				 "read_raw_ref: %s: %d (errno %d)\n", refname,
@@ -250,8 +255,8 @@ static int debug_read_raw_ref(struct ref_store *ref_store, const char *refname,
 	return res;
 }
 
-static int debug_read_symbolic_ref(struct ref_store *ref_store, const char *refname,
-				   struct strbuf *referent)
+static int debug_read_symbolic_ref(struct ref_store *ref_store,
+				   const char *refname, struct strbuf *referent)
 {
 	struct debug_ref_store *drefs = (struct debug_ref_store *)ref_store;
 	struct ref_store *refs = drefs->refs;
@@ -262,10 +267,9 @@ static int debug_read_symbolic_ref(struct ref_store *ref_store, const char *refn
 		trace_printf_key(&trace_refs, "read_symbolic_ref: %s: (%s)\n",
 				 refname, referent->buf);
 	else
-		trace_printf_key(&trace_refs,
-				 "read_symbolic_ref: %s: %d\n", refname, res);
+		trace_printf_key(&trace_refs, "read_symbolic_ref: %s: %d\n",
+				 refname, res);
 	return res;
-
 }
 
 static struct ref_iterator *
@@ -321,7 +325,8 @@ static int debug_for_each_reflog_ent(struct ref_store *ref_store,
 
 	int res = drefs->refs->be->for_each_reflog_ent(
 		drefs->refs, refname, &debug_print_reflog_ent, &dbg);
-	trace_printf_key(&trace_refs, "for_each_reflog: %s: %d\n", refname, res);
+	trace_printf_key(&trace_refs, "for_each_reflog: %s: %d\n", refname,
+			 res);
 	return res;
 }
 
@@ -338,7 +343,8 @@ static int debug_for_each_reflog_ent_reverse(struct ref_store *ref_store,
 	};
 	int res = drefs->refs->be->for_each_reflog_ent_reverse(
 		drefs->refs, refname, &debug_print_reflog_ent, &dbg);
-	trace_printf_key(&trace_refs, "for_each_reflog_reverse: %s: %d\n", refname, res);
+	trace_printf_key(&trace_refs, "for_each_reflog_reverse: %s: %d\n",
+			 refname, res);
 	return res;
 }
 
@@ -383,15 +389,17 @@ static void debug_reflog_expiry_prepare(const char *refname,
 	prune->prepare(refname, oid, prune->cb_data);
 }
 
-static int debug_reflog_expiry_should_prune_fn(struct object_id *ooid,
-					       struct object_id *noid,
-					       const char *email,
-					       timestamp_t timestamp, int tz,
-					       const char *message, void *cb_data) {
+static int debug_reflog_expiry_should_prune_fn(
+	struct object_id *ooid, struct object_id *noid, const char *email,
+	timestamp_t timestamp, int tz, const char *message, void *cb_data)
+{
 	struct debug_reflog_expiry_should_prune *prune = cb_data;
 
-	int result = prune->should_prune(ooid, noid, email, timestamp, tz, message, prune->cb_data);
-	trace_printf_key(&trace_refs, "reflog_expire_should_prune: %s %ld: %d\n", message, (long int) timestamp, result);
+	int result = prune->should_prune(ooid, noid, email, timestamp, tz,
+					 message, prune->cb_data);
+	trace_printf_key(&trace_refs,
+			 "reflog_expire_should_prune: %s %ld: %d\n", message,
+			 (long int)timestamp, result);
 	return result;
 }
 
@@ -415,11 +423,10 @@ static int debug_reflog_expire(struct ref_store *ref_store, const char *refname,
 		.should_prune = should_prune_fn,
 		.cb_data = policy_cb_data,
 	};
-	int res = drefs->refs->be->reflog_expire(drefs->refs, refname,
-						 flags, &debug_reflog_expiry_prepare,
-						 &debug_reflog_expiry_should_prune_fn,
-						 &debug_reflog_expiry_cleanup,
-						 &prune);
+	int res = drefs->refs->be->reflog_expire(
+		drefs->refs, refname, flags, &debug_reflog_expiry_prepare,
+		&debug_reflog_expiry_should_prune_fn,
+		&debug_reflog_expiry_cleanup, &prune);
 	trace_printf_key(&trace_refs, "reflog_expire: %s: %d\n", refname, res);
 	return res;
 }

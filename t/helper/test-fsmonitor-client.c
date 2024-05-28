@@ -4,13 +4,13 @@
  */
 
 #include "test-tool.h"
-#include "parse-options.h"
-#include "fsmonitor-ipc.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "setup.h"
-#include "thread-utils.h"
-#include "trace2.h"
+#include "components/parse-options.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/thread-utils.h"
+#include "components/trace2.h"
 
 #ifndef HAVE_FSMONITOR_DAEMON_BACKEND
 int cmd__fsmonitor_client(int argc UNUSED, const char **argv UNUSED)
@@ -83,8 +83,7 @@ static int do_send_flush(void)
 	return 0;
 }
 
-struct hammer_thread_data
-{
+struct hammer_thread_data {
 	pthread_t pthread_id;
 	int thread_nr;
 
@@ -149,8 +148,10 @@ static int do_hammer(const char *token, int nr_threads, int nr_requests)
 		p->nr_requests = nr_requests;
 		p->token = token;
 
-		if (pthread_create(&p->pthread_id, NULL, hammer_thread_proc, p)) {
-			warning("failed to create thread[%d] skipping remainder", k);
+		if (pthread_create(&p->pthread_id, NULL, hammer_thread_proc,
+				   p)) {
+			warning("failed to create thread[%d] skipping remainder",
+				k);
 			nr_threads = k;
 			break;
 		}
@@ -165,8 +166,10 @@ static int do_hammer(const char *token, int nr_threads, int nr_requests)
 		sum_errors += p->sum_errors;
 	}
 
-	fprintf(stderr, "HAMMER: [threads %d][requests %d] [ok %d][err %d][join %d]\n",
-		nr_threads, nr_requests, sum_commands, sum_errors, sum_join_errors);
+	fprintf(stderr,
+		"HAMMER: [threads %d][requests %d] [ok %d][err %d][join %d]\n",
+		nr_threads, nr_requests, sum_commands, sum_errors,
+		sum_join_errors);
 
 	free(data);
 
@@ -184,7 +187,7 @@ int cmd__fsmonitor_client(int argc, const char **argv)
 	int nr_threads = 1;
 	int nr_requests = 1;
 
-	const char * const fsmonitor_client_usage[] = {
+	const char *const fsmonitor_client_usage[] = {
 		"test-tool fsmonitor-client query [<token>]",
 		"test-tool fsmonitor-client flush",
 		"test-tool fsmonitor-client hammer [<token>] [<threads>] [<requests>]",
@@ -195,13 +198,16 @@ int cmd__fsmonitor_client(int argc, const char **argv)
 		OPT_STRING(0, "token", &token, "token",
 			   "command token to send to the server"),
 
-		OPT_INTEGER(0, "threads", &nr_threads, "number of client threads"),
-		OPT_INTEGER(0, "requests", &nr_requests, "number of requests per thread"),
+		OPT_INTEGER(0, "threads", &nr_threads,
+			    "number of client threads"),
+		OPT_INTEGER(0, "requests", &nr_requests,
+			    "number of requests per thread"),
 
 		OPT_END()
 	};
 
-	argc = parse_options(argc, argv, NULL, options, fsmonitor_client_usage, 0);
+	argc = parse_options(argc, argv, NULL, options, fsmonitor_client_usage,
+			     0);
 
 	if (argc != 1)
 		usage_with_options(fsmonitor_client_usage, options);

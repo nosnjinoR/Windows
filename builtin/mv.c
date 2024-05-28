@@ -4,28 +4,27 @@
  * Copyright (C) 2006 Johannes Schindelin
  */
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "abspath.h"
-#include "advice.h"
-#include "config.h"
-#include "environment.h"
-#include "gettext.h"
-#include "name-hash.h"
-#include "object-file.h"
-#include "pathspec.h"
-#include "lockfile.h"
-#include "dir.h"
-#include "string-list.h"
-#include "parse-options.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "setup.h"
-#include "submodule.h"
-#include "entry.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/advice.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/name-hash.h"
+#include "components/object-file.h"
+#include "components/pathspec.h"
+#include "components/lockfile.h"
+#include "components/dir.h"
+#include "components/string-list.h"
+#include "components/parse-options.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/submodule.h"
+#include "components/entry.h"
 
-static const char * const builtin_mv_usage[] = {
-	N_("git mv [<options>] <source>... <destination>"),
-	NULL
+static const char *const builtin_mv_usage[] = {
+	N_("git mv [<options>] <source>... <destination>"), NULL
 };
 
 enum update_mode {
@@ -39,8 +38,8 @@ enum update_mode {
 #define KEEP_TRAILING_SLASH 2
 
 static const char **internal_prefix_pathspec(const char *prefix,
-					     const char **pathspec,
-					     int count, unsigned flags)
+					     const char **pathspec, int count,
+					     unsigned flags)
 {
 	int i;
 	const char **result;
@@ -52,8 +51,8 @@ static const char **internal_prefix_pathspec(const char *prefix,
 		int length = strlen(pathspec[i]);
 		int to_copy = length;
 		char *it;
-		while (!(flags & KEEP_TRAILING_SLASH) &&
-		       to_copy > 0 && is_dir_sep(pathspec[i][to_copy - 1]))
+		while (!(flags & KEEP_TRAILING_SLASH) && to_copy > 0 &&
+		       is_dir_sep(pathspec[i][to_copy - 1]))
 			to_copy--;
 
 		it = xmemdupz(pathspec[i], to_copy);
@@ -69,7 +68,7 @@ static const char **internal_prefix_pathspec(const char *prefix,
 	/* Prefix the pathspec and free the old intermediate strings */
 	for (i = 0; i < count; i++) {
 		const char *match = prefix_path(prefix, prefixlen, result[i]);
-		free((char *) result[i]);
+		free((char *)result[i]);
 		result[i] = match;
 	}
 
@@ -108,8 +107,8 @@ static void prepare_move_submodule(const char *src, int first,
 	strbuf_release(&submodule_dotgit);
 }
 
-static int index_range_of_same_dir(const char *src, int length,
-				   int *first_p, int *last_p)
+static int index_range_of_same_dir(const char *src, int length, int *first_p,
+				   int *last_p)
 {
 	const char *src_w_slash = add_slash(src);
 	int first, last, len_w_slash = length + 1;
@@ -167,14 +166,19 @@ free_return:
 int cmd_mv(int argc, const char **argv, const char *prefix)
 {
 	int i, flags, gitmodules_modified = 0;
-	int verbose = 0, show_only = 0, force = 0, ignore_errors = 0, ignore_sparse = 0;
+	int verbose = 0, show_only = 0, force = 0, ignore_errors = 0,
+	    ignore_sparse = 0;
 	struct option builtin_mv_options[] = {
 		OPT__VERBOSE(&verbose, N_("be verbose")),
 		OPT__DRY_RUN(&show_only, N_("dry run")),
-		OPT__FORCE(&force, N_("force move/rename even if target exists"),
+		OPT__FORCE(&force,
+			   N_("force move/rename even if target exists"),
 			   PARSE_OPT_NOCOMPLETE),
-		OPT_BOOL('k', NULL, &ignore_errors, N_("skip move/rename errors")),
-		OPT_BOOL(0, "sparse", &ignore_sparse, N_("allow updating entries outside of the sparse-checkout cone")),
+		OPT_BOOL('k', NULL, &ignore_errors,
+			 N_("skip move/rename errors")),
+		OPT_BOOL(
+			0, "sparse", &ignore_sparse,
+			N_("allow updating entries outside of the sparse-checkout cone")),
 		OPT_END(),
 	};
 	const char **source, **destination, **dest_path, **submodule_gitfile;
@@ -218,17 +222,20 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 
 	if (dest_path[0][0] == '\0')
 		/* special case: "." was normalized to "" */
-		destination = internal_prefix_pathspec(dest_path[0], argv, argc, DUP_BASENAME);
-	else if (!lstat(dest_path[0], &st) &&
-			S_ISDIR(st.st_mode)) {
-		destination = internal_prefix_pathspec(dst_w_slash, argv, argc, DUP_BASENAME);
+		destination = internal_prefix_pathspec(dest_path[0], argv, argc,
+						       DUP_BASENAME);
+	else if (!lstat(dest_path[0], &st) && S_ISDIR(st.st_mode)) {
+		destination = internal_prefix_pathspec(dst_w_slash, argv, argc,
+						       DUP_BASENAME);
 	} else {
 		if (!path_in_sparse_checkout(dst_w_slash, &the_index) &&
 		    empty_dir_has_sparse_contents(dst_w_slash)) {
-			destination = internal_prefix_pathspec(dst_w_slash, argv, argc, DUP_BASENAME);
+			destination = internal_prefix_pathspec(
+				dst_w_slash, argv, argc, DUP_BASENAME);
 			dst_mode = SKIP_WORKTREE_DIR;
 		} else if (argc != 1) {
-			die(_("destination '%s' is not a directory"), dest_path[0]);
+			die(_("destination '%s' is not a directory"),
+			    dest_path[0]);
 		} else {
 			destination = dest_path;
 			/*
@@ -239,7 +246,8 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 			 * is deprecated at this point) sparse-checkout. As
 			 * SPARSE here is only considering cone-mode situation.
 			 */
-			if (!path_in_cone_mode_sparse_checkout(destination[0], &the_index))
+			if (!path_in_cone_mode_sparse_checkout(destination[0],
+							       &the_index))
 				dst_mode = SPARSE;
 		}
 	}
@@ -256,7 +264,8 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 		int skip_sparse = 0;
 
 		if (show_only)
-			printf(_("Checking rename of '%s' to '%s'\n"), src, dst);
+			printf(_("Checking rename of '%s' to '%s'\n"), src,
+			       dst);
 
 		length = strlen(src);
 		if (lstat(src, &st) < 0) {
@@ -266,7 +275,8 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 			pos = index_name_pos(&the_index, src, length);
 			if (pos < 0) {
 				const char *src_w_slash = add_slash(src);
-				if (!path_in_sparse_checkout(src_w_slash, &the_index) &&
+				if (!path_in_sparse_checkout(src_w_slash,
+							     &the_index) &&
 				    empty_dir_has_sparse_contents(src)) {
 					modes[i] |= SKIP_WORKTREE_DIR;
 					goto dir_check;
@@ -282,7 +292,8 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 				goto act_on_entry;
 			}
 			if (!ignore_sparse) {
-				string_list_append(&only_match_skip_worktree, src);
+				string_list_append(&only_match_skip_worktree,
+						   src);
 				goto act_on_entry;
 			}
 			/* Check if dst exists in index */
@@ -302,23 +313,23 @@ int cmd_mv(int argc, const char **argv, const char *prefix)
 			bad = _("can not move directory into itself");
 			goto act_on_entry;
 		}
-		if (S_ISDIR(st.st_mode)
-		    && lstat(dst, &dest_st) == 0) {
+		if (S_ISDIR(st.st_mode) && lstat(dst, &dest_st) == 0) {
 			bad = _("destination already exists");
 			goto act_on_entry;
 		}
 
-dir_check:
+	dir_check:
 		if (S_ISDIR(st.st_mode)) {
 			int j, dst_len, n;
-			int first = index_name_pos(&the_index, src, length), last;
+			int first = index_name_pos(&the_index, src, length),
+			    last;
 
 			if (first >= 0) {
 				prepare_move_submodule(src, first,
 						       submodule_gitfile + i);
 				goto act_on_entry;
-			} else if (index_range_of_same_dir(src, length,
-							   &first, &last) < 1) {
+			} else if (index_range_of_same_dir(src, length, &first,
+							   &last) < 1) {
 				bad = _("source directory is empty");
 				goto act_on_entry;
 			}
@@ -339,13 +350,16 @@ dir_check:
 			dst_len = strlen(dst);
 
 			for (j = 0; j < last - first; j++) {
-				const struct cache_entry *ce = the_index.cache[first + j];
+				const struct cache_entry *ce =
+					the_index.cache[first + j];
 				const char *path = ce->name;
 				source[argc + j] = path;
-				destination[argc + j] =
-					prefix_path(dst, dst_len, path + length + 1);
-				memset(modes + argc + j, 0, sizeof(enum update_mode));
-				modes[argc + j] |= ce_skip_worktree(ce) ? SPARSE : INDEX;
+				destination[argc + j] = prefix_path(
+					dst, dst_len, path + length + 1);
+				memset(modes + argc + j, 0,
+				       sizeof(enum update_mode));
+				modes[argc + j] |=
+					ce_skip_worktree(ce) ? SPARSE : INDEX;
 				submodule_gitfile[argc + j] = NULL;
 			}
 			argc += last - first;
@@ -367,9 +381,11 @@ dir_check:
 				 * only files can overwrite each other:
 				 * check both source and destination
 				 */
-				if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
+				if (S_ISREG(st.st_mode) ||
+				    S_ISLNK(st.st_mode)) {
 					if (verbose)
-						warning(_("overwriting '%s'"), dst);
+						warning(_("overwriting '%s'"),
+							dst);
 					bad = NULL;
 				} else
 					bad = _("Cannot overwrite");
@@ -419,13 +435,12 @@ dir_check:
 
 		string_list_insert(&src_for_dst, dst);
 
-act_on_entry:
+	act_on_entry:
 		if (!bad)
 			continue;
 		if (!ignore_errors)
-			die(_("%s, source=%s, destination=%s"),
-			     bad, src, dst);
-remove_entry:
+			die(_("%s, source=%s, destination=%s"), bad, src, dst);
+	remove_entry:
 		if (--argc > 0) {
 			int n = argc - i;
 			MOVE_ARRAY(source + i, source + i + 1, n);
@@ -468,9 +483,8 @@ remove_entry:
 			if (!update_path_in_gitmodules(src, dst))
 				gitmodules_modified = 1;
 			if (submodule_gitfile[i] != SUBMODULE_WITH_GITDIR)
-				connect_work_tree_and_git_dir(dst,
-							      submodule_gitfile[i],
-							      1);
+				connect_work_tree_and_git_dir(
+					dst, submodule_gitfile[i], 1);
 		}
 
 		if (mode & (WORKING_DIRECTORY | SKIP_WORKTREE_DIR))
@@ -479,14 +493,11 @@ remove_entry:
 		pos = index_name_pos(&the_index, src, strlen(src));
 		assert(pos >= 0);
 		if (!(mode & SPARSE) && !lstat(src, &st))
-			sparse_and_dirty = ie_modified(&the_index,
-						       the_index.cache[pos],
-						       &st,
-						       0);
+			sparse_and_dirty = ie_modified(
+				&the_index, the_index.cache[pos], &st, 0);
 		rename_index_entry_at(&the_index, pos, dst);
 
-		if (ignore_sparse &&
-		    core_apply_sparse_checkout &&
+		if (ignore_sparse && core_apply_sparse_checkout &&
 		    core_sparse_checkout_cone) {
 			/*
 			 * NEEDSWORK: we are *not* paying attention to
@@ -499,19 +510,22 @@ remove_entry:
 				/* from out-of-cone to in-cone */
 				int dst_pos = index_name_pos(&the_index, dst,
 							     strlen(dst));
-				struct cache_entry *dst_ce = the_index.cache[dst_pos];
+				struct cache_entry *dst_ce =
+					the_index.cache[dst_pos];
 
 				dst_ce->ce_flags &= ~CE_SKIP_WORKTREE;
 
 				if (checkout_entry(dst_ce, &state, NULL, NULL))
-					die(_("cannot checkout %s"), dst_ce->name);
+					die(_("cannot checkout %s"),
+					    dst_ce->name);
 			} else if ((dst_mode & (SKIP_WORKTREE_DIR | SPARSE)) &&
 				   !(mode & SPARSE) &&
 				   !path_in_sparse_checkout(dst, &the_index)) {
 				/* from in-cone to out-of-cone */
 				int dst_pos = index_name_pos(&the_index, dst,
 							     strlen(dst));
-				struct cache_entry *dst_ce = the_index.cache[dst_pos];
+				struct cache_entry *dst_ce =
+					the_index.cache[dst_pos];
 
 				/*
 				 * if src is clean, it will suffice to remove it
@@ -527,7 +541,8 @@ remove_entry:
 					 */
 					char *dst_dup = xstrdup(dst);
 					string_list_append(&dirty_paths, dst);
-					safe_create_leading_directories(dst_dup);
+					safe_create_leading_directories(
+						dst_dup);
 					FREE_AND_NULL(dst_dup);
 					rename(src, dst);
 				}

@@ -3,10 +3,10 @@
  * documentation about the design and use of reference iterators.
  */
 
-#include "git-compat-util.h"
-#include "refs.h"
+#include "components/git-compat-util.h"
+#include "components/refs.h"
 #include "refs/refs-internal.h"
-#include "iterator.h"
+#include "components/iterator.h"
 
 int ref_iterator_advance(struct ref_iterator *ref_iterator)
 {
@@ -121,10 +121,10 @@ enum iterator_selection ref_iterator_select(struct ref_iterator *iter_worktree,
 				return ITER_SELECT_0_SKIP_1;
 		}
 
-		 /*
-		  * We now know that the lexicographically-next ref is a common
-		  * ref. When the common ref is a shared one we return it.
-		  */
+		/*
+		 * We now know that the lexicographically-next ref is a common
+		 * ref. When the common ref is a shared one we return it.
+		 */
 		if (parse_worktree_ref(iter_common->refname, NULL, NULL,
 				       NULL) == REF_WORKTREE_SHARED)
 			return ITER_SELECT_1;
@@ -191,7 +191,8 @@ static int merge_ref_iterator_advance(struct ref_iterator *ref_iterator)
 		}
 
 		if (selection & ITER_SKIP_SECONDARY) {
-			if ((ok = ref_iterator_advance(*secondary)) != ITER_OK) {
+			if ((ok = ref_iterator_advance(*secondary)) !=
+			    ITER_OK) {
 				*secondary = NULL;
 				if (ok == ITER_ERROR)
 					goto error;
@@ -247,9 +248,10 @@ static struct ref_iterator_vtable merge_ref_iterator_vtable = {
 	.abort = merge_ref_iterator_abort,
 };
 
-struct ref_iterator *merge_ref_iterator_begin(
-		struct ref_iterator *iter0, struct ref_iterator *iter1,
-		ref_iterator_select_fn *select, void *cb_data)
+struct ref_iterator *merge_ref_iterator_begin(struct ref_iterator *iter0,
+					      struct ref_iterator *iter1,
+					      ref_iterator_select_fn *select,
+					      void *cb_data)
 {
 	struct merge_ref_iterator *iter = xcalloc(1, sizeof(*iter));
 	struct ref_iterator *ref_iterator = &iter->base;
@@ -276,9 +278,9 @@ struct ref_iterator *merge_ref_iterator_begin(
  * of those from back (like loose refs over packed refs). See
  * overlay_ref_iterator_begin().
  */
-static enum iterator_selection overlay_iterator_select(
-		struct ref_iterator *front, struct ref_iterator *back,
-		void *cb_data UNUSED)
+static enum iterator_selection
+overlay_iterator_select(struct ref_iterator *front, struct ref_iterator *back,
+			void *cb_data UNUSED)
 {
 	int cmp;
 
@@ -297,8 +299,8 @@ static enum iterator_selection overlay_iterator_select(
 		return ITER_SELECT_0_SKIP_1;
 }
 
-struct ref_iterator *overlay_ref_iterator_begin(
-		struct ref_iterator *front, struct ref_iterator *back)
+struct ref_iterator *overlay_ref_iterator_begin(struct ref_iterator *front,
+						struct ref_iterator *back)
 {
 	/*
 	 * Optimization: if one of the iterators is empty, return the
@@ -313,7 +315,8 @@ struct ref_iterator *overlay_ref_iterator_begin(
 		return front;
 	}
 
-	return merge_ref_iterator_begin(front, back, overlay_iterator_select, NULL);
+	return merge_ref_iterator_begin(front, back, overlay_iterator_select,
+					NULL);
 }
 
 struct prefix_ref_iterator {
@@ -329,7 +332,10 @@ static int compare_prefix(const char *refname, const char *prefix)
 {
 	while (*prefix) {
 		if (*refname != *prefix)
-			return ((unsigned char)*refname < (unsigned char)*prefix) ? -1 : +1;
+			return ((unsigned char)*refname <
+				(unsigned char)*prefix) ?
+				       -1 :
+				       +1;
 
 		refname++;
 		prefix++;
@@ -417,8 +423,7 @@ static struct ref_iterator_vtable prefix_ref_iterator_vtable = {
 };
 
 struct ref_iterator *prefix_ref_iterator_begin(struct ref_iterator *iter0,
-					       const char *prefix,
-					       int trim)
+					       const char *prefix, int trim)
 {
 	struct prefix_ref_iterator *iter;
 	struct ref_iterator *ref_iterator;
@@ -440,7 +445,8 @@ struct ref_iterator *prefix_ref_iterator_begin(struct ref_iterator *iter0,
 
 struct ref_iterator *current_ref_iter = NULL;
 
-int do_for_each_repo_ref_iterator(struct repository *r, struct ref_iterator *iter,
+int do_for_each_repo_ref_iterator(struct repository *r,
+				  struct ref_iterator *iter,
 				  each_repo_ref_fn fn, void *cb_data)
 {
 	int retval = 0, ok;

@@ -1,14 +1,15 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "run-command.h"
-#include "parse-options.h"
-#include "strbuf.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/run-command.h"
+#include "components/parse-options.h"
+#include "components/strbuf.h"
 
 #define VERIFY_PACK_VERBOSE 01
 #define VERIFY_PACK_STAT_ONLY 02
 
-static int verify_one_pack(const char *path, unsigned int flags, const char *hash_algo)
+static int verify_one_pack(const char *path, unsigned int flags,
+			   const char *hash_algo)
 {
 	struct child_process index_pack = CHILD_PROCESS_INIT;
 	struct strvec *argv = &index_pack.args;
@@ -34,8 +35,7 @@ static int verify_one_pack(const char *path, unsigned int flags, const char *has
 	 * normalize these forms to "foo.pack" for "index-pack --verify".
 	 */
 	strbuf_addstr(&arg, path);
-	if (strbuf_strip_suffix(&arg, ".idx") ||
-	    !ends_with(arg.buf, ".pack"))
+	if (strbuf_strip_suffix(&arg, ".idx") || !ends_with(arg.buf, ".pack"))
 		strbuf_addstr(&arg, ".pack");
 	strvec_push(argv, arg.buf);
 
@@ -56,7 +56,7 @@ static int verify_one_pack(const char *path, unsigned int flags, const char *has
 	return err;
 }
 
-static const char * const verify_pack_usage[] = {
+static const char *const verify_pack_usage[] = {
 	N_("git verify-pack [-v | --verbose] [-s | --stat-only] [--] <pack>.idx..."),
 	NULL
 };

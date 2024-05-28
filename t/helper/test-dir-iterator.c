@@ -1,15 +1,18 @@
 #include "test-tool.h"
-#include "git-compat-util.h"
-#include "strbuf.h"
-#include "iterator.h"
-#include "dir-iterator.h"
+#include "components/git-compat-util.h"
+#include "components/strbuf.h"
+#include "components/iterator.h"
+#include "components/dir-iterator.h"
 
 static const char *error_name(int error_number)
 {
 	switch (error_number) {
-	case ENOENT: return "ENOENT";
-	case ENOTDIR: return "ENOTDIR";
-	default: return "ESOMETHINGELSE";
+	case ENOENT:
+		return "ENOENT";
+	case ENOTDIR:
+		return "ENOTDIR";
+	default:
+		return "ESOMETHINGELSE";
 	}
 }
 
@@ -23,7 +26,8 @@ int cmd__dir_iterator(int argc, const char **argv)
 	unsigned int flags = 0;
 	int iter_status;
 
-	for (++argv, --argc; *argv && starts_with(*argv, "--"); ++argv, --argc) {
+	for (++argv, --argc; *argv && starts_with(*argv, "--");
+	     ++argv, --argc) {
 		if (strcmp(*argv, "--pedantic") == 0)
 			flags |= DIR_ITERATOR_PEDANTIC;
 		else

@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "hex.h"
-#include "repository.h"
-#include "pack.h"
-#include "progress.h"
-#include "packfile.h"
-#include "object-file.h"
-#include "object-store-ll.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/hex.h"
+#include "components/repository.h"
+#include "components/pack.h"
+#include "components/progress.h"
+#include "components/packfile.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
 
 struct idx_entry {
-	off_t                offset;
+	off_t offset;
 	unsigned int nr;
 };
 
@@ -41,15 +41,14 @@ int check_pack_crc(struct packed_git *p, struct pack_window **w_curs,
 	} while (len);
 
 	index_crc = p->index_data;
-	index_crc += 2 + 256 + (size_t)p->num_objects * (the_hash_algo->rawsz/4) + nr;
+	index_crc += 2 + 256 +
+		     (size_t)p->num_objects * (the_hash_algo->rawsz / 4) + nr;
 
 	return data_crc != ntohl(*index_crc);
 }
 
-static int verify_packfile(struct repository *r,
-			   struct packed_git *p,
-			   struct pack_window **w_curs,
-			   verify_fn fn,
+static int verify_packfile(struct repository *r, struct packed_git *p,
+			   struct pack_window **w_curs, verify_fn fn,
 			   struct progress *progress, uint32_t base_count)
 
 {
@@ -79,8 +78,7 @@ static int verify_packfile(struct repository *r,
 	r->hash_algo->final_fn(hash, &ctx);
 	pack_sig = use_pack(p, w_curs, pack_sig_ofs, NULL);
 	if (!hasheq(hash, pack_sig))
-		err = error("%s pack checksum mismatch",
-			    p->pack_name);
+		err = error("%s pack checksum mismatch", p->pack_name);
 	if (!hasheq(index_base + index_size - r->hash_algo->hexsz, pack_sig))
 		err = error("%s pack checksum does not match its index",
 			    p->pack_name);
@@ -93,7 +91,8 @@ static int verify_packfile(struct repository *r,
 	nr_objects = p->num_objects;
 	ALLOC_ARRAY(entries, nr_objects + 1);
 	entries[nr_objects].offset = pack_sig_ofs;
-	/* first sort entries by pack offset, since unpacking them is more efficient that way */
+	/* first sort entries by pack offset, since unpacking them is more
+	 * efficient that way */
 	for (i = 0; i < nr_objects; i++) {
 		entries[i].offset = nth_packed_object_offset(p, i);
 		entries[i].nr = i;
@@ -114,13 +113,13 @@ static int verify_packfile(struct repository *r,
 
 		if (p->index_version > 1) {
 			off_t offset = entries[i].offset;
-			off_t len = entries[i+1].offset - offset;
+			off_t len = entries[i + 1].offset - offset;
 			unsigned int nr = entries[i].nr;
 			if (check_pack_crc(p, w_curs, offset, len, nr))
 				err = error("index CRC mismatch for object %s "
-					    "from %s at offset %"PRIuMAX"",
-					    oid_to_hex(&oid),
-					    p->pack_name, (uintmax_t)offset);
+					    "from %s at offset %" PRIuMAX "",
+					    oid_to_hex(&oid), p->pack_name,
+					    (uintmax_t)offset);
 		}
 
 		curpos = entries[i].offset;
@@ -136,16 +135,19 @@ static int verify_packfile(struct repository *r,
 			data = NULL;
 			data_valid = 0;
 		} else {
-			data = unpack_entry(r, p, entries[i].offset, &type, &size);
+			data = unpack_entry(r, p, entries[i].offset, &type,
+					    &size);
 			data_valid = 1;
 		}
 
 		if (data_valid && !data)
-			err = error("cannot unpack %s from %s at offset %"PRIuMAX"",
-				    oid_to_hex(&oid), p->pack_name,
-				    (uintmax_t)entries[i].offset);
-		else if (data && check_object_signature(r, &oid, data, size,
-							type) < 0)
+			err = error(
+				"cannot unpack %s from %s at offset %" PRIuMAX
+				"",
+				oid_to_hex(&oid), p->pack_name,
+				(uintmax_t)entries[i].offset);
+		else if (data &&
+			 check_object_signature(r, &oid, data, size, type) < 0)
 			err = error("packed %s from %s is corrupt",
 				    oid_to_hex(&oid), p->pack_name);
 		else if (!data && stream_object_signature(r, &oid) < 0)
@@ -160,7 +162,6 @@ static int verify_packfile(struct repository *r,
 		if (((base_count + i) & 1023) == 0)
 			display_progress(progress, base_count + i);
 		free(data);
-
 	}
 	display_progress(progress, base_count + i);
 	free(entries);

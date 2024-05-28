@@ -1,32 +1,32 @@
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "skipping.h"
-#include "../commit.h"
-#include "../fetch-negotiator.h"
-#include "../hex.h"
-#include "../prio-queue.h"
-#include "../refs.h"
-#include "../repository.h"
-#include "../tag.h"
+#include "components/commit.h"
+#include "components/fetch-negotiator.h"
+#include "components/hex.h"
+#include "components/prio-queue.h"
+#include "components/refs.h"
+#include "components/repository.h"
+#include "components/tag.h"
 
 /* Remember to update object flag allocation in object.h */
 /*
  * Both us and the server know that both parties have this object.
  */
-#define COMMON		(1U << 2)
+#define COMMON (1U << 2)
 /*
  * The server has told us that it has this object. We still need to tell the
  * server that we have this object (or one of its descendants), but since we are
  * going to do that, we do not need to tell the server about its ancestors.
  */
-#define ADVERTISED	(1U << 3)
+#define ADVERTISED (1U << 3)
 /*
  * This commit has entered the priority queue.
  */
-#define SEEN		(1U << 4)
+#define SEEN (1U << 4)
 /*
  * This commit has left the priority queue.
  */
-#define POPPED		(1U << 5)
+#define POPPED (1U << 5)
 
 static int marked;
 
@@ -59,7 +59,8 @@ static int compare(const void *a_, const void *b_, void *data UNUSED)
 	return compare_commits_by_commit_date(a->commit, b->commit, NULL);
 }
 
-static struct entry *rev_list_push(struct data *data, struct commit *commit, int mark)
+static struct entry *rev_list_push(struct data *data, struct commit *commit,
+				   int mark)
 {
 	struct entry *entry;
 	commit->object.flags |= mark | SEEN;
@@ -74,10 +75,10 @@ static struct entry *rev_list_push(struct data *data, struct commit *commit, int
 }
 
 static int clear_marks(const char *refname, const struct object_id *oid,
-		       int flag UNUSED,
-		       void *cb_data UNUSED)
+		       int flag UNUSED, void *cb_data UNUSED)
 {
-	struct object *o = deref_tag(the_repository, parse_object(the_repository, oid), refname, 0);
+	struct object *o = deref_tag(
+		the_repository, parse_object(the_repository, oid), refname, 0);
 
 	if (o && o->type == OBJ_COMMIT)
 		clear_commit_marks((struct commit *)o,
@@ -149,8 +150,7 @@ static int push_parent(struct data *data, struct entry *entry,
 				goto parent_found;
 		}
 		BUG("missing parent in priority queue");
-parent_found:
-		;
+	parent_found:;
 	} else {
 		parent_entry = rev_list_push(data, to_push, 0);
 	}
@@ -158,10 +158,11 @@ parent_found:
 	if (entry->commit->object.flags & (COMMON | ADVERTISED)) {
 		mark_common(data, to_push);
 	} else {
-		uint16_t new_original_ttl = entry->ttl
-			? entry->original_ttl : entry->original_ttl * 3 / 2 + 1;
-		uint16_t new_ttl = entry->ttl
-			? entry->ttl - 1 : new_original_ttl;
+		uint16_t new_original_ttl =
+			entry->ttl ? entry->original_ttl :
+				     entry->original_ttl * 3 / 2 + 1;
+		uint16_t new_ttl = entry->ttl ? entry->ttl - 1 :
+						new_original_ttl;
 		if (parent_entry->original_ttl < new_original_ttl) {
 			parent_entry->original_ttl = new_original_ttl;
 			parent_entry->ttl = new_ttl;

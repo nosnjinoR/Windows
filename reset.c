@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "cache-tree.h"
-#include "gettext.h"
-#include "hex.h"
-#include "lockfile.h"
-#include "object-name.h"
-#include "refs.h"
-#include "reset.h"
-#include "tree-walk.h"
-#include "tree.h"
-#include "unpack-trees.h"
-#include "hook.h"
+#include "components/git-compat-util.h"
+#include "components/cache-tree.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/lockfile.h"
+#include "components/object-name.h"
+#include "components/refs.h"
+#include "components/reset.h"
+#include "components/tree-walk.h"
+#include "components/tree.h"
+#include "components/unpack-trees.h"
+#include "components/hook.h"
 
 static int update_refs(const struct reset_head_opts *opts,
 		       const struct object_id *oid,
@@ -34,8 +34,9 @@ static int update_refs(const struct reset_head_opts *opts,
 		if (!default_reflog_action)
 			BUG("default_reflog_action must be given when reflog messages are omitted");
 		reflog_action = getenv(GIT_REFLOG_ACTION_ENVIRONMENT);
-		strbuf_addf(&msg, "%s: ", reflog_action ? reflog_action :
-							  default_reflog_action);
+		strbuf_addf(&msg, "%s: ",
+			    reflog_action ? reflog_action :
+					    default_reflog_action);
 	}
 	prefix_len = msg.len;
 
@@ -48,8 +49,8 @@ static int update_refs(const struct reset_head_opts *opts,
 				reflog_orig_head = msg.buf;
 			}
 			update_ref(reflog_orig_head, "ORIG_HEAD",
-				   orig_head ? orig_head : head,
-				   old_orig, 0, UPDATE_REFS_MSG_ON_ERR);
+				   orig_head ? orig_head : head, old_orig, 0,
+				   UPDATE_REFS_MSG_ON_ERR);
 		} else if (old_orig)
 			delete_ref(NULL, "ORIG_HEAD", old_orig, 0);
 	}
@@ -103,7 +104,8 @@ int reset_head(struct repository *r, const struct reset_head_opts *opts)
 	if (opts->branch_msg && !opts->branch)
 		BUG("branch reflog message given without a branch");
 
-	if (!refs_only && repo_hold_locked_index(r, &lock, LOCK_REPORT_ON_ERROR) < 0) {
+	if (!refs_only &&
+	    repo_hold_locked_index(r, &lock, LOCK_REPORT_ON_ERROR) < 0) {
 		ret = -1;
 		goto leave_reset_head;
 	}
@@ -131,7 +133,8 @@ int reset_head(struct repository *r, const struct reset_head_opts *opts)
 	unpack_tree_opts.merge = 1;
 	unpack_tree_opts.preserve_ignored = 0; /* FIXME: !overwrite_ignore */
 	unpack_tree_opts.skip_cache_tree_update = 1;
-	init_checkout_metadata(&unpack_tree_opts.meta, switch_to_branch, oid, NULL);
+	init_checkout_metadata(&unpack_tree_opts.meta, switch_to_branch, oid,
+			       NULL);
 	if (reset_hard)
 		unpack_tree_opts.reset = UNPACK_RESET_PROTECT_UNTRACKED;
 
@@ -178,5 +181,4 @@ leave_reset_head:
 	while (nr)
 		free((void *)desc[--nr].buffer);
 	return ret;
-
 }

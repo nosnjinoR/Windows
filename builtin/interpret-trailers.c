@@ -5,15 +5,15 @@
  *
  */
 
-#include "builtin.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "string-list.h"
-#include "tempfile.h"
-#include "trailer.h"
-#include "config.h"
+#include "components/builtin.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/string-list.h"
+#include "components/tempfile.h"
+#include "components/trailer.h"
+#include "components/config.h"
 
-static const char * const git_interpret_trailers_usage[] = {
+static const char *const git_interpret_trailers_usage[] = {
 	N_("git interpret-trailers [--in-place] [--trim-empty]\n"
 	   "                       [(--trailer (<key>|<key-alias>)[(=|:)<value>])...]\n"
 	   "                       [--parse] [<file>...]"),
@@ -24,22 +24,22 @@ static enum trailer_where where;
 static enum trailer_if_exists if_exists;
 static enum trailer_if_missing if_missing;
 
-static int option_parse_where(const struct option *opt,
-			      const char *arg, int unset UNUSED)
+static int option_parse_where(const struct option *opt, const char *arg,
+			      int unset UNUSED)
 {
 	/* unset implies NULL arg, which is handled in our helper */
 	return trailer_set_where(opt->value, arg);
 }
 
-static int option_parse_if_exists(const struct option *opt,
-				  const char *arg, int unset UNUSED)
+static int option_parse_if_exists(const struct option *opt, const char *arg,
+				  int unset UNUSED)
 {
 	/* unset implies NULL arg, which is handled in our helper */
 	return trailer_set_if_exists(opt->value, arg);
 }
 
-static int option_parse_if_missing(const struct option *opt,
-				   const char *arg, int unset UNUSED)
+static int option_parse_if_missing(const struct option *opt, const char *arg,
+				   int unset UNUSED)
 {
 	/* unset implies NULL arg, which is handled in our helper */
 	return trailer_set_if_missing(opt->value, arg);
@@ -50,15 +50,15 @@ static void new_trailers_clear(struct list_head *trailers)
 	struct list_head *pos, *tmp;
 	struct new_trailer_item *item;
 
-	list_for_each_safe(pos, tmp, trailers) {
+	list_for_each_safe (pos, tmp, trailers) {
 		item = list_entry(pos, struct new_trailer_item, list);
 		list_del(pos);
 		free(item);
 	}
 }
 
-static int option_parse_trailer(const struct option *opt,
-				   const char *arg, int unset)
+static int option_parse_trailer(const struct option *opt, const char *arg,
+				int unset)
 {
 	struct list_head *trailers = opt->value;
 	struct new_trailer_item *item;
@@ -80,8 +80,7 @@ static int option_parse_trailer(const struct option *opt,
 	return 0;
 }
 
-static int parse_opt_parse(const struct option *opt, const char *arg,
-			   int unset)
+static int parse_opt_parse(const struct option *opt, const char *arg, int unset)
 {
 	struct process_trailer_options *v = opt->value;
 	v->only_trailers = 1;
@@ -160,12 +159,12 @@ static void interpret_trailers(const struct process_trailer_options *opts,
 	if (!opts->only_trailers && !info.blank_line_before_trailer)
 		fprintf(outfile, "\n");
 
-
 	if (!opts->only_input) {
 		LIST_HEAD(config_head);
 		LIST_HEAD(arg_head);
 		parse_trailers_from_config(&config_head);
-		parse_trailers_from_command_line_args(&arg_head, new_trailer_head);
+		parse_trailers_from_command_line_args(&arg_head,
+						      new_trailer_head);
 		list_splice(&config_head, &arg_head);
 		process_trailers_lists(&head, &arg_head);
 	}
@@ -178,12 +177,14 @@ static void interpret_trailers(const struct process_trailer_options *opts,
 
 	/* Print the lines after the trailers as is */
 	if (!opts->only_trailers)
-		fwrite(sb.buf + info.trailer_block_end, 1, sb.len - info.trailer_block_end, outfile);
+		fwrite(sb.buf + info.trailer_block_end, 1,
+		       sb.len - info.trailer_block_end, outfile);
 	trailer_info_release(&info);
 
 	if (opts->in_place)
 		if (rename_tempfile(&trailers_tempfile, file))
-			die_errno(_("could not rename temporary file to %s"), file);
+			die_errno(_("could not rename temporary file to %s"),
+				  file);
 
 	strbuf_release(&sb);
 }
@@ -194,24 +195,36 @@ int cmd_interpret_trailers(int argc, const char **argv, const char *prefix)
 	LIST_HEAD(trailers);
 
 	struct option options[] = {
-		OPT_BOOL(0, "in-place", &opts.in_place, N_("edit files in place")),
-		OPT_BOOL(0, "trim-empty", &opts.trim_empty, N_("trim empty trailers")),
+		OPT_BOOL(0, "in-place", &opts.in_place,
+			 N_("edit files in place")),
+		OPT_BOOL(0, "trim-empty", &opts.trim_empty,
+			 N_("trim empty trailers")),
 
 		OPT_CALLBACK(0, "where", &where, N_("placement"),
-			     N_("where to place the new trailer"), option_parse_where),
+			     N_("where to place the new trailer"),
+			     option_parse_where),
 		OPT_CALLBACK(0, "if-exists", &if_exists, N_("action"),
-			     N_("action if trailer already exists"), option_parse_if_exists),
+			     N_("action if trailer already exists"),
+			     option_parse_if_exists),
 		OPT_CALLBACK(0, "if-missing", &if_missing, N_("action"),
-			     N_("action if trailer is missing"), option_parse_if_missing),
+			     N_("action if trailer is missing"),
+			     option_parse_if_missing),
 
-		OPT_BOOL(0, "only-trailers", &opts.only_trailers, N_("output only the trailers")),
-		OPT_BOOL(0, "only-input", &opts.only_input, N_("do not apply trailer.* configuration variables")),
-		OPT_BOOL(0, "unfold", &opts.unfold, N_("reformat multiline trailer values as single-line values")),
-		OPT_CALLBACK_F(0, "parse", &opts, NULL, N_("alias for --only-trailers --only-input --unfold"),
+		OPT_BOOL(0, "only-trailers", &opts.only_trailers,
+			 N_("output only the trailers")),
+		OPT_BOOL(0, "only-input", &opts.only_input,
+			 N_("do not apply trailer.* configuration variables")),
+		OPT_BOOL(
+			0, "unfold", &opts.unfold,
+			N_("reformat multiline trailer values as single-line values")),
+		OPT_CALLBACK_F(
+			0, "parse", &opts, NULL,
+			N_("alias for --only-trailers --only-input --unfold"),
 			PARSE_OPT_NOARG | PARSE_OPT_NONEG, parse_opt_parse),
-		OPT_BOOL(0, "no-divider", &opts.no_divider, N_("do not treat \"---\" as the end of input")),
+		OPT_BOOL(0, "no-divider", &opts.no_divider,
+			 N_("do not treat \"---\" as the end of input")),
 		OPT_CALLBACK(0, "trailer", &trailers, N_("trailer"),
-				N_("trailer(s) to add"), option_parse_trailer),
+			     N_("trailer(s) to add"), option_parse_trailer),
 		OPT_END()
 	};
 
@@ -223,8 +236,7 @@ int cmd_interpret_trailers(int argc, const char **argv, const char *prefix)
 	if (opts.only_input && !list_empty(&trailers))
 		usage_msg_opt(
 			_("--trailer with --only-input does not make sense"),
-			git_interpret_trailers_usage,
-			options);
+			git_interpret_trailers_usage, options);
 
 	if (argc) {
 		int i;

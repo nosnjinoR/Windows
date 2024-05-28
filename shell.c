@@ -1,9 +1,9 @@
-#include "git-compat-util.h"
-#include "quote.h"
-#include "exec-cmd.h"
-#include "strbuf.h"
-#include "run-command.h"
-#include "alias.h"
+#include "components/git-compat-util.h"
+#include "components/quote.h"
+#include "components/exec-cmd.h"
+#include "components/strbuf.h"
+#include "components/run-command.h"
+#include "components/alias.h"
 
 #define COMMAND_DIR "git-shell-commands"
 #define HELP_COMMAND COMMAND_DIR "/help"
@@ -46,7 +46,7 @@ static void cd_to_homedir(void)
 		die("could not chdir to user's home directory");
 }
 
-#define MAX_INTERACTIVE_COMMAND (4*1024*1024)
+#define MAX_INTERACTIVE_COMMAND (4 * 1024 * 1024)
 
 static void run_shell(void)
 {
@@ -114,8 +114,8 @@ static void run_shell(void)
 		split_args = xstrdup(rawargs);
 		count = split_cmdline(split_args, &argv);
 		if (count < 0) {
-			fprintf(stderr, "invalid command format '%s': %s\n", rawargs,
-				split_cmdline_strerror(count));
+			fprintf(stderr, "invalid command format '%s': %s\n",
+				rawargs, split_cmdline_strerror(count));
 			free(split_args);
 			free(rawargs);
 			continue;
@@ -135,7 +135,8 @@ static void run_shell(void)
 			strvec_pushv(&cmd.args, argv);
 			code = run_command(&cmd);
 			if (code == -1 && errno == ENOENT) {
-				fprintf(stderr, "unrecognized command '%s'\n", prog);
+				fprintf(stderr, "unrecognized command '%s'\n",
+					prog);
 			}
 			free(full_cmd);
 		} else {
@@ -193,7 +194,7 @@ int cmd_main(int argc, const char **argv)
 		/* Accept "git foo" as if the caller said "git-foo". */
 		prog[3] = '-';
 
-	for (cmd = cmd_list ; cmd->name ; cmd++) {
+	for (cmd = cmd_list; cmd->name; cmd++) {
 		int len = strlen(cmd->name);
 		char *arg;
 		if (strncmp(cmd->name, prog, len))
@@ -218,7 +219,7 @@ int cmd_main(int argc, const char **argv)
 		if (is_valid_cmd_name(user_argv[0])) {
 			prog = make_cmd(user_argv[0]);
 			user_argv[0] = prog;
-			execv(user_argv[0], (char *const *) user_argv);
+			execv(user_argv[0], (char *const *)user_argv);
 		}
 		free(prog);
 		free(user_argv);

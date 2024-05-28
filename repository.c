@@ -3,22 +3,22 @@
  * declaration matches the definition in this file.
  */
 #define USE_THE_INDEX_VARIABLE
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "repository.h"
-#include "object-store-ll.h"
-#include "config.h"
-#include "object.h"
-#include "lockfile.h"
-#include "path.h"
-#include "read-cache-ll.h"
-#include "remote.h"
-#include "setup.h"
-#include "loose.h"
-#include "submodule-config.h"
-#include "sparse-index.h"
-#include "trace2.h"
-#include "promisor-remote.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/repository.h"
+#include "components/object-store-ll.h"
+#include "components/config.h"
+#include "components/object.h"
+#include "components/lockfile.h"
+#include "components/path.h"
+#include "components/read-cache-ll.h"
+#include "components/remote.h"
+#include "components/setup.h"
+#include "components/loose.h"
+#include "components/submodule-config.h"
+#include "components/sparse-index.h"
+#include "components/trace2.h"
+#include "components/promisor-remote.h"
 
 /* The main repository */
 static struct repository the_repo;
@@ -39,8 +39,8 @@ void initialize_the_repository(void)
 	repo_set_hash_algo(&the_repo, GIT_HASH_SHA1);
 }
 
-static void expand_base_dir(char **out, const char *in,
-			    const char *base_dir, const char *def_in)
+static void expand_base_dir(char **out, const char *in, const char *base_dir,
+			    const char *def_in)
 {
 	free(*out);
 	if (in)
@@ -49,8 +49,7 @@ static void expand_base_dir(char **out, const char *in,
 		*out = xstrfmt("%s/%s", base_dir, def_in);
 }
 
-static void repo_set_commondir(struct repository *repo,
-			       const char *commondir)
+static void repo_set_commondir(struct repository *repo, const char *commondir)
 {
 	struct strbuf sb = STRBUF_INIT;
 
@@ -66,8 +65,7 @@ static void repo_set_commondir(struct repository *repo,
 	repo->commondir = strbuf_detach(&sb, NULL);
 }
 
-void repo_set_gitdir(struct repository *repo,
-		     const char *root,
+void repo_set_gitdir(struct repository *repo, const char *root,
 		     const struct set_gitdir_args *o)
 {
 	const char *gitfile = read_gitfile(root);
@@ -94,10 +92,10 @@ void repo_set_gitdir(struct repository *repo,
 
 	free(repo->objects->alternate_db);
 	repo->objects->alternate_db = xstrdup_or_null(o->alternate_db);
-	expand_base_dir(&repo->graft_file, o->graft_file,
-			repo->commondir, "info/grafts");
-	expand_base_dir(&repo->index_file, o->index_file,
-			repo->gitdir, "index");
+	expand_base_dir(&repo->graft_file, o->graft_file, repo->commondir,
+			"info/grafts");
+	expand_base_dir(&repo->index_file, o->index_file, repo->gitdir,
+			"index");
 }
 
 void repo_set_hash_algo(struct repository *repo, int hash_algo)
@@ -181,9 +179,7 @@ static int read_and_verify_repository_format(struct repository_format *format,
  * Initialize 'repo' based on the provided 'gitdir'.
  * Return 0 upon success and a non-zero value upon failure.
  */
-int repo_init(struct repository *repo,
-	      const char *gitdir,
-	      const char *worktree)
+int repo_init(struct repository *repo, const char *gitdir, const char *worktree)
 {
 	struct repository_format format = REPOSITORY_FORMAT_INIT;
 	memset(repo, 0, sizeof(*repo));
@@ -222,8 +218,7 @@ error:
 }
 
 int repo_submodule_init(struct repository *subrepo,
-			struct repository *superproject,
-			const char *path,
+			struct repository *superproject, const char *path,
 			const struct object_id *treeish_name)
 {
 	struct strbuf gitdir = STRBUF_INIT;
@@ -257,10 +252,12 @@ int repo_submodule_init(struct repository *subrepo,
 		}
 	}
 
-	subrepo->submodule_prefix = xstrfmt("%s%s/",
-					    superproject->submodule_prefix ?
-					    superproject->submodule_prefix :
-					    "", path);
+	subrepo->submodule_prefix =
+		xstrfmt("%s%s/",
+			superproject->submodule_prefix ?
+				superproject->submodule_prefix :
+				"",
+			path);
 
 out:
 	strbuf_release(&gitdir);
@@ -354,8 +351,7 @@ int repo_read_index(struct repository *repo)
 	return res;
 }
 
-int repo_hold_locked_index(struct repository *repo,
-			   struct lock_file *lf,
+int repo_hold_locked_index(struct repository *repo, struct lock_file *lf,
 			   int flags)
 {
 	if (!repo->index_file)

@@ -5,18 +5,18 @@
  *
  * Based on git-verify-tag.sh
  */
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "tag.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "gpg-interface.h"
-#include "ref-filter.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/tag.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/gpg-interface.h"
+#include "components/ref-filter.h"
 
-static const char * const verify_tag_usage[] = {
-		N_("git verify-tag [-v | --verbose] [--format=<format>] [--raw] <tag>..."),
-		NULL
+static const char *const verify_tag_usage[] = {
+	N_("git verify-tag [-v | --verbose] [--format=<format>] [--raw] <tag>..."),
+	NULL
 };
 
 int cmd_verify_tag(int argc, const char **argv, const char *prefix)
@@ -26,8 +26,10 @@ int cmd_verify_tag(int argc, const char **argv, const char *prefix)
 	struct ref_format format = REF_FORMAT_INIT;
 	const struct option verify_tag_options[] = {
 		OPT__VERBOSE(&verbose, N_("print tag contents")),
-		OPT_BIT(0, "raw", &flags, N_("print raw gpg status output"), GPG_VERIFY_RAW),
-		OPT_STRING(0, "format", &format.format, N_("format"), N_("format to use for the output")),
+		OPT_BIT(0, "raw", &flags, N_("print raw gpg status output"),
+			GPG_VERIFY_RAW),
+		OPT_STRING(0, "format", &format.format, N_("format"),
+			   N_("format to use for the output")),
 		OPT_END()
 	};
 

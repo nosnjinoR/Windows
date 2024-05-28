@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "editor.h"
-#include "pager.h"
-#include "run-command.h"
-#include "sigchain.h"
-#include "alias.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/editor.h"
+#include "components/pager.h"
+#include "components/run-command.h"
+#include "components/sigchain.h"
+#include "components/alias.h"
 
 int pager_use_color = 1;
 
@@ -17,7 +17,6 @@ static const char *pager_program;
 
 /* Is the value coming back from term_columns() just a guess? */
 static int term_columns_guessed;
-
 
 static void close_pager_fds(void)
 {
@@ -83,7 +82,7 @@ static void setup_pager_env(struct strvec *env)
 
 	if (n < 0)
 		die("malformed build-time PAGER_ENV: %s",
-			split_cmdline_strerror(n));
+		    split_cmdline_strerror(n));
 
 	for (i = 0; i < n; i++) {
 		char *cp = strchr(argv[i], '=');

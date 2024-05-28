@@ -1,7 +1,7 @@
 #ifndef TEST_TOOL_H
 #define TEST_TOOL_H
 
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 
 int cmd__advise_if_enabled(int argc, const char **argv);
 int cmd__bitmap(int argc, const char **argv);
@@ -44,7 +44,7 @@ int cmd__online_cpus(int argc, const char **argv);
 int cmd__pack_mtimes(int argc, const char **argv);
 int cmd__parse_options(int argc, const char **argv);
 int cmd__parse_options_flags(int argc, const char **argv);
-int cmd__parse_pathspec_file(int argc, const char** argv);
+int cmd__parse_pathspec_file(int argc, const char **argv);
 int cmd__parse_subcommand(int argc, const char **argv);
 int cmd__partial_clone(int argc, const char **argv);
 int cmd__path_utils(int argc, const char **argv);

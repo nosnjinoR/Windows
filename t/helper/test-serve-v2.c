@@ -1,13 +1,11 @@
 #include "test-tool.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "serve.h"
-#include "setup.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/serve.h"
+#include "components/setup.h"
 
-static char const * const serve_usage[] = {
-	N_("test-tool serve-v2 [<options>]"),
-	NULL
-};
+static char const *const serve_usage[] = { N_("test-tool serve-v2 [<options>]"),
+					   NULL };
 
 int cmd__serve_v2(int argc, const char **argv)
 {
@@ -25,7 +23,7 @@ int cmd__serve_v2(int argc, const char **argv)
 	/* ignore all unknown cmdline switches for now */
 	argc = parse_options(argc, argv, prefix, options, serve_usage,
 			     PARSE_OPT_KEEP_DASHDASH |
-			     PARSE_OPT_KEEP_UNKNOWN_OPT);
+				     PARSE_OPT_KEEP_UNKNOWN_OPT);
 
 	if (advertise_capabilities)
 		protocol_v2_advertise_capabilities();

@@ -1,18 +1,17 @@
-#include "builtin.h"
-#include "config.h"
-#include "diff.h"
-#include "diff-merges.h"
-#include "commit.h"
-#include "preload-index.h"
-#include "repository.h"
-#include "revision.h"
-#include "setup.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/diff.h"
+#include "components/diff-merges.h"
+#include "components/commit.h"
+#include "components/preload-index.h"
+#include "components/repository.h"
+#include "components/revision.h"
+#include "components/setup.h"
 
 static const char diff_cache_usage[] =
-"git diff-index [-m] [--cached] [--merge-base] "
-"[<common-diff-options>] <tree-ish> [<path>...]"
-"\n"
-COMMON_DIFF_OPTIONS_HELP;
+	"git diff-index [-m] [--cached] [--merge-base] "
+	"[<common-diff-options>] <tree-ish> [<path>...]"
+	"\n" COMMON_DIFF_OPTIONS_HELP;
 
 int cmd_diff_index(int argc, const char **argv, const char *prefix)
 {
@@ -57,12 +56,13 @@ int cmd_diff_index(int argc, const char **argv, const char *prefix)
 	 * Make sure there is one revision (i.e. pending object),
 	 * and there is no revision filtering parameters.
 	 */
-	if (rev.pending.nr != 1 ||
-	    rev.max_count != -1 || rev.min_age != -1 || rev.max_age != -1)
+	if (rev.pending.nr != 1 || rev.max_count != -1 || rev.min_age != -1 ||
+	    rev.max_age != -1)
 		usage(diff_cache_usage);
 	if (!(option & DIFF_INDEX_CACHED)) {
 		setup_work_tree();
-		if (repo_read_index_preload(the_repository, &rev.diffopt.pathspec, 0) < 0) {
+		if (repo_read_index_preload(the_repository,
+					    &rev.diffopt.pathspec, 0) < 0) {
 			perror("repo_read_index_preload");
 			return -1;
 		}

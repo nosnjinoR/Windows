@@ -2,17 +2,16 @@
  * Copyright (C) 2005 Junio C Hamano
  * Copyright (C) 2010 Google Inc.
  */
-#include "git-compat-util.h"
-#include "diff.h"
-#include "diffcore.h"
-#include "xdiff-interface.h"
-#include "kwset.h"
-#include "oidset.h"
-#include "pretty.h"
-#include "quote.h"
+#include "components/git-compat-util.h"
+#include "components/diff.h"
+#include "components/diffcore.h"
+#include "components/xdiff-interface.h"
+#include "components/kwset.h"
+#include "components/oidset.h"
+#include "components/pretty.h"
+#include "components/quote.h"
 
-typedef int (*pickaxe_fn)(mmfile_t *one, mmfile_t *two,
-			  struct diff_options *o,
+typedef int (*pickaxe_fn)(mmfile_t *one, mmfile_t *two, struct diff_options *o,
 			  regex_t *regexp, kwset_t kws);
 
 struct diffgrep_cb {
@@ -29,16 +28,14 @@ static int diffgrep_consume(void *priv, char *line, unsigned long len)
 		return 0;
 	if (data->hit)
 		BUG("Already matched in diffgrep_consume! Broken xdiff_emit_line_fn?");
-	if (!regexec_buf(data->regexp, line + 1, len - 1, 1,
-			 &regmatch, 0)) {
+	if (!regexec_buf(data->regexp, line + 1, len - 1, 1, &regmatch, 0)) {
 		data->hit = 1;
 		return 1;
 	}
 	return 0;
 }
 
-static int diff_grep(mmfile_t *one, mmfile_t *two,
-		     struct diff_options *o,
+static int diff_grep(mmfile_t *one, mmfile_t *two, struct diff_options *o,
 		     regex_t *regexp, kwset_t kws UNUSED)
 {
 	struct diffgrep_cb ecbdata;
@@ -62,8 +59,8 @@ static int diff_grep(mmfile_t *one, mmfile_t *two,
 	 * An xdiff error might be our "data->hit" from above. See the
 	 * comment for xdiff_emit_line_fn in xdiff-interface.h
 	 */
-	ret = xdi_diff_outf(one, two, NULL, diffgrep_consume,
-			    &ecbdata, &xpp, &xecfg);
+	ret = xdi_diff_outf(one, two, NULL, diffgrep_consume, &ecbdata, &xpp,
+			    &xecfg);
 	if (ecbdata.hit)
 		return 1;
 	if (ret)
@@ -115,8 +112,8 @@ static unsigned int contains(mmfile_t *mf, regex_t *regexp, kwset_t kws,
 }
 
 static int has_changes(mmfile_t *one, mmfile_t *two,
-		       struct diff_options *o UNUSED,
-		       regex_t *regexp, kwset_t kws)
+		       struct diff_options *o UNUSED, regex_t *regexp,
+		       kwset_t kws)
 {
 	unsigned int c1 = one ? contains(one, regexp, kws, 0) : 0;
 	unsigned int c2 = two ? contains(two, regexp, kws, c1 + 1) : 0;
@@ -136,10 +133,10 @@ static int pickaxe_match(struct diff_filepair *p, struct diff_options *o,
 		return 0;
 
 	if (o->objfind) {
-		return  (DIFF_FILE_VALID(p->one) &&
-			 oidset_contains(o->objfind, &p->one->oid)) ||
-			(DIFF_FILE_VALID(p->two) &&
-			 oidset_contains(o->objfind, &p->two->oid));
+		return (DIFF_FILE_VALID(p->one) &&
+			oidset_contains(o->objfind, &p->one->oid)) ||
+		       (DIFF_FILE_VALID(p->two) &&
+			oidset_contains(o->objfind, &p->two->oid));
 	}
 
 	if (o->flags.allow_textconv) {
@@ -157,8 +154,7 @@ static int pickaxe_match(struct diff_filepair *p, struct diff_options *o,
 	if (textconv_one == textconv_two && diff_unmodified_pair(p))
 		return 0;
 
-	if ((o->pickaxe_opts & DIFF_PICKAXE_KIND_G) &&
-	    !o->flags.text &&
+	if ((o->pickaxe_opts & DIFF_PICKAXE_KIND_G) && !o->flags.text &&
 	    ((!textconv_one && diff_filespec_is_binary(o->repo, p->one)) ||
 	     (!textconv_two && diff_filespec_is_binary(o->repo, p->two))))
 		return 0;
@@ -235,8 +231,7 @@ void diffcore_pickaxe(struct diff_options *o)
 	kwset_t kws = NULL;
 	pickaxe_fn fn;
 
-	if (opts & ~DIFF_PICKAXE_KIND_OBJFIND &&
-	    (!needle || !*needle))
+	if (opts & ~DIFF_PICKAXE_KIND_OBJFIND && (!needle || !*needle))
 		BUG("should have needle under -G or -S");
 	if (opts & (DIFF_PICKAXE_REGEX | DIFF_PICKAXE_KIND_G)) {
 		int cflags = REG_EXTENDED | REG_NEWLINE;
@@ -269,8 +264,10 @@ void diffcore_pickaxe(struct diff_options *o)
 			strbuf_release(&sb);
 			regexp = &regex;
 		} else {
-			kws = kwsalloc(o->pickaxe_opts & DIFF_PICKAXE_IGNORE_CASE
-				       ? tolower_trans_tbl : NULL);
+			kws = kwsalloc(
+				o->pickaxe_opts & DIFF_PICKAXE_IGNORE_CASE ?
+					tolower_trans_tbl :
+					NULL);
 			kwsincr(kws, needle, strlen(needle));
 			kwsprep(kws);
 		}

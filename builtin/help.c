@@ -1,18 +1,18 @@
 /*
  * Builtin help command
  */
-#include "builtin.h"
-#include "config.h"
-#include "exec-cmd.h"
-#include "gettext.h"
-#include "pager.h"
-#include "parse-options.h"
-#include "path.h"
-#include "run-command.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/exec-cmd.h"
+#include "components/gettext.h"
+#include "components/pager.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/run-command.h"
 #include "config-list.h"
-#include "help.h"
-#include "alias.h"
-#include "setup.h"
+#include "components/help.h"
+#include "components/alias.h"
+#include "components/setup.h"
 
 #ifndef DEFAULT_HELP_FORMAT
 #define DEFAULT_HELP_FORMAT "man"
@@ -21,13 +21,13 @@
 static struct man_viewer_list {
 	struct man_viewer_list *next;
 	char name[FLEX_ARRAY];
-} *man_viewer_list;
+} * man_viewer_list;
 
 static struct man_viewer_info_list {
 	struct man_viewer_info_list *next;
 	const char *info;
 	char name[FLEX_ARRAY];
-} *man_viewer_info_list;
+} * man_viewer_info_list;
 
 enum help_format {
 	HELP_FORMAT_NONE,
@@ -64,33 +64,39 @@ static struct option builtin_help_options[] = {
 	OPT_BOOL(0, "external-commands", &show_external_commands,
 		 N_("show external commands in --all")),
 	OPT_BOOL(0, "aliases", &show_aliases, N_("show aliases in --all")),
-	OPT_HIDDEN_BOOL(0, "exclude-guides", &exclude_guides, N_("exclude guides")),
-	OPT_SET_INT('m', "man", &help_format, N_("show man page"), HELP_FORMAT_MAN),
+	OPT_HIDDEN_BOOL(0, "exclude-guides", &exclude_guides,
+			N_("exclude guides")),
+	OPT_SET_INT('m', "man", &help_format, N_("show man page"),
+		    HELP_FORMAT_MAN),
 	OPT_SET_INT('w', "web", &help_format, N_("show manual in web browser"),
-			HELP_FORMAT_WEB),
+		    HELP_FORMAT_WEB),
 	OPT_SET_INT('i', "info", &help_format, N_("show info page"),
-			HELP_FORMAT_INFO),
+		    HELP_FORMAT_INFO),
 	OPT__VERBOSE(&verbose, N_("print command description")),
 
 	OPT_CMDMODE('g', "guides", &cmd_mode, N_("print list of useful guides"),
 		    HELP_ACTION_GUIDES),
-	OPT_CMDMODE(0, "user-interfaces", &cmd_mode,
-		    N_("print list of user-facing repository, command and file interfaces"),
-		    HELP_ACTION_USER_INTERFACES),
-	OPT_CMDMODE(0, "developer-interfaces", &cmd_mode,
-		    N_("print list of file formats, protocols and other developer interfaces"),
-		    HELP_ACTION_DEVELOPER_INTERFACES),
-	OPT_CMDMODE('c', "config", &cmd_mode, N_("print all configuration variable names"),
+	OPT_CMDMODE(
+		0, "user-interfaces", &cmd_mode,
+		N_("print list of user-facing repository, command and file interfaces"),
+		HELP_ACTION_USER_INTERFACES),
+	OPT_CMDMODE(
+		0, "developer-interfaces", &cmd_mode,
+		N_("print list of file formats, protocols and other developer interfaces"),
+		HELP_ACTION_DEVELOPER_INTERFACES),
+	OPT_CMDMODE('c', "config", &cmd_mode,
+		    N_("print all configuration variable names"),
 		    HELP_ACTION_CONFIG),
 	OPT_CMDMODE_F(0, "config-for-completion", &cmd_mode, "",
-		    HELP_ACTION_CONFIG_FOR_COMPLETION, PARSE_OPT_HIDDEN),
+		      HELP_ACTION_CONFIG_FOR_COMPLETION, PARSE_OPT_HIDDEN),
 	OPT_CMDMODE_F(0, "config-sections-for-completion", &cmd_mode, "",
-		    HELP_ACTION_CONFIG_SECTIONS_FOR_COMPLETION, PARSE_OPT_HIDDEN),
+		      HELP_ACTION_CONFIG_SECTIONS_FOR_COMPLETION,
+		      PARSE_OPT_HIDDEN),
 
 	OPT_END(),
 };
 
-static const char * const builtin_help_usage[] = {
+static const char *const builtin_help_usage[] = {
 	"git help [-a|--all] [--[no-]verbose] [--[no-]external-commands] [--[no-]aliases]",
 	N_("git help [[-i|--info] [-m|--man] [-w|--web]] [<command>|<doc>]"),
 	"git help [-g|--guides]",
@@ -112,10 +118,12 @@ static void list_config_help(enum show_config_type type)
 	struct slot_expansion slot_expansions[] = {
 		{ "advice", "*", list_config_advices },
 		{ "color.branch", "<slot>", list_config_color_branch_slots },
-		{ "color.decorate", "<slot>", list_config_color_decorate_slots },
+		{ "color.decorate", "<slot>",
+		  list_config_color_decorate_slots },
 		{ "color.diff", "<slot>", list_config_color_diff_slots },
 		{ "color.grep", "<slot>", list_config_color_grep_slots },
-		{ "color.interactive", "<slot>", list_config_color_interactive_slots },
+		{ "color.interactive", "<slot>",
+		  list_config_color_interactive_slots },
 		{ "color.remote", "<slot>", list_config_color_sideband_slots },
 		{ "color.status", "<slot>", list_config_color_status_slots },
 		{ "fsck", "<msg-id>", list_config_fsck_msg_ids },
@@ -134,7 +142,6 @@ static void list_config_help(enum show_config_type type)
 		struct strbuf sb = STRBUF_INIT;
 
 		for (e = slot_expansions; e->prefix; e++) {
-
 			strbuf_reset(&sb);
 			strbuf_addf(&sb, "%s.%s", e->prefix, e->placeholder);
 			if (!strcasecmp(var, sb.buf)) {
@@ -150,8 +157,8 @@ static void list_config_help(enum show_config_type type)
 
 	for (e = slot_expansions; e->prefix; e++)
 		if (!e->found)
-			BUG("slot_expansion %s.%s is not used",
-			    e->prefix, e->placeholder);
+			BUG("slot_expansion %s.%s is not used", e->prefix,
+			    e->placeholder);
 
 	string_list_sort(&keys);
 	for (i = 0; i < keys.nr; i++) {
@@ -190,11 +197,10 @@ static void list_config_help(enum show_config_type type)
 		strbuf_add(&sb, var, cut - var);
 		string_list_append(&keys_uniq, sb.buf);
 		strbuf_release(&sb);
-
 	}
 	string_list_clear(&keys, 0);
 	string_list_remove_duplicates(&keys_uniq, 0);
-	for_each_string_list_item(item, &keys_uniq)
+	for_each_string_list_item (item, &keys_uniq)
 		puts(item->string);
 	string_list_clear(&keys_uniq, 0);
 }
@@ -218,8 +224,7 @@ static const char *get_man_viewer_info(const char *name)
 {
 	struct man_viewer_info_list *viewer;
 
-	for (viewer = man_viewer_info_list; viewer; viewer = viewer->next)
-	{
+	for (viewer = man_viewer_info_list; viewer; viewer = viewer->next) {
 		if (!strcasecmp(name, viewer->name))
 			return viewer->info;
 	}
@@ -259,7 +264,7 @@ static int check_emacsclient_version(void)
 	if (version < 22) {
 		strbuf_release(&buffer);
 		return error(_("emacsclient version '%d' too old (< 22)."),
-			version);
+			     version);
 	}
 
 	strbuf_release(&buffer);
@@ -292,7 +297,8 @@ static void exec_man_konqueror(const char *path, const char *page)
 		if (path) {
 			size_t len;
 			if (strip_suffix(path, "/konqueror", &len))
-				path = xstrfmt("%.*s/kfmclient", (int)len, path);
+				path = xstrfmt("%.*s/kfmclient", (int)len,
+					       path);
 			filename = basename((char *)path);
 		} else
 			path = "kfmclient";
@@ -336,8 +342,7 @@ static int supported_man_viewer(const char *name, size_t len)
 		!strncasecmp("konqueror", name, len));
 }
 
-static void do_add_man_viewer_info(const char *name,
-				   size_t len,
+static void do_add_man_viewer_info(const char *name, size_t len,
 				   const char *value)
 {
 	struct man_viewer_info_list *new_man_viewer;
@@ -347,9 +352,7 @@ static void do_add_man_viewer_info(const char *name,
 	man_viewer_info_list = new_man_viewer;
 }
 
-static int add_man_viewer_path(const char *name,
-			       size_t len,
-			       const char *value)
+static int add_man_viewer_path(const char *name, size_t len, const char *value)
 {
 	if (supported_man_viewer(name, len))
 		do_add_man_viewer_info(name, len, value);
@@ -361,9 +364,7 @@ static int add_man_viewer_path(const char *name,
 	return 0;
 }
 
-static int add_man_viewer_cmd(const char *name,
-			      size_t len,
-			      const char *value)
+static int add_man_viewer_cmd(const char *name, size_t len, const char *value)
 {
 	if (supported_man_viewer(name, len))
 		warning(_("'%s': cmd for supported man viewer.\n"
@@ -432,8 +433,7 @@ static int is_git_command(const char *s)
 		return 1;
 
 	load_command_list("git-", &main_cmds, &other_cmds);
-	return is_in_cmdlist(&main_cmds, s) ||
-		is_in_cmdlist(&other_cmds, s);
+	return is_in_cmdlist(&main_cmds, s) || is_in_cmdlist(&other_cmds, s);
 }
 
 static const char *cmd_to_page(const char *git_cmd)
@@ -493,8 +493,7 @@ static void show_man_page(const char *page)
 	const char *fallback = getenv("GIT_MAN_VIEWER");
 
 	setup_man_path();
-	for (viewer = man_viewer_list; viewer; viewer = viewer->next)
-	{
+	for (viewer = man_viewer_list; viewer; viewer = viewer->next) {
 		exec_viewer(viewer->name, page); /* will return when unable */
 	}
 	if (fallback)
@@ -522,10 +521,10 @@ static void get_html_page_path(struct strbuf *page_path, const char *page)
 	 * Check that the page we're looking for exists.
 	 */
 	if (!strstr(html_path, "://")) {
-		if (stat(mkpath("%s/%s.html", html_path, page), &st)
-		    || !S_ISREG(st.st_mode))
+		if (stat(mkpath("%s/%s.html", html_path, page), &st) ||
+		    !S_ISREG(st.st_mode))
 			die("'%s/%s.html': documentation file not found.",
-				html_path, page);
+			    html_path, page);
 	}
 
 	strbuf_init(page_path, 0);
@@ -547,7 +546,7 @@ static void show_html_page(const char *page)
 	open_html(page_path.buf);
 }
 
-static const char *check_git_cmd(const char* cmd)
+static const char *check_git_cmd(const char *cmd)
 {
 	char *alias;
 
@@ -620,13 +619,12 @@ static void no_help_format(const char *opt_mode, enum help_format fmt)
 		       opt_fmt);
 }
 
-static void opt_mode_usage(int argc, const char *opt_mode,
-			   enum help_format fmt)
+static void opt_mode_usage(int argc, const char *opt_mode, enum help_format fmt)
 {
 	if (argc)
-		usage_msg_optf(_("the '%s' option doesn't take any non-option arguments"),
-			       builtin_help_usage, builtin_help_options,
-			       opt_mode);
+		usage_msg_optf(
+			_("the '%s' option doesn't take any non-option arguments"),
+			builtin_help_usage, builtin_help_options, opt_mode);
 
 	no_help_format(opt_mode, fmt);
 }
@@ -638,14 +636,14 @@ int cmd_help(int argc, const char **argv, const char *prefix)
 	const char *page;
 
 	argc = parse_options(argc, argv, prefix, builtin_help_options,
-			builtin_help_usage, 0);
+			     builtin_help_usage, 0);
 	parsed_help_format = help_format;
 
 	if (cmd_mode != HELP_ACTION_ALL &&
-	    (show_external_commands >= 0 ||
-	     show_aliases >= 0))
-		usage_msg_opt(_("the '--no-[external-commands|aliases]' options can only be used with '--all'"),
-			      builtin_help_usage, builtin_help_options);
+	    (show_external_commands >= 0 || show_aliases >= 0))
+		usage_msg_opt(
+			_("the '--no-[external-commands|aliases]' options can only be used with '--all'"),
+			builtin_help_usage, builtin_help_options);
 
 	switch (cmd_mode) {
 	case HELP_ACTION_ALL:

@@ -1,20 +1,20 @@
 /*
  * Copyright (C) 2008 Linus Torvalds
  */
-#include "git-compat-util.h"
-#include "pathspec.h"
-#include "dir.h"
-#include "environment.h"
-#include "fsmonitor.h"
-#include "gettext.h"
-#include "parse.h"
-#include "preload-index.h"
-#include "progress.h"
-#include "read-cache.h"
-#include "thread-utils.h"
-#include "repository.h"
-#include "symlinks.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/pathspec.h"
+#include "components/dir.h"
+#include "components/environment.h"
+#include "components/fsmonitor.h"
+#include "components/gettext.h"
+#include "components/parse.h"
+#include "components/preload-index.h"
+#include "components/progress.h"
+#include "components/read-cache.h"
+#include "components/thread-utils.h"
+#include "components/repository.h"
+#include "components/symlinks.h"
+#include "components/trace2.h"
 
 static struct fscache *fscache;
 
@@ -81,12 +81,15 @@ static void *preload_thread(void *_data)
 		}
 		if (!ce_path_match(index, ce, &p->pathspec, NULL))
 			continue;
-		if (threaded_has_symlink_leading_path(&cache, ce->name, ce_namelen(ce)))
+		if (threaded_has_symlink_leading_path(&cache, ce->name,
+						      ce_namelen(ce)))
 			continue;
 		p->t2_nr_lstat++;
 		if (lstat(ce->name, &st))
 			continue;
-		if (ie_match_stat(index, ce, &st, CE_MATCH_RACY_IS_DIRTY|CE_MATCH_IGNORE_FSMONITOR))
+		if (ie_match_stat(index, ce, &st,
+				  CE_MATCH_RACY_IS_DIRTY |
+					  CE_MATCH_IGNORE_FSMONITOR))
 			continue;
 		ce_mark_uptodate(ce);
 		mark_fsmonitor_valid(index, ce);
@@ -103,8 +106,7 @@ static void *preload_thread(void *_data)
 	return NULL;
 }
 
-void preload_index(struct index_state *index,
-		   const struct pathspec *pathspec,
+void preload_index(struct index_state *index, const struct pathspec *pathspec,
 		   unsigned int refresh_flags)
 {
 	int threads, i, work, offset;
@@ -117,7 +119,8 @@ void preload_index(struct index_state *index,
 
 	fscache = getcache_fscache();
 	threads = index->cache_nr / THREAD_COST;
-	if ((index->cache_nr > 1) && (threads < 2) && git_env_bool("GIT_TEST_PRELOAD_INDEX", 0))
+	if ((index->cache_nr > 1) && (threads < 2) &&
+	    git_env_bool("GIT_TEST_PRELOAD_INDEX", 0))
 		threads = 2;
 	if (threads < 2)
 		return;
@@ -133,12 +136,13 @@ void preload_index(struct index_state *index,
 
 	memset(&pd, 0, sizeof(pd));
 	if (refresh_flags & REFRESH_PROGRESS && isatty(2)) {
-		pd.progress = start_delayed_progress(_("Refreshing index"), index->cache_nr);
+		pd.progress = start_delayed_progress(_("Refreshing index"),
+						     index->cache_nr);
 		pthread_mutex_init(&pd.mutex, NULL);
 	}
 
 	for (i = 0; i < threads; i++) {
-		struct thread_data *p = data+i;
+		struct thread_data *p = data + i;
 		int err;
 
 		p->index = index;
@@ -152,10 +156,11 @@ void preload_index(struct index_state *index,
 		err = pthread_create(&p->pthread, NULL, preload_thread, p);
 
 		if (err)
-			die(_("unable to create threaded lstat: %s"), strerror(err));
+			die(_("unable to create threaded lstat: %s"),
+			    strerror(err));
 	}
 	for (i = 0; i < threads; i++) {
-		struct thread_data *p = data+i;
+		struct thread_data *p = data + i;
 		if (pthread_join(p->pthread, NULL))
 			die("unable to join threaded lstat");
 		t2_sum_lstat += p->t2_nr_lstat;

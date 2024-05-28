@@ -1,12 +1,12 @@
-#include "../../git-compat-util.h"
-#include "../../hashmap.h"
+#include "components/git-compat-util.h"
+#include "components/hashmap.h"
 #include "../win32.h"
 #include "fscache.h"
-#include "../../dir.h"
-#include "../../abspath.h"
-#include "../../trace.h"
-#include "config.h"
-#include "../../mem-pool.h"
+#include "components/dir.h"
+#include "components/abspath.h"
+#include "components/trace.h"
+#include "components/config.h"
+#include "components/mem-pool.h"
 #include "ntifs.h"
 #include "wsl.h"
 
@@ -88,9 +88,8 @@ struct heap_fsentry {
 /*
  * Compares the paths of two fsentry structures for equality.
  */
-static int fsentry_cmp(void *unused_cmp_data,
-		       const struct fsentry *fse1, const struct fsentry *fse2,
-		       void *unused_keydata)
+static int fsentry_cmp(void *unused_cmp_data, const struct fsentry *fse1,
+		       const struct fsentry *fse2, void *unused_keydata)
 {
 	int res;
 	if (fse1 == fse2)
@@ -99,7 +98,7 @@ static int fsentry_cmp(void *unused_cmp_data,
 	/* compare the list parts first */
 	if (fse1->list != fse2->list &&
 	    (res = fsentry_cmp(NULL, fse1->list ? fse1->list : fse1,
-			       fse2->list ? fse2->list	: fse2, NULL)))
+			       fse2->list ? fse2->list : fse2, NULL)))
 		return res;
 
 	/* if list parts are equal, compare len and name */
@@ -125,8 +124,8 @@ static void fsentry_init(struct fsentry *fse, struct fsentry *list,
 {
 	fse->list = list;
 	if (len > MAX_LONG_PATH)
-		BUG("Trying to allocate fsentry for long path '%.*s'",
-		    (int)len, name);
+		BUG("Trying to allocate fsentry for long path '%.*s'", (int)len,
+		    name);
 	memcpy(fse->dirent.d_name, name, len);
 	fse->dirent.d_name[len] = 0;
 	fse->len = len;
@@ -136,8 +135,9 @@ static void fsentry_init(struct fsentry *fse, struct fsentry *list,
 /*
  * Allocate an fsentry structure on the heap.
  */
-static struct fsentry *fsentry_alloc(struct fscache *cache, struct fsentry *list, const char *name,
-		size_t len)
+static struct fsentry *fsentry_alloc(struct fscache *cache,
+				     struct fsentry *list, const char *name,
+				     size_t len)
 {
 	/* overallocate fsentry and copy the name to the end */
 	struct fsentry *fse =
@@ -177,7 +177,8 @@ static int xwcstoutfn(char *utf, int utflen, const wchar_t *wcs, int wcslen)
 		errno = EINVAL;
 		return -1;
 	}
-	utflen = WideCharToMultiByte(CP_UTF8, 0, wcs, wcslen, utf, utflen, NULL, NULL);
+	utflen = WideCharToMultiByte(CP_UTF8, 0, wcs, wcslen, utf, utflen, NULL,
+				     NULL);
 	if (utflen)
 		return utflen;
 	errno = ERANGE;
@@ -185,7 +186,8 @@ static int xwcstoutfn(char *utf, int utflen, const wchar_t *wcs, int wcslen)
 }
 
 /*
- * Allocate and initialize an fsentry from a FILE_FULL_DIR_INFORMATION structure.
+ * Allocate and initialize an fsentry from a FILE_FULL_DIR_INFORMATION
+ * structure.
  */
 static struct fsentry *fseentry_create_entry(struct fscache *cache,
 					     struct fsentry *list,
@@ -195,19 +197,21 @@ static struct fsentry *fseentry_create_entry(struct fscache *cache,
 	int len;
 	struct fsentry *fse;
 
-	len = xwcstoutfn(buf, ARRAY_SIZE(buf), fdata->FileName, fdata->FileNameLength / sizeof(wchar_t));
+	len = xwcstoutfn(buf, ARRAY_SIZE(buf), fdata->FileName,
+			 fdata->FileNameLength / sizeof(wchar_t));
 
 	fse = fsentry_alloc(cache, list, buf, len);
 
-	fse->reparse_tag =
-		fdata->FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT ?
-		fdata->EaSize : 0;
+	fse->reparse_tag = fdata->FileAttributes &
+					   FILE_ATTRIBUTE_REPARSE_POINT ?
+				   fdata->EaSize :
+				   0;
 
 	/*
 	 * On certain Windows versions, host directories mapped into
-	 * Windows Containers ("Volumes", see https://docs.docker.com/storage/volumes/)
-	 * look like symbolic links, but their targets are paths that
-	 * are valid only in kernel mode.
+	 * Windows Containers ("Volumes", see
+	 * https://docs.docker.com/storage/volumes/) look like symbolic links,
+	 * but their targets are paths that are valid only in kernel mode.
 	 *
 	 * Let's work around this by detecting that situation and
 	 * telling Git that these are *not* symbolic links.
@@ -225,13 +229,16 @@ static struct fsentry *fseentry_create_entry(struct fscache *cache,
 		buf[off + fse->len] = '\0';
 	}
 
-	fse->st_mode = file_attr_to_st_mode(fdata->FileAttributes,
-					    fdata->EaSize, buf);
+	fse->st_mode =
+		file_attr_to_st_mode(fdata->FileAttributes, fdata->EaSize, buf);
 	fse->dirent.d_type = S_ISREG(fse->st_mode) ? DT_REG :
-			S_ISDIR(fse->st_mode) ? DT_DIR : DT_LNK;
-	fse->u.s.st_size = S_ISLNK(fse->st_mode) ? MAX_LONG_PATH :
+			     S_ISDIR(fse->st_mode) ? DT_DIR :
+						     DT_LNK;
+	fse->u.s.st_size =
+		S_ISLNK(fse->st_mode) ?
+			MAX_LONG_PATH :
 			fdata->EndOfFile.LowPart |
-			(((off_t)fdata->EndOfFile.HighPart) << 32);
+				(((off_t)fdata->EndOfFile.HighPart) << 32);
 	filetime_to_timespec((FILETIME *)&(fdata->LastAccessTime),
 			     &(fse->u.s.st_atim));
 	filetime_to_timespec((FILETIME *)&(fdata->LastWriteTime),
@@ -239,7 +246,8 @@ static struct fsentry *fseentry_create_entry(struct fscache *cache,
 	filetime_to_timespec((FILETIME *)&(fdata->CreationTime),
 			     &(fse->u.s.st_ctim));
 	if (fdata->EaSize > 0 && are_wsl_compatible_mode_bits_enabled()) {
-		copy_wsl_mode_bits_from_disk(fdata->FileName,
+		copy_wsl_mode_bits_from_disk(
+			fdata->FileName,
 			fdata->FileNameLength / sizeof(wchar_t), &fse->st_mode);
 	}
 
@@ -251,7 +259,8 @@ static struct fsentry *fseentry_create_entry(struct fscache *cache,
  * Dir should not contain trailing '/'. Use an empty string for the current
  * directory (not "."!).
  */
-static struct fsentry *fsentry_create_list(struct fscache *cache, const struct fsentry *dir,
+static struct fsentry *fsentry_create_list(struct fscache *cache,
+					   const struct fsentry *dir,
 					   int *dir_not_found)
 {
 	wchar_t pattern[MAX_LONG_PATH];
@@ -275,20 +284,22 @@ static struct fsentry *fsentry_create_list(struct fscache *cache, const struct f
 	if (!wlen) {
 		wlen = GetCurrentDirectoryW(ARRAY_SIZE(pattern), pattern);
 		if (!wlen || wlen >= ARRAY_SIZE(pattern)) {
-			errno = wlen ? ENAMETOOLONG : err_win_to_posix(GetLastError());
+			errno = wlen ? ENAMETOOLONG :
+				       err_win_to_posix(GetLastError());
 			return NULL;
 		}
 	}
 
 	h = CreateFileW(pattern, FILE_LIST_DIRECTORY,
-		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (h == INVALID_HANDLE_VALUE) {
 		err = GetLastError();
 		*dir_not_found = 1; /* or empty directory */
-		errno = (err == ERROR_DIRECTORY) ? ENOTDIR : err_win_to_posix(err);
+		errno = (err == ERROR_DIRECTORY) ? ENOTDIR :
+						   err_win_to_posix(err);
 		trace_printf_key(&trace_fscache, "fscache: error(%d) '%s'\n",
-						 errno, dir->dirent.d_name);
+				 errno, dir->dirent.d_name);
 		return NULL;
 	}
 
@@ -300,14 +311,16 @@ static struct fsentry *fsentry_create_list(struct fscache *cache, const struct f
 	/* walk directory and build linked list of fsentry structures */
 	phead = &list->next;
 	status = NtQueryDirectoryFile(h, NULL, 0, 0, &iosb, cache->buffer,
-		sizeof(cache->buffer), FileFullDirectoryInformation, FALSE, NULL, FALSE);
+				      sizeof(cache->buffer),
+				      FileFullDirectoryInformation, FALSE, NULL,
+				      FALSE);
 	if (!NT_SUCCESS(status)) {
 		/*
 		 * NtQueryDirectoryFile returns STATUS_INVALID_PARAMETER when
 		 * asked to enumerate an invalid directory (ie it is a file
 		 * instead of a directory).  Verify that is the actual cause
 		 * of the error.
-		*/
+		 */
 		if (status == STATUS_INVALID_PARAMETER) {
 			DWORD attributes = GetFileAttributesW(pattern);
 			if (!(attributes & FILE_ATTRIBUTE_DIRECTORY))
@@ -317,14 +330,17 @@ static struct fsentry *fsentry_create_list(struct fscache *cache, const struct f
 	}
 	di = (PFILE_FULL_DIR_INFORMATION)(cache->buffer);
 	for (;;) {
-
 		*phead = fseentry_create_entry(cache, list, di);
 		phead = &(*phead)->next;
 
-		/* If there is no offset in the entry, the buffer has been exhausted. */
+		/* If there is no offset in the entry, the buffer has been
+		 * exhausted. */
 		if (di->NextEntryOffset == 0) {
-			status = NtQueryDirectoryFile(h, NULL, 0, 0, &iosb, cache->buffer,
-				sizeof(cache->buffer), FileFullDirectoryInformation, FALSE, NULL, FALSE);
+			status = NtQueryDirectoryFile(
+				h, NULL, 0, 0, &iosb, cache->buffer,
+				sizeof(cache->buffer),
+				FileFullDirectoryInformation, FALSE, NULL,
+				FALSE);
 			if (!NT_SUCCESS(status)) {
 				if (status == STATUS_NO_MORE_FILES)
 					break;
@@ -336,7 +352,8 @@ static struct fsentry *fsentry_create_list(struct fscache *cache, const struct f
 		}
 
 		/* Advance to the next entry. */
-		di = (PFILE_FULL_DIR_INFORMATION)(((PUCHAR)di) + di->NextEntryOffset);
+		di = (PFILE_FULL_DIR_INFORMATION)(((PUCHAR)di) +
+						  di->NextEntryOffset);
 	}
 
 	CloseHandle(h);
@@ -345,7 +362,8 @@ static struct fsentry *fsentry_create_list(struct fscache *cache, const struct f
 Error:
 	trace_printf_key(&trace_fscache,
 			 "fscache: status(%ld) unable to query directory "
-			 "contents '%s'\n", status, dir->dirent.d_name);
+			 "contents '%s'\n",
+			 status, dir->dirent.d_name);
 	CloseHandle(h);
 	fsentry_release(list);
 	return NULL;
@@ -423,7 +441,8 @@ static struct fsentry *fscache_get(struct fscache *cache, struct fsentry *key)
 	}
 
 	/* create the directory listing */
-	fse = fsentry_create_list(cache, key->list ? key->list : key, &dir_not_found);
+	fse = fsentry_create_list(cache, key->list ? key->list : key,
+				  &dir_not_found);
 
 	/* leave on error (errno set by fsentry_create_list) */
 	if (!fse) {
@@ -513,7 +532,8 @@ int fscache_enable(size_t initial_size)
 		 * avoid having to rehash by leaving room for the parent dirs.
 		 * '4' was determined empirically by testing several repos
 		 */
-		hashmap_init(&cache->map, (hashmap_cmp_fn)fsentry_cmp, NULL, initial_size * 4);
+		hashmap_init(&cache->map, (hashmap_cmp_fn)fsentry_cmp, NULL,
+			     initial_size * 4);
 		mem_pool_init(&cache->mem_pool, 0);
 		if (!TlsSetValue(dwTlsIndex, cache))
 			BUG("TlsSetValue error");
@@ -542,10 +562,12 @@ void fscache_disable(void)
 	cache->enabled--;
 	if (!cache->enabled) {
 		TlsSetValue(dwTlsIndex, NULL);
-		trace_printf_key(&trace_fscache, "fscache_disable: lstat %u, opendir %u, "
-			"total requests/misses %u/%u\n",
-			cache->lstat_requests, cache->opendir_requests,
-			cache->fscache_requests, cache->fscache_misses);
+		trace_printf_key(&trace_fscache,
+				 "fscache_disable: lstat %u, opendir %u, "
+				 "total requests/misses %u/%u\n",
+				 cache->lstat_requests, cache->opendir_requests,
+				 cache->fscache_requests,
+				 cache->fscache_misses);
 		mem_pool_discard(&cache->mem_pool, 0);
 		hashmap_clear(&cache->map);
 		free(cache);
@@ -667,7 +689,8 @@ int fscache_is_mount_point(struct strbuf *path)
 
 	/* lookup entry for path + name in cache */
 	fsentry_init(&key[0].u.ent, NULL, path->buf, dirlen);
-	fsentry_init(&key[1].u.ent, &key[0].u.ent, path->buf + base, len - base);
+	fsentry_init(&key[1].u.ent, &key[0].u.ent, path->buf + base,
+		     len - base);
 	fse = fscache_get(cache, &key[1].u.ent);
 	if (!fse)
 		return mingw_is_mount_point(path);
@@ -685,7 +708,7 @@ typedef struct fscache_DIR {
  */
 static struct dirent *fscache_readdir(DIR *base_dir)
 {
-	fscache_DIR *dir = (fscache_DIR*) base_dir;
+	fscache_DIR *dir = (fscache_DIR *)base_dir;
 	struct fsentry *next = dir->pfsentry->next;
 	if (!next)
 		return NULL;
@@ -699,7 +722,7 @@ static struct dirent *fscache_readdir(DIR *base_dir)
  */
 static int fscache_closedir(DIR *base_dir)
 {
-	fscache_DIR *dir = (fscache_DIR*) base_dir;
+	fscache_DIR *dir = (fscache_DIR *)base_dir;
 	fsentry_release(dir->pfsentry);
 	free(dir);
 	return 0;
@@ -734,11 +757,11 @@ DIR *fscache_opendir(const char *dirname)
 		return NULL;
 
 	/* alloc and return DIR structure */
-	dir = (fscache_DIR*) xmalloc(sizeof(fscache_DIR));
+	dir = (fscache_DIR *)xmalloc(sizeof(fscache_DIR));
 	dir->base_dir.preaddir = fscache_readdir;
 	dir->base_dir.pclosedir = fscache_closedir;
 	dir->pfsentry = list;
-	return (DIR*) dir;
+	return (DIR *)dir;
 }
 
 struct fscache *fscache_getcache(void)
@@ -764,10 +787,11 @@ void fscache_merge(struct fscache *dest)
 		BUG("fscache_merge() called on a thread where fscache has not been initialized");
 
 	TlsSetValue(dwTlsIndex, NULL);
-	trace_printf_key(&trace_fscache, "fscache_merge: lstat %u, opendir %u, "
-		"total requests/misses %u/%u\n",
-		cache->lstat_requests, cache->opendir_requests,
-		cache->fscache_requests, cache->fscache_misses);
+	trace_printf_key(&trace_fscache,
+			 "fscache_merge: lstat %u, opendir %u, "
+			 "total requests/misses %u/%u\n",
+			 cache->lstat_requests, cache->opendir_requests,
+			 cache->fscache_requests, cache->fscache_misses);
 
 	/*
 	 * This is only safe because the primary thread we're merging into
@@ -790,5 +814,4 @@ void fscache_merge(struct fscache *dest)
 	LeaveCriticalSection(&fscache_cs);
 
 	free(cache);
-
 }

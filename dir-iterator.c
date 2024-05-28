@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
-#include "dir.h"
-#include "iterator.h"
-#include "dir-iterator.h"
-#include "string-list.h"
+#include "components/git-compat-util.h"
+#include "components/dir.h"
+#include "components/iterator.h"
+#include "components/dir-iterator.h"
+#include "components/string-list.h"
 
 struct dir_iterator_level {
 	DIR *dir;
@@ -52,8 +52,7 @@ struct dir_iterator_int {
 	unsigned int flags;
 };
 
-static int next_directory_entry(DIR *dir, const char *path,
-				struct dirent **out)
+static int next_directory_entry(DIR *dir, const char *path, struct dirent **out)
 {
 	struct dirent *de;
 
@@ -62,8 +61,7 @@ repeat:
 	de = readdir(dir);
 	if (!de) {
 		if (errno) {
-			warning_errno("error reading directory '%s'",
-				      path);
+			warning_errno("error reading directory '%s'", path);
 			return -1;
 		}
 
@@ -117,7 +115,8 @@ static int push_level(struct dir_iterator_int *iter)
 		struct dirent *de;
 
 		while (1) {
-			int ret = next_directory_entry(level->dir, iter->base.path.buf, &de);
+			int ret = next_directory_entry(
+				level->dir, iter->base.path.buf, &de);
 			if (ret < 0) {
 				if (errno != ENOENT &&
 				    iter->flags & DIR_ITERATOR_PEDANTIC)
@@ -144,8 +143,7 @@ static int push_level(struct dir_iterator_int *iter)
  */
 static int pop_level(struct dir_iterator_int *iter)
 {
-	struct dir_iterator_level *level =
-		&iter->levels[iter->levels_nr - 1];
+	struct dir_iterator_level *level = &iter->levels[iter->levels_nr - 1];
 
 	if (level->dir && closedir(level->dir))
 		warning_errno("error closing directory '%s'",
@@ -171,8 +169,8 @@ static int prepare_next_entry_data(struct dir_iterator_int *iter,
 	 * We have to reset these because the path strbuf might have
 	 * been realloc()ed at the previous strbuf_addstr().
 	 */
-	iter->base.relative_path = iter->base.path.buf +
-				   iter->levels[0].prefix_len;
+	iter->base.relative_path =
+		iter->base.path.buf + iter->levels[0].prefix_len;
 	iter->base.basename = iter->base.path.buf +
 			      iter->levels[iter->levels_nr - 1].prefix_len;
 
@@ -188,8 +186,7 @@ static int prepare_next_entry_data(struct dir_iterator_int *iter,
 
 int dir_iterator_advance(struct dir_iterator *dir_iterator)
 {
-	struct dir_iterator_int *iter =
-		(struct dir_iterator_int *)dir_iterator;
+	struct dir_iterator_int *iter = (struct dir_iterator_int *)dir_iterator;
 
 	if (S_ISDIR(iter->base.st.st_mode) && push_level(iter)) {
 		if (errno != ENOENT && iter->flags & DIR_ITERATOR_PEDANTIC)
@@ -208,7 +205,8 @@ int dir_iterator_advance(struct dir_iterator *dir_iterator)
 		strbuf_setlen(&iter->base.path, level->prefix_len);
 
 		if (level->dir) {
-			int ret = next_directory_entry(level->dir, iter->base.path.buf, &de);
+			int ret = next_directory_entry(
+				level->dir, iter->base.path.buf, &de);
 			if (ret < 0) {
 				if (iter->flags & DIR_ITERATOR_PEDANTIC)
 					goto error_out;
@@ -231,7 +229,8 @@ int dir_iterator_advance(struct dir_iterator *dir_iterator)
 		}
 
 		if (prepare_next_entry_data(iter, name)) {
-			if (errno != ENOENT && iter->flags & DIR_ITERATOR_PEDANTIC)
+			if (errno != ENOENT &&
+			    iter->flags & DIR_ITERATOR_PEDANTIC)
 				goto error_out;
 			continue;
 		}

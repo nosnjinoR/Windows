@@ -1,10 +1,9 @@
-#include "git-compat-util.h"
-#include "credential.h"
-#include "builtin.h"
-#include "config.h"
+#include "components/git-compat-util.h"
+#include "components/credential.h"
+#include "components/builtin.h"
+#include "components/config.h"
 
-static const char usage_msg[] =
-	"git credential (fill|approve|reject)";
+static const char usage_msg[] = "git credential (fill|approve|reject)";
 
 int cmd_credential(int argc, const char **argv, const char *prefix UNUSED)
 {

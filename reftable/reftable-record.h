@@ -9,7 +9,7 @@ https://developers.google.com/open-source/licenses/bsd
 #ifndef REFTABLE_RECORD_H
 #define REFTABLE_RECORD_H
 
-#include "hash-ll.h"
+#include "components/hash-ll.h"
 #include <stdint.h>
 
 /*
@@ -43,7 +43,8 @@ struct reftable_ref_record {
 		unsigned char val1[GIT_MAX_RAWSZ];
 		struct {
 			unsigned char value[GIT_MAX_RAWSZ]; /* first hash  */
-			unsigned char target_value[GIT_MAX_RAWSZ]; /* second hash */
+			unsigned char target_value[GIT_MAX_RAWSZ]; /* second
+								      hash */
 		} val2;
 		char *symref; /* referent, malloced 0-terminated string */
 	} value;
@@ -51,11 +52,13 @@ struct reftable_ref_record {
 
 /* Returns the first hash, or NULL if `rec` is not of type
  * REFTABLE_REF_VAL1 or REFTABLE_REF_VAL2. */
-const unsigned char *reftable_ref_record_val1(const struct reftable_ref_record *rec);
+const unsigned char *
+reftable_ref_record_val1(const struct reftable_ref_record *rec);
 
 /* Returns the second hash, or NULL if `rec` is not of type
  * REFTABLE_REF_VAL2. */
-const unsigned char *reftable_ref_record_val2(const struct reftable_ref_record *rec);
+const unsigned char *
+reftable_ref_record_val2(const struct reftable_ref_record *rec);
 
 /* returns whether 'ref' represents a deletion */
 int reftable_ref_record_is_deletion(const struct reftable_ref_record *ref);
@@ -69,7 +72,8 @@ void reftable_ref_record_release(struct reftable_ref_record *ref);
 
 /* returns whether two reftable_ref_records are the same. Useful for testing. */
 int reftable_ref_record_equal(const struct reftable_ref_record *a,
-			      const struct reftable_ref_record *b, int hash_size);
+			      const struct reftable_ref_record *b,
+			      int hash_size);
 
 /* reftable_log_record holds a reflog entry */
 struct reftable_log_record {
@@ -109,7 +113,8 @@ void reftable_log_record_release(struct reftable_log_record *log);
 
 /* returns whether two records are equal. Useful for testing. */
 int reftable_log_record_equal(const struct reftable_log_record *a,
-			      const struct reftable_log_record *b, int hash_size);
+			      const struct reftable_log_record *b,
+			      int hash_size);
 
 /* dumps a reftable_log_record on stdout, for debugging/testing. */
 void reftable_log_record_print(struct reftable_log_record *log,

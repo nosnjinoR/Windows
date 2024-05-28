@@ -1,15 +1,15 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "repository.h"
-#include "string-list.h"
-#include "rerere.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/repository.h"
+#include "components/string-list.h"
+#include "components/rerere.h"
 #include "xdiff/xdiff.h"
-#include "xdiff-interface.h"
-#include "pathspec.h"
+#include "components/xdiff-interface.h"
+#include "components/pathspec.h"
 
-static const char * const rerere_usage[] = {
+static const char *const rerere_usage[] = {
 	N_("git rerere [clear | forget <pathspec>... | diff | status | remaining | gc]"),
 	NULL,
 };
@@ -23,8 +23,8 @@ static int outf(void *dummy UNUSED, mmbuffer_t *ptr, int nbuf)
 	return 0;
 }
 
-static int diff_two(const char *file1, const char *label1,
-		const char *file2, const char *label2)
+static int diff_two(const char *file1, const char *label1, const char *file2,
+		    const char *label2)
 {
 	xpparam_t xpp;
 	xdemitconf_t xecfg;
@@ -55,7 +55,7 @@ int cmd_rerere(int argc, const char **argv, const char *prefix)
 
 	struct option options[] = {
 		OPT_SET_INT(0, "rerere-autoupdate", &autoupdate,
-			N_("register clean resolutions in index"), 1),
+			    N_("register clean resolutions in index"), 1),
 		OPT_END(),
 	};
 
@@ -74,9 +74,10 @@ int cmd_rerere(int argc, const char **argv, const char *prefix)
 	if (!strcmp(argv[0], "forget")) {
 		struct pathspec pathspec;
 		if (argc < 2)
-			warning(_("'git rerere forget' without paths is deprecated"));
-		parse_pathspec(&pathspec, 0, PATHSPEC_PREFER_CWD,
-			       prefix, argv + 1);
+			warning(_(
+				"'git rerere forget' without paths is deprecated"));
+		parse_pathspec(&pathspec, 0, PATHSPEC_PREFER_CWD, prefix,
+			       argv + 1);
 		return rerere_forget(the_repository, &pathspec);
 	}
 
@@ -107,8 +108,10 @@ int cmd_rerere(int argc, const char **argv, const char *prefix)
 		for (i = 0; i < merge_rr.nr; i++) {
 			const char *path = merge_rr.items[i].string;
 			const struct rerere_id *id = merge_rr.items[i].util;
-			if (diff_two(rerere_path(id, "preimage"), path, path, path))
-				die(_("unable to generate diff for '%s'"), rerere_path(id, NULL));
+			if (diff_two(rerere_path(id, "preimage"), path, path,
+				     path))
+				die(_("unable to generate diff for '%s'"),
+				    rerere_path(id, NULL));
 		}
 	} else
 		usage_with_options(rerere_usage, options);

@@ -4,17 +4,17 @@
  * Copyright (c) 2006 Junio C Hamano
  */
 
-#include "builtin.h"
-#include "config.h"
-#include "dir.h"
-#include "environment.h"
-#include "gettext.h"
-#include "path.h"
-#include "repository.h"
-#include "parse-options.h"
-#include "quote.h"
-#include "packfile.h"
-#include "object-store-ll.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/dir.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/path.h"
+#include "components/repository.h"
+#include "components/parse-options.h"
+#include "components/quote.h"
+#include "components/packfile.h"
+#include "components/object-store-ll.h"
 
 static unsigned long garbage;
 static off_t size_garbage;
@@ -33,7 +33,7 @@ static const char *bits_to_msg(unsigned seen_bits)
 		return "no corresponding .idx";
 	case PACKDIR_FILE_IDX:
 		return "no corresponding .pack";
-	case PACKDIR_FILE_PACK|PACKDIR_FILE_IDX:
+	case PACKDIR_FILE_PACK | PACKDIR_FILE_IDX:
 	default:
 		return NULL;
 	}
@@ -90,9 +90,8 @@ static int print_alternate(struct object_directory *odb, void *data UNUSED)
 	return 0;
 }
 
-static char const * const count_objects_usage[] = {
-	"git count-objects [-v] [-H | --human-readable]",
-	NULL
+static char const *const count_objects_usage[] = {
+	"git count-objects [-v] [-H | --human-readable]", NULL
 };
 
 int cmd_count_objects(int argc, const char **argv, const char *prefix)
@@ -116,8 +115,8 @@ int cmd_count_objects(int argc, const char **argv, const char *prefix)
 		report_linked_checkout_garbage();
 	}
 
-	for_each_loose_file_in_objdir(get_object_directory(),
-				      count_loose, count_cruft, NULL, NULL);
+	for_each_loose_file_in_objdir(get_object_directory(), count_loose,
+				      count_cruft, NULL, NULL);
 
 	if (verbose) {
 		struct packed_git *p;

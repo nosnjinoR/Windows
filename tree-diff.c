@@ -1,13 +1,13 @@
 /*
  * Helper functions for tree diff generation
  */
-#include "git-compat-util.h"
-#include "diff.h"
-#include "diffcore.h"
-#include "hash.h"
-#include "tree.h"
-#include "tree-walk.h"
-#include "environment.h"
+#include "components/git-compat-util.h"
+#include "components/diff.h"
+#include "components/diffcore.h"
+#include "components/hash.h"
+#include "components/tree.h"
+#include "components/tree-walk.h"
+#include "components/environment.h"
 
 /*
  * Some mode bits are also used internally for computations.
@@ -20,7 +20,7 @@
  *   codebase mode is `unsigned int` which is assumed to be at least 32 bits )
  */
 
-#define S_DIFFTREE_IFXMIN_NEQ	0x80000000
+#define S_DIFFTREE_IFXMIN_NEQ 0x80000000
 
 /*
  * internal mode marker, saying a tree entry != entry of tp[imin]
@@ -28,26 +28,27 @@
  *
  * we will update/use/emit entry for diff only with it unset.
  */
-#define S_IFXMIN_NEQ	S_DIFFTREE_IFXMIN_NEQ
+#define S_IFXMIN_NEQ S_DIFFTREE_IFXMIN_NEQ
 
-#define FAST_ARRAY_ALLOC(x, nr) do { \
-	if ((nr) <= 2) \
-		(x) = xalloca((nr) * sizeof(*(x))); \
-	else \
-		ALLOC_ARRAY((x), nr); \
-} while(0)
-#define FAST_ARRAY_FREE(x, nr) do { \
-	if ((nr) <= 2) \
-		xalloca_free((x)); \
-	else \
-		free((x)); \
-} while(0)
+#define FAST_ARRAY_ALLOC(x, nr)                             \
+	do {                                                \
+		if ((nr) <= 2)                              \
+			(x) = xalloca((nr) * sizeof(*(x))); \
+		else                                        \
+			ALLOC_ARRAY((x), nr);               \
+	} while (0)
+#define FAST_ARRAY_FREE(x, nr)             \
+	do {                               \
+		if ((nr) <= 2)             \
+			xalloca_free((x)); \
+		else                       \
+			free((x));         \
+	} while (0)
 
-static struct combine_diff_path *ll_diff_tree_paths(
-	struct combine_diff_path *p, const struct object_id *oid,
-	const struct object_id **parents_oid, int nparent,
-	struct strbuf *base, struct diff_options *opt,
-	int depth);
+static struct combine_diff_path *
+ll_diff_tree_paths(struct combine_diff_path *p, const struct object_id *oid,
+		   const struct object_id **parents_oid, int nparent,
+		   struct strbuf *base, struct diff_options *opt, int depth);
 static void ll_diff_tree_oid(const struct object_id *old_oid,
 			     const struct object_id *new_oid,
 			     struct strbuf *base, struct diff_options *opt);
@@ -83,21 +84,20 @@ static int tree_entry_pathcmp(struct tree_desc *t1, struct tree_desc *t2)
 	return cmp;
 }
 
-
 /*
  * convert path -> opt->diff_*() callbacks
  *
  * emits diff to first parent only, and tells diff tree-walker that we are done
  * with p and it can be freed.
  */
-static int emit_diff_first_parent_only(struct diff_options *opt, struct combine_diff_path *p)
+static int emit_diff_first_parent_only(struct diff_options *opt,
+				       struct combine_diff_path *p)
 {
 	struct combine_diff_parent *p0 = &p->parent[0];
 	if (p->mode && p0->mode) {
-		opt->change(opt, p0->mode, p->mode, &p0->oid, &p->oid,
-			1, 1, p->path, 0, 0);
-	}
-	else {
+		opt->change(opt, p0->mode, p->mode, &p0->oid, &p->oid, 1, 1,
+			    p->path, 0, 0);
+	} else {
 		const struct object_id *oid;
 		unsigned int mode;
 		int addremove;
@@ -115,9 +115,8 @@ static int emit_diff_first_parent_only(struct diff_options *opt, struct combine_
 		opt->add_remove(opt, addremove, mode, oid, 1, p->path, 0);
 	}
 
-	return 0;	/* we are done with p */
+	return 0; /* we are done with p */
 }
-
 
 /*
  * Make a new combine_diff_path from path/mode/sha1
@@ -149,15 +148,17 @@ static int emit_diff_first_parent_only(struct diff_options *opt, struct combine_
  *
  * p->parent[] remains uninitialized.
  */
-static struct combine_diff_path *path_appendnew(struct combine_diff_path *last,
-	int nparent, const struct strbuf *base, const char *path, int pathlen,
-	unsigned mode, const struct object_id *oid)
+static struct combine_diff_path *
+path_appendnew(struct combine_diff_path *last, int nparent,
+	       const struct strbuf *base, const char *path, int pathlen,
+	       unsigned mode, const struct object_id *oid)
 {
 	struct combine_diff_path *p;
 	size_t len = st_add(base->len, pathlen);
 	size_t alloclen = combine_diff_path_size(nparent, len);
 
-	/* if last->next is !NULL - it is a pre-allocated memory, we can reuse */
+	/* if last->next is !NULL - it is a pre-allocated memory, we can reuse
+	 */
 	p = last->next;
 	if (p && (alloclen > (intptr_t)p->next)) {
 		FREE_AND_NULL(p);
@@ -168,7 +169,8 @@ static struct combine_diff_path *path_appendnew(struct combine_diff_path *last,
 
 		/*
 		 * until we go to it next round, .next holds how many bytes we
-		 * allocated (for faster realloc - we don't need copying old data).
+		 * allocated (for faster realloc - we don't need copying old
+		 * data).
 		 */
 		p->next = (struct combine_diff_path *)(intptr_t)alloclen;
 	}
@@ -195,10 +197,10 @@ static struct combine_diff_path *path_appendnew(struct combine_diff_path *last,
  *	 t,  tp		-> path modified/added
  *			   (M for tp[i]=tp[imin], A otherwise)
  */
-static struct combine_diff_path *emit_path(struct combine_diff_path *p,
-	struct strbuf *base, struct diff_options *opt, int nparent,
-	struct tree_desc *t, struct tree_desc *tp,
-	int imin, int depth)
+static struct combine_diff_path *
+emit_path(struct combine_diff_path *p, struct strbuf *base,
+	  struct diff_options *opt, int nparent, struct tree_desc *t,
+	  struct tree_desc *tp, int imin, int depth)
 {
 	unsigned short mode;
 	const char *path;
@@ -246,22 +248,20 @@ static struct combine_diff_path *emit_path(struct combine_diff_path *p,
 			 * tp[i] is valid, if present and if tp[i]==tp[imin] -
 			 * otherwise, we should ignore it.
 			 */
-			int tpi_valid = tp && !(tp[i].entry.mode & S_IFXMIN_NEQ);
+			int tpi_valid = tp &&
+					!(tp[i].entry.mode & S_IFXMIN_NEQ);
 
 			const struct object_id *oid_i;
 			unsigned mode_i;
 
-			p->parent[i].status =
-				!t ? DIFF_STATUS_DELETED :
-					tpi_valid ?
-						DIFF_STATUS_MODIFIED :
-						DIFF_STATUS_ADDED;
+			p->parent[i].status = !t	? DIFF_STATUS_DELETED :
+					      tpi_valid ? DIFF_STATUS_MODIFIED :
+							  DIFF_STATUS_ADDED;
 
 			if (tpi_valid) {
 				oid_i = &tp[i].entry.oid;
 				mode_i = tp[i].entry.mode;
-			}
-			else {
+			} else {
 				oid_i = null_oid();
 				mode_i = 0;
 			}
@@ -297,7 +297,8 @@ static struct combine_diff_path *emit_path(struct combine_diff_path *p,
 		FAST_ARRAY_ALLOC(parents_oid, nparent);
 		for (i = 0; i < nparent; ++i) {
 			/* same rule as in emitthis */
-			int tpi_valid = tp && !(tp[i].entry.mode & S_IFXMIN_NEQ);
+			int tpi_valid = tp &&
+					!(tp[i].entry.mode & S_IFXMIN_NEQ);
 
 			parents_oid[i] = tpi_valid ? &tp[i].entry.oid : NULL;
 		}
@@ -329,7 +330,6 @@ static void skip_uninteresting(struct tree_desc *t, struct strbuf *base,
 		update_tree_entry(t);
 	}
 }
-
 
 /*
  * generate paths for combined diff D(sha1,parents_oid[])
@@ -377,13 +377,14 @@ static void skip_uninteresting(struct tree_desc *t, struct strbuf *base,
  *
  * 2)  t > p[imin]
  *
- *     2.1) ∃j: pj > p[imin]  ->  "-p[imin]" ∉ D(T,Pj)  ->  D += ø;  ∀ pi=p[imin]  pi↓
- *     2.2) ∀i  pi = p[imin]  ->  pi ∉ T  ->  "-pi" ∈ D(T,Pi)  ->  D += "-p[imin]";  ∀i pi↓
+ *     2.1) ∃j: pj > p[imin]  ->  "-p[imin]" ∉ D(T,Pj)  ->  D += ø;  ∀
+ *pi=p[imin]  pi↓ 2.2) ∀i  pi = p[imin]  ->  pi ∉ T  ->  "-pi" ∈ D(T,Pi)  ->  D
+ *+= "-p[imin]";  ∀i pi↓
  *
  * 3)  t = p[imin]
  *
- *     3.1) ∃j: pj > p[imin]  ->  "+t" ∈ D(T,Pj)  ->  only pi=p[imin] remains to investigate
- *     3.2) pi = p[imin]  ->  investigate δ(t,pi)
+ *     3.1) ∃j: pj > p[imin]  ->  "+t" ∈ D(T,Pj)  ->  only pi=p[imin] remains to
+ *investigate 3.2) pi = p[imin]  ->  investigate δ(t,pi)
  *      |
  *      |
  *      v
@@ -413,7 +414,6 @@ static void skip_uninteresting(struct tree_desc *t, struct strbuf *base,
  *	nparent must be > 0.
  */
 
-
 /* ∀ pi=p[imin]  pi↓ */
 static inline void update_tp_entries(struct tree_desc *tp, int nparent)
 {
@@ -423,11 +423,10 @@ static inline void update_tp_entries(struct tree_desc *tp, int nparent)
 			update_tree_entry(&tp[i]);
 }
 
-static struct combine_diff_path *ll_diff_tree_paths(
-	struct combine_diff_path *p, const struct object_id *oid,
-	const struct object_id **parents_oid, int nparent,
-	struct strbuf *base, struct diff_options *opt,
-	int depth)
+static struct combine_diff_path *
+ll_diff_tree_paths(struct combine_diff_path *p, const struct object_id *oid,
+		   const struct object_id **parents_oid, int nparent,
+		   struct strbuf *base, struct diff_options *opt, int depth)
 {
 	struct tree_desc t, *tp;
 	void *ttree, **tptree;
@@ -446,7 +445,8 @@ static struct combine_diff_path *ll_diff_tree_paths(
 	 *   diff_tree_oid(parent, commit) )
 	 */
 	for (i = 0; i < nparent; ++i)
-		tptree[i] = fill_tree_descriptor(opt->repo, &tp[i], parents_oid[i]);
+		tptree[i] =
+			fill_tree_descriptor(opt->repo, &tp[i], parents_oid[i]);
 	ttree = fill_tree_descriptor(opt->repo, &t, oid);
 
 	/* Enable recursion indefinitely */
@@ -491,20 +491,16 @@ static struct combine_diff_path *ll_diff_tree_paths(
 			if (cmp < 0) {
 				imin = i;
 				tp[i].entry.mode &= ~S_IFXMIN_NEQ;
-			}
-			else if (cmp == 0) {
+			} else if (cmp == 0) {
 				tp[i].entry.mode &= ~S_IFXMIN_NEQ;
-			}
-			else {
+			} else {
 				tp[i].entry.mode |= S_IFXMIN_NEQ;
 			}
 		}
 
 		/* fixup markings for entries before imin */
 		for (i = 0; i < imin; ++i)
-			tp[i].entry.mode |= S_IFXMIN_NEQ;	/* pi > p[imin] */
-
-
+			tp[i].entry.mode |= S_IFXMIN_NEQ; /* pi > p[imin] */
 
 		/* compare t vs p[imin] */
 		cmp = tree_entry_pathcmp(&t, &tp[imin]);
@@ -519,7 +515,8 @@ static struct combine_diff_path *ll_diff_tree_paths(
 						continue;
 
 					/* diff(t,pi) != ø */
-					if (!oideq(&t.entry.oid, &tp[i].entry.oid) ||
+					if (!oideq(&t.entry.oid,
+						   &tp[i].entry.oid) ||
 					    (t.entry.mode != tp[i].entry.mode))
 						continue;
 
@@ -527,9 +524,10 @@ static struct combine_diff_path *ll_diff_tree_paths(
 				}
 			}
 
-			/* D += {δ(t,pi) if pi=p[imin];  "+a" if pi > p[imin]} */
-			p = emit_path(p, base, opt, nparent,
-					&t, tp, imin, depth);
+			/* D += {δ(t,pi) if pi=p[imin];  "+a" if pi > p[imin]}
+			 */
+			p = emit_path(p, base, opt, nparent, &t, tp, imin,
+				      depth);
 
 		skip_emit_t_tp:
 			/* t↓,  ∀ pi=p[imin]  pi↓ */
@@ -540,8 +538,8 @@ static struct combine_diff_path *ll_diff_tree_paths(
 		/* t < p[imin] */
 		else if (cmp < 0) {
 			/* D += "+t" */
-			p = emit_path(p, base, opt, nparent,
-					&t, /*tp=*/NULL, -1, depth);
+			p = emit_path(p, base, opt, nparent, &t, /*tp=*/NULL,
+				      -1, depth);
 
 			/* t↓ */
 			update_tree_entry(&t);
@@ -557,7 +555,7 @@ static struct combine_diff_path *ll_diff_tree_paths(
 			}
 
 			p = emit_path(p, base, opt, nparent,
-					/*t=*/NULL, tp, imin, depth);
+				      /*t=*/NULL, tp, imin, depth);
 
 		skip_emit_tp:
 			/* ∀ pi=p[imin]  pi↓ */
@@ -566,7 +564,7 @@ static struct combine_diff_path *ll_diff_tree_paths(
 	}
 
 	free(ttree);
-	for (i = nparent-1; i >= 0; i--)
+	for (i = nparent - 1; i >= 0; i--)
 		free(tptree[i]);
 	FAST_ARRAY_FREE(tptree, nparent);
 	FAST_ARRAY_FREE(tp, nparent);
@@ -574,10 +572,11 @@ static struct combine_diff_path *ll_diff_tree_paths(
 	return p;
 }
 
-struct combine_diff_path *diff_tree_paths(
-	struct combine_diff_path *p, const struct object_id *oid,
-	const struct object_id **parents_oid, int nparent,
-	struct strbuf *base, struct diff_options *opt)
+struct combine_diff_path *diff_tree_paths(struct combine_diff_path *p,
+					  const struct object_id *oid,
+					  const struct object_id **parents_oid,
+					  int nparent, struct strbuf *base,
+					  struct diff_options *opt)
 {
 	p = ll_diff_tree_paths(p, oid, parents_oid, nparent, base, opt, 0);
 
@@ -598,7 +597,7 @@ struct combine_diff_path *diff_tree_paths(
 static inline int diff_might_be_rename(void)
 {
 	return diff_queued_diff.nr == 1 &&
-		!DIFF_FILE_VALID(diff_queued_diff.queue[0]->one);
+	       !DIFF_FILE_VALID(diff_queued_diff.queue[0]->one);
 }
 
 static void try_to_follow_renames(const struct object_id *old_oid,
@@ -628,7 +627,8 @@ static void try_to_follow_renames(const struct object_id *old_oid,
 		BUG("wildcards are not supported");
 #endif
 
-	/* Remove the file creation entry from the diff queue, and remember it */
+	/* Remove the file creation entry from the diff queue, and remember it
+	 */
 	choice = q->queue[0];
 	q->nr = 0;
 
@@ -644,7 +644,8 @@ static void try_to_follow_renames(const struct object_id *old_oid,
 	diffcore_std(&diff_opts);
 	clear_pathspec(&diff_opts.pathspec);
 
-	/* Go through the new set of filepairing, and see if we find a more interesting one */
+	/* Go through the new set of filepairing, and see if we find a more
+	 * interesting one */
 	opt->found_follow = 0;
 	for (i = 0; i < q->nr; i++) {
 		struct diff_filepair *p = q->queue[i];
@@ -720,8 +721,8 @@ static void ll_diff_tree_oid(const struct object_id *old_oid,
 }
 
 void diff_tree_oid(const struct object_id *old_oid,
-		   const struct object_id *new_oid,
-		   const char *base_str, struct diff_options *opt)
+		   const struct object_id *new_oid, const char *base_str,
+		   struct diff_options *opt)
 {
 	struct strbuf base;
 
@@ -735,8 +736,7 @@ void diff_tree_oid(const struct object_id *old_oid,
 	strbuf_release(&base);
 }
 
-void diff_root_tree_oid(const struct object_id *new_oid,
-			const char *base,
+void diff_root_tree_oid(const struct object_id *new_oid, const char *base,
 			struct diff_options *opt)
 {
 	diff_tree_oid(NULL, new_oid, base, opt);

@@ -1,12 +1,12 @@
 #include "test-tool.h"
-#include "hex.h"
-#include "midx.h"
-#include "repository.h"
-#include "object-store-ll.h"
-#include "pack-bitmap.h"
-#include "packfile.h"
-#include "setup.h"
-#include "gettext.h"
+#include "components/hex.h"
+#include "components/midx.h"
+#include "components/repository.h"
+#include "components/object-store-ll.h"
+#include "components/pack-bitmap.h"
+#include "components/packfile.h"
+#include "components/setup.h"
+#include "components/gettext.h"
 
 static int read_midx_file(const char *object_dir, int show_objects)
 {
@@ -19,12 +19,8 @@ static int read_midx_file(const char *object_dir, int show_objects)
 	if (!m)
 		return 1;
 
-	printf("header: %08x %d %d %d %d\n",
-	       m->signature,
-	       m->version,
-	       m->hash_len,
-	       m->num_chunks,
-	       m->num_packs);
+	printf("header: %08x %d %d %d %d\n", m->signature, m->version,
+	       m->hash_len, m->num_chunks, m->num_packs);
 
 	printf("chunks:");
 
@@ -55,8 +51,8 @@ static int read_midx_file(const char *object_dir, int show_objects)
 			nth_midxed_object_oid(&oid, m, i);
 			fill_midx_entry(the_repository, &oid, &e, m);
 
-			printf("%s %"PRIu64"\t%s\n",
-			       oid_to_hex(&oid), e.offset, e.p->pack_name);
+			printf("%s %" PRIu64 "\t%s\n", oid_to_hex(&oid),
+			       e.offset, e.p->pack_name);
 		}
 	}
 
@@ -114,8 +110,10 @@ static int read_midx_bitmapped_packs(const char *object_dir)
 			return 1;
 
 		printf("%s\n", pack_basename(pack.p));
-		printf("  bitmap_pos: %"PRIuMAX"\n", (uintmax_t)pack.bitmap_pos);
-		printf("  bitmap_nr: %"PRIuMAX"\n", (uintmax_t)pack.bitmap_nr);
+		printf("  bitmap_pos: %" PRIuMAX "\n",
+		       (uintmax_t)pack.bitmap_pos);
+		printf("  bitmap_nr: %" PRIuMAX "\n",
+		       (uintmax_t)pack.bitmap_nr);
 	}
 
 	close_midx(midx);

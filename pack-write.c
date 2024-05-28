@@ -1,16 +1,16 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hex.h"
-#include "pack.h"
-#include "csum-file.h"
-#include "remote.h"
-#include "chunk-format.h"
-#include "pack-mtimes.h"
-#include "pack-objects.h"
-#include "pack-revindex.h"
-#include "path.h"
-#include "strbuf.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/pack.h"
+#include "components/csum-file.h"
+#include "components/remote.h"
+#include "components/chunk-format.h"
+#include "components/pack-mtimes.h"
+#include "components/pack-objects.h"
+#include "components/pack-revindex.h"
+#include "components/path.h"
+#include "components/strbuf.h"
 
 void reset_pack_idx_option(struct pack_idx_option *opts)
 {
@@ -51,8 +51,9 @@ static int need_large_offset(off_t offset, const struct pack_idx_option *opts)
  * The *sha1 contains the pack content SHA1 hash.
  * The objects array passed in will be sorted by SHA1 on exit.
  */
-const char *write_idx_file(const char *index_name, struct pack_idx_entry **objects,
-			   int nr_objects, const struct pack_idx_option *opts,
+const char *write_idx_file(const char *index_name,
+			   struct pack_idx_entry **objects, int nr_objects,
+			   const struct pack_idx_option *opts,
 			   const unsigned char *sha1)
 {
 	struct hashfile *f;
@@ -70,8 +71,7 @@ const char *write_idx_file(const char *index_name, struct pack_idx_entry **objec
 				last_obj_offset = objects[i]->offset;
 		}
 		QSORT(sorted_by_sha, nr_objects, sha1_compare);
-	}
-	else
+	} else
 		sorted_by_sha = list = last = NULL;
 
 	if (opts->flags & WRITE_IDX_VERIFY) {
@@ -84,13 +84,15 @@ const char *write_idx_file(const char *index_name, struct pack_idx_entry **objec
 			index_name = strbuf_detach(&tmp_file, NULL);
 		} else {
 			unlink(index_name);
-			fd = xopen(index_name, O_CREAT|O_EXCL|O_WRONLY, 0600);
+			fd = xopen(index_name, O_CREAT | O_EXCL | O_WRONLY,
+				   0600);
 		}
 		f = hashfd(fd, index_name);
 	}
 
 	/* if last object's offset is >= 2^31 we should use index V2 */
-	index_version = need_large_offset(last_obj_offset, opts) ? 2 : opts->version;
+	index_version =
+		need_large_offset(last_obj_offset, opts) ? 2 : opts->version;
 
 	/* index versions 2 and above need a header */
 	if (index_version >= 2) {
@@ -148,9 +150,9 @@ const char *write_idx_file(const char *index_name, struct pack_idx_entry **objec
 			struct pack_idx_entry *obj = *list++;
 			uint32_t offset;
 
-			offset = (need_large_offset(obj->offset, opts)
-				  ? (0x80000000 | nr_large_offset++)
-				  : obj->offset);
+			offset = (need_large_offset(obj->offset, opts) ?
+					  (0x80000000 | nr_large_offset++) :
+					  obj->offset);
 			hashwrite_be32(f, offset);
 		}
 
@@ -168,9 +170,10 @@ const char *write_idx_file(const char *index_name, struct pack_idx_entry **objec
 	}
 
 	hashwrite(f, sha1, the_hash_algo->rawsz);
-	finalize_hashfile(f, NULL, FSYNC_COMPONENT_PACK_METADATA,
-			  CSUM_HASH_IN_STREAM | CSUM_CLOSE |
-			  ((opts->flags & WRITE_IDX_VERIFY) ? 0 : CSUM_FSYNC));
+	finalize_hashfile(
+		f, NULL, FSYNC_COMPONENT_PACK_METADATA,
+		CSUM_HASH_IN_STREAM | CSUM_CLOSE |
+			((opts->flags & WRITE_IDX_VERIFY) ? 0 : CSUM_FSYNC));
 	return index_name;
 }
 
@@ -178,8 +181,8 @@ static int pack_order_cmp(const void *va, const void *vb, void *ctx)
 {
 	struct pack_idx_entry **objects = ctx;
 
-	off_t oa = objects[*(uint32_t*)va]->offset;
-	off_t ob = objects[*(uint32_t*)vb]->offset;
+	off_t oa = objects[*(uint32_t *)va]->offset;
+	off_t ob = objects[*(uint32_t *)vb]->offset;
 
 	if (oa < ob)
 		return -1;
@@ -195,8 +198,7 @@ static void write_rev_header(struct hashfile *f)
 	hashwrite_be32(f, oid_version(the_hash_algo));
 }
 
-static void write_rev_index_positions(struct hashfile *f,
-				      uint32_t *pack_order,
+static void write_rev_index_positions(struct hashfile *f, uint32_t *pack_order,
 				      uint32_t nr_objects)
 {
 	uint32_t i;
@@ -210,10 +212,8 @@ static void write_rev_trailer(struct hashfile *f, const unsigned char *hash)
 }
 
 const char *write_rev_file(const char *rev_name,
-			   struct pack_idx_entry **objects,
-			   uint32_t nr_objects,
-			   const unsigned char *hash,
-			   unsigned flags)
+			   struct pack_idx_entry **objects, uint32_t nr_objects,
+			   const unsigned char *hash, unsigned flags)
 {
 	uint32_t *pack_order;
 	uint32_t i;
@@ -235,10 +235,8 @@ const char *write_rev_file(const char *rev_name,
 	return ret;
 }
 
-const char *write_rev_file_order(const char *rev_name,
-				 uint32_t *pack_order,
-				 uint32_t nr_objects,
-				 const unsigned char *hash,
+const char *write_rev_file_order(const char *rev_name, uint32_t *pack_order,
+				 uint32_t nr_objects, const unsigned char *hash,
 				 unsigned flags)
 {
 	struct hashfile *f;
@@ -254,7 +252,7 @@ const char *write_rev_file_order(const char *rev_name,
 			rev_name = strbuf_detach(&tmp_file, NULL);
 		} else {
 			unlink(rev_name);
-			fd = xopen(rev_name, O_CREAT|O_EXCL|O_WRONLY, 0600);
+			fd = xopen(rev_name, O_CREAT | O_EXCL | O_WRONLY, 0600);
 		}
 		f = hashfd(fd, rev_name);
 	} else if (flags & WRITE_REV_VERIFY) {
@@ -280,7 +278,8 @@ const char *write_rev_file_order(const char *rev_name,
 
 	finalize_hashfile(f, NULL, FSYNC_COMPONENT_PACK_METADATA,
 			  CSUM_HASH_IN_STREAM | CSUM_CLOSE |
-			  ((flags & WRITE_IDX_VERIFY) ? 0 : CSUM_FSYNC));
+				  ((flags & WRITE_IDX_VERIFY) ? 0 :
+								CSUM_FSYNC));
 
 	return rev_name;
 }
@@ -304,7 +303,7 @@ static void write_mtimes_objects(struct hashfile *f,
 {
 	uint32_t i;
 	for (i = 0; i < nr_objects; i++) {
-		struct object_entry *e = (struct object_entry*)objects[i];
+		struct object_entry *e = (struct object_entry *)objects[i];
 		hashwrite_be32(f, oe_cruft_mtime(to_pack, e));
 	}
 }
@@ -316,8 +315,7 @@ static void write_mtimes_trailer(struct hashfile *f, const unsigned char *hash)
 
 static char *write_mtimes_file(struct packing_data *to_pack,
 			       struct pack_idx_entry **objects,
-			       uint32_t nr_objects,
-			       const unsigned char *hash)
+			       uint32_t nr_objects, const unsigned char *hash)
 {
 	struct strbuf tmp_file = STRBUF_INIT;
 	char *mtimes_name;
@@ -371,12 +369,10 @@ off_t write_pack_header(struct hashfile *f, uint32_t nr_entries)
  * partial_pack_sha1 can refer to the same buffer if the caller is not
  * interested in the resulting SHA1 of pack data above partial_pack_offset.
  */
-void fixup_pack_header_footer(int pack_fd,
-			 unsigned char *new_pack_hash,
-			 const char *pack_name,
-			 uint32_t object_count,
-			 unsigned char *partial_pack_hash,
-			 off_t partial_pack_offset)
+void fixup_pack_header_footer(int pack_fd, unsigned char *new_pack_hash,
+			      const char *pack_name, uint32_t object_count,
+			      unsigned char *partial_pack_hash,
+			      off_t partial_pack_offset)
 {
 	int aligned_sz, buf_sz = 8 * 1024;
 	git_hash_ctx old_hash_ctx, new_hash_ctx;
@@ -408,7 +404,8 @@ void fixup_pack_header_footer(int pack_fd,
 	for (;;) {
 		ssize_t m, n;
 		m = (partial_pack_hash && partial_pack_offset < aligned_sz) ?
-			partial_pack_offset : aligned_sz;
+			    partial_pack_offset :
+			    aligned_sz;
 		n = xread(pack_fd, buf, m);
 		if (!n)
 			break;
@@ -430,7 +427,8 @@ void fixup_pack_header_footer(int pack_fd,
 			the_hash_algo->final_fn(hash, &old_hash_ctx);
 			if (!hasheq(hash, partial_pack_hash))
 				die("Unexpected checksum for %s "
-				    "(disk corruption?)", pack_name);
+				    "(disk corruption?)",
+				    pack_name);
 			/*
 			 * Now let's compute the SHA1 of the remainder of the
 			 * pack, which also means making partial_pack_offset
@@ -462,12 +460,13 @@ char *index_pack_lockfile(int ip_out, int *is_well_formed)
 	 * case, we need it to remove the corresponding .keep file
 	 * later on.  If we don't get that then tough luck with it.
 	 */
-	if (read_in_full(ip_out, packname, len) == len && packname[len-1] == '\n') {
+	if (read_in_full(ip_out, packname, len) == len &&
+	    packname[len - 1] == '\n') {
 		const char *name;
 
 		if (is_well_formed)
 			*is_well_formed = 1;
-		packname[len-1] = 0;
+		packname[len - 1] = 0;
 		if (skip_prefix(packname, "keep\t", &name))
 			return xstrfmt("%s/pack/pack-%s.keep",
 				       get_object_directory(), name);
@@ -530,20 +529,16 @@ static void rename_tmp_packfile(struct strbuf *name_prefix, const char *source,
 	strbuf_setlen(name_prefix, name_prefix_len);
 }
 
-void rename_tmp_packfile_idx(struct strbuf *name_buffer,
-			     char **idx_tmp_name)
+void rename_tmp_packfile_idx(struct strbuf *name_buffer, char **idx_tmp_name)
 {
 	rename_tmp_packfile(name_buffer, *idx_tmp_name, "idx");
 }
 
-void stage_tmp_packfiles(struct strbuf *name_buffer,
-			 const char *pack_tmp_name,
+void stage_tmp_packfiles(struct strbuf *name_buffer, const char *pack_tmp_name,
 			 struct pack_idx_entry **written_list,
-			 uint32_t nr_written,
-			 struct packing_data *to_pack,
+			 uint32_t nr_written, struct packing_data *to_pack,
 			 struct pack_idx_option *pack_idx_opts,
-			 unsigned char hash[],
-			 char **idx_tmp_name)
+			 unsigned char hash[], char **idx_tmp_name)
 {
 	const char *rev_tmp_name = NULL;
 	char *mtimes_tmp_name = NULL;
@@ -561,8 +556,7 @@ void stage_tmp_packfiles(struct strbuf *name_buffer,
 
 	if (pack_idx_opts->flags & WRITE_MTIMES) {
 		mtimes_tmp_name = write_mtimes_file(to_pack, written_list,
-						    nr_written,
-						    hash);
+						    nr_written, hash);
 	}
 
 	rename_tmp_packfile(name_buffer, pack_tmp_name, "pack");
@@ -575,7 +569,8 @@ void stage_tmp_packfiles(struct strbuf *name_buffer,
 	free(mtimes_tmp_name);
 }
 
-void write_promisor_file(const char *promisor_name, struct ref **sought, int nr_sought)
+void write_promisor_file(const char *promisor_name, struct ref **sought,
+			 int nr_sought)
 {
 	int i, err;
 	FILE *output = xfopen(promisor_name, "w");

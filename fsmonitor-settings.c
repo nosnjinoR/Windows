@@ -1,11 +1,11 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "gettext.h"
-#include "repository.h"
-#include "fsmonitor-ipc.h"
-#include "fsmonitor-settings.h"
-#include "fsmonitor-path-utils.h"
-#include "advice.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/repository.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/fsmonitor-settings.h"
+#include "components/fsmonitor-path-utils.h"
+#include "components/advice.h"
 
 /*
  * We keep this structure defintion private and have getters
@@ -49,16 +49,16 @@ static enum fsmonitor_reason check_remote(struct repository *r)
 	int is_remote = fsmonitor__is_fs_remote(r->worktree);
 
 	switch (is_remote) {
-		case 0:
+	case 0:
+		return FSMONITOR_REASON_OK;
+	case 1:
+		repo_config_get_bool(r, "fsmonitor.allowremote", &allow_remote);
+		if (allow_remote < 1)
+			return FSMONITOR_REASON_REMOTE;
+		else
 			return FSMONITOR_REASON_OK;
-		case 1:
-			repo_config_get_bool(r, "fsmonitor.allowremote", &allow_remote);
-			if (allow_remote < 1)
-				return FSMONITOR_REASON_REMOTE;
-			else
-				return FSMONITOR_REASON_OK;
-		default:
-			return FSMONITOR_REASON_ERROR;
+	default:
+		return FSMONITOR_REASON_ERROR;
 	}
 }
 #endif
@@ -111,13 +111,17 @@ static int check_deprecated_builtin_config(struct repository *r)
 	 * set to true, set the appropriate mode and return 1 indicating that
 	 * the check resulted the config being set by this (deprecated) setting.
 	 */
-	if(!repo_config_get_bool(r, "core.useBuiltinFSMonitor", &core_use_builtin_fsmonitor) &&
-	   core_use_builtin_fsmonitor) {
-		if (!git_env_bool("GIT_SUPPRESS_USEBUILTINFSMONITOR_ADVICE", 0)) {
-			advise_if_enabled(ADVICE_USE_CORE_FSMONITOR_CONFIG,
-					  _("core.useBuiltinFSMonitor=true is deprecated;"
-					    "please set core.fsmonitor=true instead"));
-			setenv("GIT_SUPPRESS_USEBUILTINFSMONITOR_ADVICE", "1", 1);
+	if (!repo_config_get_bool(r, "core.useBuiltinFSMonitor",
+				  &core_use_builtin_fsmonitor) &&
+	    core_use_builtin_fsmonitor) {
+		if (!git_env_bool("GIT_SUPPRESS_USEBUILTINFSMONITOR_ADVICE",
+				  0)) {
+			advise_if_enabled(
+				ADVICE_USE_CORE_FSMONITOR_CONFIG,
+				_("core.useBuiltinFSMonitor=true is deprecated;"
+				  "please set core.fsmonitor=true instead"));
+			setenv("GIT_SUPPRESS_USEBUILTINFSMONITOR_ADVICE", "1",
+			       1);
 		}
 		fsm_settings__set_ipc(r);
 		return 1;
@@ -142,7 +146,6 @@ static void lookup_fsmonitor_settings(struct repository *r)
 	 * use a hook script named "true" or "false", but that's OK.)
 	 */
 	switch (repo_config_get_maybe_bool(r, "core.fsmonitor", &bool_value)) {
-
 	case 0: /* config value was set to <bool> */
 		if (bool_value)
 			fsm_settings__set_ipc(r);
@@ -275,37 +278,42 @@ char *fsm_settings__get_incompatible_msg(struct repository *r,
 	case FSMONITOR_REASON_BARE: {
 		char *cwd = xgetcwd();
 
-		strbuf_addf(&msg,
-			    _("bare repository '%s' is incompatible with fsmonitor"),
-			    cwd);
+		strbuf_addf(
+			&msg,
+			_("bare repository '%s' is incompatible with fsmonitor"),
+			cwd);
 		free(cwd);
 		goto done;
 	}
 
 	case FSMONITOR_REASON_ERROR:
-		strbuf_addf(&msg,
-			    _("repository '%s' is incompatible with fsmonitor due to errors"),
-			    r->worktree);
+		strbuf_addf(
+			&msg,
+			_("repository '%s' is incompatible with fsmonitor due to errors"),
+			r->worktree);
 		goto done;
 
 	case FSMONITOR_REASON_REMOTE:
-		strbuf_addf(&msg,
-			    _("remote repository '%s' is incompatible with fsmonitor"),
-			    r->worktree);
+		strbuf_addf(
+			&msg,
+			_("remote repository '%s' is incompatible with fsmonitor"),
+			r->worktree);
 		goto done;
 
 	case FSMONITOR_REASON_VFS4GIT:
-		strbuf_addf(&msg,
-			    _("virtual repository '%s' is incompatible with fsmonitor"),
-			    r->worktree);
+		strbuf_addf(
+			&msg,
+			_("virtual repository '%s' is incompatible with fsmonitor"),
+			r->worktree);
 		goto done;
 
 	case FSMONITOR_REASON_NOSOCKETS:
 		socket_dir = dirname((char *)fsmonitor_ipc__get_path(r));
-		strbuf_addf(&msg,
-			    _("socket directory '%s' is incompatible with fsmonitor due"
-			      " to lack of Unix sockets support"),
-			    socket_dir);
+		strbuf_addf(
+			&msg,
+			_("socket directory '%s' is incompatible with fsmonitor due"
+			  " to lack of Unix sockets support"),
+			socket_dir);
 		goto done;
 	}
 

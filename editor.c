@@ -1,16 +1,17 @@
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "advice.h"
-#include "config.h"
-#include "editor.h"
-#include "environment.h"
-#include "gettext.h"
-#include "pager.h"
-#include "path.h"
-#include "strbuf.h"
-#include "strvec.h"
-#include "run-command.h"
-#include "sigchain.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/advice.h"
+#include "components/config.h"
+#include "components/editor.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/pager.h"
+#include "components/path.h"
+#include "components/strbuf.h"
+#include "components/strvec.h"
+#include "components/run-command.h"
+#include "components/sigchain.h"
+
 #include "compat/terminal.h"
 
 #ifndef DEFAULT_EDITOR
@@ -57,25 +58,29 @@ const char *git_sequence_editor(void)
 }
 
 static int launch_specified_editor(const char *editor, const char *path,
-				   struct strbuf *buffer, const char *const *env)
+				   struct strbuf *buffer,
+				   const char *const *env)
 {
 	if (!editor)
 		return error("Terminal is dumb, but EDITOR unset");
 
 	if (strcmp(editor, ":")) {
-		int save_and_restore_term = !strcmp(editor, "vi") || !strcmp(editor, "vim");
+		int save_and_restore_term = !strcmp(editor, "vi") ||
+					    !strcmp(editor, "vim");
 		struct strbuf realpath = STRBUF_INIT;
 		struct child_process p = CHILD_PROCESS_INIT;
 		int ret, sig;
-		int print_waiting_for_editor = advice_enabled(ADVICE_WAITING_FOR_EDITOR) && isatty(2);
+		int print_waiting_for_editor =
+			advice_enabled(ADVICE_WAITING_FOR_EDITOR) && isatty(2);
 
 		if (print_waiting_for_editor) {
 			/*
 			 * A dumb terminal cannot erase the line later on. Add a
 			 * newline to separate the hint from subsequent output.
 			 *
-			 * Make sure that our message is separated with a whitespace
-			 * from further cruft that may be written by the editor.
+			 * Make sure that our message is separated with a
+			 * whitespace from further cruft that may be written by
+			 * the editor.
 			 */
 			const char term = is_terminal_dumb() ? '\n' : ' ';
 
@@ -120,7 +125,7 @@ static int launch_specified_editor(const char *editor, const char *path,
 			term_clear_line();
 		if (ret)
 			return error("there was a problem with the editor '%s'",
-					editor);
+				     editor);
 	}
 
 	if (!buffer)
@@ -130,7 +135,8 @@ static int launch_specified_editor(const char *editor, const char *path,
 	return 0;
 }
 
-int launch_editor(const char *path, struct strbuf *buffer, const char *const *env)
+int launch_editor(const char *path, struct strbuf *buffer,
+		  const char *const *env)
 {
 	return launch_specified_editor(git_editor(), path, buffer, env);
 }
@@ -138,7 +144,8 @@ int launch_editor(const char *path, struct strbuf *buffer, const char *const *en
 int launch_sequence_editor(const char *path, struct strbuf *buffer,
 			   const char *const *env)
 {
-	return launch_specified_editor(git_sequence_editor(), path, buffer, env);
+	return launch_specified_editor(git_sequence_editor(), path, buffer,
+				       env);
 }
 
 int strbuf_edit_interactively(struct strbuf *buffer, const char *path,

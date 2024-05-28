@@ -1,24 +1,22 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-store-ll.h"
-#include "promisor-remote.h"
-#include "config.h"
-#include "trace2.h"
-#include "transport.h"
-#include "strvec.h"
-#include "packfile.h"
-#include "environment.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-store-ll.h"
+#include "components/promisor-remote.h"
+#include "components/config.h"
+#include "components/trace2.h"
+#include "components/transport.h"
+#include "components/strvec.h"
+#include "components/packfile.h"
+#include "components/environment.h"
 
 struct promisor_remote_config {
 	struct promisor_remote *promisors;
 	struct promisor_remote **promisors_tail;
 };
 
-static int fetch_objects(struct repository *repo,
-			 const char *remote_name,
-			 const struct object_id *oids,
-			 int oid_nr)
+static int fetch_objects(struct repository *repo, const char *remote_name,
+			 const struct object_id *oids, int oid_nr)
 {
 	struct child_process child = CHILD_PROCESS_INIT;
 	int i;
@@ -28,7 +26,8 @@ static int fetch_objects(struct repository *repo,
 		static int warning_shown;
 		if (!warning_shown) {
 			warning_shown = 1;
-			warning(_("lazy fetching disabled; some objects may not be available"));
+			warning(_(
+				"lazy fetching disabled; some objects may not be available"));
 		}
 		return -1;
 	}
@@ -38,9 +37,9 @@ static int fetch_objects(struct repository *repo,
 	if (repo != the_repository)
 		prepare_other_repo_env(&child.env, repo->gitdir);
 	strvec_pushl(&child.args, "-c", "fetch.negotiationAlgorithm=noop",
-		     "fetch", remote_name, "--no-tags",
-		     "--no-write-fetch-head", "--recurse-submodules=no",
-		     "--filter=blob:none", "--stdin", NULL);
+		     "fetch", remote_name, "--no-tags", "--no-write-fetch-head",
+		     "--recurse-submodules=no", "--filter=blob:none", "--stdin",
+		     NULL);
 	if (start_command(&child))
 		die(_("promisor-remote: unable to fork off fetch subprocess"));
 	child_in = xfdopen(child.in, "w");
@@ -49,18 +48,22 @@ static int fetch_objects(struct repository *repo,
 
 	for (i = 0; i < oid_nr; i++) {
 		if (fputs(oid_to_hex(&oids[i]), child_in) < 0)
-			die_errno(_("promisor-remote: could not write to fetch subprocess"));
+			die_errno(_(
+				"promisor-remote: could not write to fetch subprocess"));
 		if (fputc('\n', child_in) < 0)
-			die_errno(_("promisor-remote: could not write to fetch subprocess"));
+			die_errno(_(
+				"promisor-remote: could not write to fetch subprocess"));
 	}
 
 	if (fclose(child_in) < 0)
-		die_errno(_("promisor-remote: could not close stdin to fetch subprocess"));
+		die_errno(_(
+			"promisor-remote: could not close stdin to fetch subprocess"));
 	return finish_command(&child) ? -1 : 0;
 }
 
-static struct promisor_remote *promisor_remote_new(struct promisor_remote_config *config,
-						   const char *remote_name)
+static struct promisor_remote *
+promisor_remote_new(struct promisor_remote_config *config,
+		    const char *remote_name)
 {
 	struct promisor_remote *r;
 
@@ -78,9 +81,10 @@ static struct promisor_remote *promisor_remote_new(struct promisor_remote_config
 	return r;
 }
 
-static struct promisor_remote *promisor_remote_lookup(struct promisor_remote_config *config,
-						      const char *remote_name,
-						      struct promisor_remote **previous)
+static struct promisor_remote *
+promisor_remote_lookup(struct promisor_remote_config *config,
+		       const char *remote_name,
+		       struct promisor_remote **previous)
 {
 	struct promisor_remote *r, *p;
 
@@ -170,13 +174,13 @@ static void promisor_remote_init(struct repository *r)
 	if (r->repository_format_partial_clone) {
 		struct promisor_remote *o, *previous;
 
-		o = promisor_remote_lookup(config,
-					   r->repository_format_partial_clone,
-					   &previous);
+		o = promisor_remote_lookup(
+			config, r->repository_format_partial_clone, &previous);
 		if (o)
 			promisor_remote_move_to_tail(config, o, previous);
 		else
-			promisor_remote_new(config, r->repository_format_partial_clone);
+			promisor_remote_new(config,
+					    r->repository_format_partial_clone);
 	}
 }
 
@@ -206,7 +210,8 @@ struct promisor_remote *repo_promisor_remote_find(struct repository *r,
 	if (!remote_name)
 		return r->promisor_remote_config->promisors;
 
-	return promisor_remote_lookup(r->promisor_remote_config, remote_name, NULL);
+	return promisor_remote_lookup(r->promisor_remote_config, remote_name,
+				      NULL);
 }
 
 int repo_has_promisor_remote(struct repository *r)
@@ -214,8 +219,7 @@ int repo_has_promisor_remote(struct repository *r)
 	return !!repo_promisor_remote_find(r, NULL);
 }
 
-static int remove_fetched_oids(struct repository *repo,
-			       struct object_id **oids,
+static int remove_fetched_oids(struct repository *repo, struct object_id **oids,
 			       int oid_nr, int to_free)
 {
 	int i, remaining_nr = 0;
@@ -247,8 +251,7 @@ static int remove_fetched_oids(struct repository *repo,
 }
 
 void promisor_remote_get_direct(struct repository *repo,
-				const struct object_id *oids,
-				int oid_nr)
+				const struct object_id *oids, int oid_nr)
 {
 	struct promisor_remote *r;
 	struct object_id *remaining_oids = (struct object_id *)oids;
@@ -262,11 +265,12 @@ void promisor_remote_get_direct(struct repository *repo,
 	promisor_remote_init(repo);
 
 	for (r = repo->promisor_remote_config->promisors; r; r = r->next) {
-		if (fetch_objects(repo, r->name, remaining_oids, remaining_nr) < 0) {
+		if (fetch_objects(repo, r->name, remaining_oids, remaining_nr) <
+		    0) {
 			if (remaining_nr == 1)
 				continue;
-			remaining_nr = remove_fetched_oids(repo, &remaining_oids,
-							 remaining_nr, to_free);
+			remaining_nr = remove_fetched_oids(
+				repo, &remaining_oids, remaining_nr, to_free);
 			if (remaining_nr) {
 				to_free = 1;
 				continue;

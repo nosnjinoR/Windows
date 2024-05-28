@@ -3,9 +3,9 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/trace2.h"
 
 static void vreportf(const char *prefix, const char *err, va_list params)
 {
@@ -192,7 +192,7 @@ static const char *fmt_with_err(char *buf, int n, const char *fmt)
 	int i, j;
 
 	err = strerror(errno);
-	for (i = j = 0; err[i] && j < sizeof(str_error) - 1; ) {
+	for (i = j = 0; err[i] && j < sizeof(str_error) - 1;) {
 		if ((str_error[j++] = err[i++]) != '%')
 			continue;
 		if (j < sizeof(str_error) - 1) {
@@ -217,7 +217,7 @@ void NORETURN die_errno(const char *fmt, ...)
 
 	if (die_is_recursing()) {
 		fputs("fatal: recursion detected in die_errno handler\n",
-			stderr);
+		      stderr);
 		exit(128);
 	}
 
@@ -305,7 +305,8 @@ static void BUG_vfl_common(const char *file, int line, const char *fmt,
 	vreportf(prefix, fmt, params);
 }
 
-static NORETURN void BUG_vfl(const char *file, int line, const char *fmt, va_list params)
+static NORETURN void BUG_vfl(const char *file, int line, const char *fmt,
+			     va_list params)
 {
 	va_list params_copy;
 	static int in_bug;
@@ -357,7 +358,7 @@ void unleak_memory(const void *ptr, size_t len)
 	static struct suppressed_leak_root {
 		struct suppressed_leak_root *next;
 		char data[FLEX_ARRAY];
-	} *suppressed_leaks;
+	} * suppressed_leaks;
 	struct suppressed_leak_root *root;
 
 	FLEX_ALLOC_MEM(root, data, ptr, len);

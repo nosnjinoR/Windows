@@ -7,28 +7,28 @@
  * even if you might want to know where the git directory etc
  * are.
  */
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "branch.h"
-#include "convert.h"
-#include "environment.h"
-#include "gettext.h"
-#include "repository.h"
-#include "config.h"
-#include "refs.h"
-#include "fmt-merge-msg.h"
-#include "commit.h"
-#include "strvec.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "path.h"
-#include "replace-object.h"
-#include "tmp-objdir.h"
-#include "chdir-notify.h"
-#include "setup.h"
-#include "shallow.h"
-#include "trace.h"
-#include "write-or-die.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/branch.h"
+#include "components/convert.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/repository.h"
+#include "components/config.h"
+#include "components/refs.h"
+#include "components/fmt-merge-msg.h"
+#include "components/commit.h"
+#include "components/strvec.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/path.h"
+#include "components/replace-object.h"
+#include "components/tmp-objdir.h"
+#include "components/chdir-notify.h"
+#include "components/setup.h"
+#include "components/shallow.h"
+#include "components/trace.h"
+#include "components/write-or-die.h"
 
 int trust_executable_bit = 1;
 int trust_ctime = 1;
@@ -124,24 +124,22 @@ static char *git_namespace;
 /*
  * Repository-local GIT_* environment variables; see environment.h for details.
  */
-const char * const local_repo_env[] = {
-	ALTERNATE_DB_ENVIRONMENT,
-	CONFIG_ENVIRONMENT,
-	CONFIG_DATA_ENVIRONMENT,
-	CONFIG_COUNT_ENVIRONMENT,
-	DB_ENVIRONMENT,
-	GIT_DIR_ENVIRONMENT,
-	GIT_WORK_TREE_ENVIRONMENT,
-	GIT_IMPLICIT_WORK_TREE_ENVIRONMENT,
-	GRAFT_ENVIRONMENT,
-	INDEX_ENVIRONMENT,
-	NO_REPLACE_OBJECTS_ENVIRONMENT,
-	GIT_REPLACE_REF_BASE_ENVIRONMENT,
-	GIT_PREFIX_ENVIRONMENT,
-	GIT_SHALLOW_FILE_ENVIRONMENT,
-	GIT_COMMON_DIR_ENVIRONMENT,
-	NULL
-};
+const char *const local_repo_env[] = { ALTERNATE_DB_ENVIRONMENT,
+				       CONFIG_ENVIRONMENT,
+				       CONFIG_DATA_ENVIRONMENT,
+				       CONFIG_COUNT_ENVIRONMENT,
+				       DB_ENVIRONMENT,
+				       GIT_DIR_ENVIRONMENT,
+				       GIT_WORK_TREE_ENVIRONMENT,
+				       GIT_IMPLICIT_WORK_TREE_ENVIRONMENT,
+				       GRAFT_ENVIRONMENT,
+				       INDEX_ENVIRONMENT,
+				       NO_REPLACE_OBJECTS_ENVIRONMENT,
+				       GIT_REPLACE_REF_BASE_ENVIRONMENT,
+				       GIT_PREFIX_ENVIRONMENT,
+				       GIT_SHALLOW_FILE_ENVIRONMENT,
+				       GIT_COMMON_DIR_ENVIRONMENT,
+				       NULL };
 
 static char *expand_namespace(const char *raw_namespace)
 {
@@ -198,8 +196,8 @@ void setup_git_env(const char *git_dir)
 	if (getenv(NO_REPLACE_OBJECTS_ENVIRONMENT))
 		disable_replace_refs();
 	replace_ref_base = getenv(GIT_REPLACE_REF_BASE_ENVIRONMENT);
-	git_replace_ref_base = xstrdup(replace_ref_base ? replace_ref_base
-							  : "refs/replace/");
+	git_replace_ref_base =
+		xstrdup(replace_ref_base ? replace_ref_base : "refs/replace/");
 	update_ref_namespace(NAMESPACE_REPLACE, git_replace_ref_base);
 
 	free(git_namespace);
@@ -220,8 +218,7 @@ int is_bare_repository(void)
 
 int have_git_dir(void)
 {
-	return startup_info->have_repository
-		|| the_repository->gitdir;
+	return startup_info->have_repository || the_repository->gitdir;
 }
 
 const char *get_git_dir(void)
@@ -314,13 +311,13 @@ int odb_pack_keep(const char *name)
 {
 	int fd;
 
-	fd = open(name, O_RDWR|O_CREAT|O_EXCL, 0600);
+	fd = open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
 	if (0 <= fd)
 		return fd;
 
 	/* slow path */
 	safe_create_leading_directories_const(name);
-	return open(name, O_RDWR|O_CREAT|O_EXCL, 0600);
+	return open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
 }
 
 char *get_index_file(void)
@@ -343,16 +340,13 @@ static void set_git_dir_1(const char *path)
 	setup_git_env(path);
 }
 
-static void update_relative_gitdir(const char *name UNUSED,
-				   const char *old_cwd,
-				   const char *new_cwd,
-				   void *data UNUSED)
+static void update_relative_gitdir(const char *name UNUSED, const char *old_cwd,
+				   const char *new_cwd, void *data UNUSED)
 {
 	char *path = reparent_relative_path(old_cwd, new_cwd, get_git_dir());
 	struct tmp_objdir *tmp_objdir = tmp_objdir_unapply_primary_odb();
 
-	trace_printf_key(&trace_setup_key,
-			 "setup: move $GIT_DIR to '%s'",
+	trace_printf_key(&trace_setup_key, "setup: move $GIT_DIR to '%s'",
 			 path);
 	set_git_dir_1(path);
 	if (tmp_objdir)
@@ -378,8 +372,8 @@ void set_git_dir(const char *path, int make_realpath)
 
 const char *get_log_output_encoding(void)
 {
-	return git_log_output_encoding ? git_log_output_encoding
-		: get_commit_output_encoding();
+	return git_log_output_encoding ? git_log_output_encoding :
+					 get_commit_output_encoding();
 }
 
 const char *get_commit_output_encoding(void)

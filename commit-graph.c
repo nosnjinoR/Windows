@@ -1,30 +1,30 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "csum-file.h"
-#include "gettext.h"
-#include "hex.h"
-#include "lockfile.h"
-#include "packfile.h"
-#include "commit.h"
-#include "object.h"
-#include "refs.h"
-#include "hash-lookup.h"
-#include "commit-graph.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "oid-array.h"
-#include "path.h"
-#include "alloc.h"
-#include "hashmap.h"
-#include "replace-object.h"
-#include "progress.h"
-#include "bloom.h"
-#include "commit-slab.h"
-#include "shallow.h"
-#include "json-writer.h"
-#include "trace2.h"
-#include "tree.h"
-#include "chunk-format.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/csum-file.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/lockfile.h"
+#include "components/packfile.h"
+#include "components/commit.h"
+#include "components/object.h"
+#include "components/refs.h"
+#include "components/hash-lookup.h"
+#include "components/commit-graph.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/oid-array.h"
+#include "components/path.h"
+#include "components/alloc.h"
+#include "components/hashmap.h"
+#include "components/replace-object.h"
+#include "components/progress.h"
+#include "components/bloom.h"
+#include "components/commit-slab.h"
+#include "components/shallow.h"
+#include "components/json-writer.h"
+#include "components/trace2.h"
+#include "components/tree.h"
+#include "components/chunk-format.h"
 
 void git_test_write_commit_graph_or_die(void)
 {
@@ -35,8 +35,8 @@ void git_test_write_commit_graph_or_die(void)
 	if (git_env_bool(GIT_TEST_COMMIT_GRAPH_CHANGED_PATHS, 0))
 		flags = COMMIT_GRAPH_WRITE_BLOOM_FILTERS;
 
-	if (write_commit_graph_reachable(the_repository->objects->odb,
-					 flags, NULL))
+	if (write_commit_graph_reachable(the_repository->objects->odb, flags,
+					 NULL))
 		die("failed to write commit-graph under GIT_TEST_COMMIT_GRAPH");
 }
 
@@ -64,13 +64,14 @@ void git_test_write_commit_graph_or_die(void)
 
 #define GRAPH_HEADER_SIZE 8
 #define GRAPH_FANOUT_SIZE (4 * 256)
-#define GRAPH_MIN_SIZE (GRAPH_HEADER_SIZE + 4 * CHUNK_TOC_ENTRY_SIZE \
-			+ GRAPH_FANOUT_SIZE + the_hash_algo->rawsz)
+#define GRAPH_MIN_SIZE                                                      \
+	(GRAPH_HEADER_SIZE + 4 * CHUNK_TOC_ENTRY_SIZE + GRAPH_FANOUT_SIZE + \
+	 the_hash_algo->rawsz)
 
 #define CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW (1ULL << 31)
 
 /* Remember to update object flag allocation in object.h */
-#define REACHABLE       (1u<<15)
+#define REACHABLE (1u << 15)
 
 define_commit_slab(topo_level_slab, uint32_t);
 
@@ -93,8 +94,7 @@ static int commit_pos_cmp(const void *va, const void *vb)
 {
 	const struct commit *a = *(const struct commit **)va;
 	const struct commit *b = *(const struct commit **)vb;
-	return commit_pos_at(&commit_pos, a) -
-	       commit_pos_at(&commit_pos, b);
+	return commit_pos_at(&commit_pos, a) - commit_pos_at(&commit_pos, b);
 }
 
 define_commit_slab(commit_graph_data_slab, struct commit_graph_data);
@@ -225,8 +225,8 @@ static int commit_graph_compatible(struct repository *r)
 	}
 
 	prepare_commit_graft(r);
-	if (r->parsed_objects &&
-	    (r->parsed_objects->grafts_nr || r->parsed_objects->substituted_parent))
+	if (r->parsed_objects && (r->parsed_objects->grafts_nr ||
+				  r->parsed_objects->substituted_parent))
 		return 0;
 	if (is_repository_shallow(r))
 		return 0;
@@ -246,8 +246,8 @@ int open_commit_graph(const char *graph_file, int *fd, struct stat *st)
 	return 1;
 }
 
-struct commit_graph *load_commit_graph_one_fd_st(struct repository *r,
-						 int fd, struct stat *st,
+struct commit_graph *load_commit_graph_one_fd_st(struct repository *r, int fd,
+						 struct stat *st,
 						 struct object_directory *odb)
 {
 	void *graph_map;
@@ -304,7 +304,8 @@ static int graph_read_oid_lookup(const unsigned char *chunk_start,
 	struct commit_graph *g = data;
 	g->chunk_oid_lookup = chunk_start;
 	if (chunk_size / g->hash_len != g->num_commits)
-		return error(_("commit-graph OID lookup chunk is the wrong size"));
+		return error(
+			_("commit-graph OID lookup chunk is the wrong size"));
 	return 0;
 }
 
@@ -333,7 +334,8 @@ static int graph_read_bloom_index(const unsigned char *chunk_start,
 {
 	struct commit_graph *g = data;
 	if (chunk_size / 4 != g->num_commits) {
-		warning(_("commit-graph changed-path index chunk is too small"));
+		warning(_(
+			"commit-graph changed-path index chunk is too small"));
 		return -1;
 	}
 	g->chunk_bloom_indexes = chunk_start;
@@ -341,14 +343,15 @@ static int graph_read_bloom_index(const unsigned char *chunk_start,
 }
 
 static int graph_read_bloom_data(const unsigned char *chunk_start,
-				  size_t chunk_size, void *data)
+				 size_t chunk_size, void *data)
 {
 	struct commit_graph *g = data;
 	uint32_t hash_version;
 
 	if (chunk_size < BLOOMDATA_CHUNK_HEADER_SIZE) {
 		warning(_("ignoring too-small changed-path chunk"
-			" (%"PRIuMAX" < %"PRIuMAX") in commit-graph file"),
+			  " (%" PRIuMAX " < %" PRIuMAX
+			  ") in commit-graph file"),
 			(uintmax_t)chunk_size,
 			(uintmax_t)BLOOMDATA_CHUNK_HEADER_SIZE);
 		return -1;
@@ -361,7 +364,8 @@ static int graph_read_bloom_data(const unsigned char *chunk_start,
 	if (hash_version != 1)
 		return 0;
 
-	g->bloom_filter_settings = xmalloc(sizeof(struct bloom_filter_settings));
+	g->bloom_filter_settings =
+		xmalloc(sizeof(struct bloom_filter_settings));
 	g->bloom_filter_settings->hash_version = hash_version;
 	g->bloom_filter_settings->num_hashes = get_be32(chunk_start + 4);
 	g->bloom_filter_settings->bits_per_entry = get_be32(chunk_start + 8);
@@ -394,14 +398,14 @@ struct commit_graph *parse_commit_graph(struct repo_settings *s,
 		return NULL;
 	}
 
-	graph_version = *(unsigned char*)(data + 4);
+	graph_version = *(unsigned char *)(data + 4);
 	if (graph_version != GRAPH_VERSION) {
 		error(_("commit-graph version %X does not match version %X"),
 		      graph_version, GRAPH_VERSION);
 		return NULL;
 	}
 
-	hash_version = *(unsigned char*)(data + 5);
+	hash_version = *(unsigned char *)(data + 5);
 	if (hash_version != oid_version(the_hash_algo)) {
 		error(_("commit-graph hash version %X does not match version %X"),
 		      hash_version, oid_version(the_hash_algo));
@@ -411,13 +415,13 @@ struct commit_graph *parse_commit_graph(struct repo_settings *s,
 	graph = alloc_commit_graph();
 
 	graph->hash_len = the_hash_algo->rawsz;
-	graph->num_chunks = *(unsigned char*)(data + 6);
+	graph->num_chunks = *(unsigned char *)(data + 6);
 	graph->data = graph_map;
 	graph->data_len = graph_size;
 
-	if (graph_size < GRAPH_HEADER_SIZE +
-			 (graph->num_chunks + 1) * CHUNK_TOC_ENTRY_SIZE +
-			 GRAPH_FANOUT_SIZE + the_hash_algo->rawsz) {
+	if (graph_size <
+	    GRAPH_HEADER_SIZE + (graph->num_chunks + 1) * CHUNK_TOC_ENTRY_SIZE +
+		    GRAPH_FANOUT_SIZE + the_hash_algo->rawsz) {
 		error(_("commit-graph file is too small to hold %u chunks"),
 		      graph->num_chunks);
 		free(graph);
@@ -430,11 +434,13 @@ struct commit_graph *parse_commit_graph(struct repo_settings *s,
 				   GRAPH_HEADER_SIZE, graph->num_chunks, 1))
 		goto free_and_return;
 
-	if (read_chunk(cf, GRAPH_CHUNKID_OIDFANOUT, graph_read_oid_fanout, graph)) {
+	if (read_chunk(cf, GRAPH_CHUNKID_OIDFANOUT, graph_read_oid_fanout,
+		       graph)) {
 		error(_("commit-graph required OID fanout chunk missing or corrupted"));
 		goto free_and_return;
 	}
-	if (read_chunk(cf, GRAPH_CHUNKID_OIDLOOKUP, graph_read_oid_lookup, graph)) {
+	if (read_chunk(cf, GRAPH_CHUNKID_OIDLOOKUP, graph_read_oid_lookup,
+		       graph)) {
 		error(_("commit-graph required OID lookup chunk missing or corrupted"));
 		goto free_and_return;
 	}
@@ -462,14 +468,15 @@ struct commit_graph *parse_commit_graph(struct repo_settings *s,
 	if (s->commit_graph_read_changed_paths) {
 		read_chunk(cf, GRAPH_CHUNKID_BLOOMINDEXES,
 			   graph_read_bloom_index, graph);
-		read_chunk(cf, GRAPH_CHUNKID_BLOOMDATA,
-			   graph_read_bloom_data, graph);
+		read_chunk(cf, GRAPH_CHUNKID_BLOOMDATA, graph_read_bloom_data,
+			   graph);
 	}
 
 	if (graph->chunk_bloom_indexes && graph->chunk_bloom_data) {
 		init_bloom_filters();
 	} else {
-		/* We need both the bloom chunks to exist together. Else ignore the data */
+		/* We need both the bloom chunks to exist together. Else ignore
+		 * the data */
 		graph->chunk_bloom_indexes = NULL;
 		graph->chunk_bloom_data = NULL;
 		FREE_AND_NULL(graph->bloom_filter_settings);
@@ -491,7 +498,6 @@ static struct commit_graph *load_commit_graph_one(struct repository *r,
 						  const char *graph_file,
 						  struct object_directory *odb)
 {
-
 	struct stat st;
 	int fd;
 	struct commit_graph *g;
@@ -545,8 +551,7 @@ static int validate_mixed_generation_chain(struct commit_graph *g)
 
 static int add_graph_to_chain(struct commit_graph *g,
 			      struct commit_graph *chain,
-			      struct object_id *oids,
-			      int n)
+			      struct object_id *oids, int n)
 {
 	struct commit_graph *cur_g = chain;
 
@@ -563,9 +568,9 @@ static int add_graph_to_chain(struct commit_graph *g,
 	while (n) {
 		n--;
 
-		if (!cur_g ||
-		    !oideq(&oids[n], &cur_g->oid) ||
-		    !hasheq(oids[n].hash, g->chunk_base_graphs + st_mult(g->hash_len, n))) {
+		if (!cur_g || !oideq(&oids[n], &cur_g->oid) ||
+		    !hasheq(oids[n].hash,
+			    g->chunk_base_graphs + st_mult(g->hash_len, n))) {
 			warning(_("commit-graph chain does not match"));
 			return 0;
 		}
@@ -576,11 +581,12 @@ static int add_graph_to_chain(struct commit_graph *g,
 	if (chain) {
 		if (unsigned_add_overflows(chain->num_commits,
 					   chain->num_commits_in_base)) {
-			warning(_("commit count in base graph too high: %"PRIuMAX),
+			warning(_("commit count in base graph too high: %" PRIuMAX),
 				(uintmax_t)chain->num_commits_in_base);
 			return 0;
 		}
-		g->num_commits_in_base = chain->num_commits + chain->num_commits_in_base;
+		g->num_commits_in_base =
+			chain->num_commits + chain->num_commits_in_base;
 	}
 
 	g->base_graph = chain;
@@ -588,8 +594,7 @@ static int add_graph_to_chain(struct commit_graph *g,
 	return 1;
 }
 
-int open_commit_graph_chain(const char *chain_file,
-			    int *fd, struct stat *st)
+int open_commit_graph_chain(const char *chain_file, int *fd, struct stat *st)
 {
 	*fd = git_open(chain_file);
 	if (*fd < 0)
@@ -612,8 +617,8 @@ int open_commit_graph_chain(const char *chain_file,
 	return 1;
 }
 
-struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r,
-						   int fd, struct stat *st,
+struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r, int fd,
+						   struct stat *st,
 						   int *incomplete_chain)
 {
 	struct commit_graph *graph_chain = NULL;
@@ -642,13 +647,16 @@ struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r,
 
 		valid = 0;
 		for (odb = r->objects->odb; odb; odb = odb->next) {
-			char *graph_name = get_split_graph_filename(odb, line.buf);
-			struct commit_graph *g = load_commit_graph_one(r, graph_name, odb);
+			char *graph_name =
+				get_split_graph_filename(odb, line.buf);
+			struct commit_graph *g =
+				load_commit_graph_one(r, graph_name, odb);
 
 			free(graph_name);
 
 			if (g) {
-				if (add_graph_to_chain(g, graph_chain, oids, i)) {
+				if (add_graph_to_chain(g, graph_chain, oids,
+						       i)) {
 					graph_chain = g;
 					valid = 1;
 				} else {
@@ -675,8 +683,8 @@ struct commit_graph *load_commit_graph_chain_fd_st(struct repository *r,
 	return graph_chain;
 }
 
-static struct commit_graph *load_commit_graph_chain(struct repository *r,
-						    struct object_directory *odb)
+static struct commit_graph *
+load_commit_graph_chain(struct repository *r, struct object_directory *odb)
 {
 	char *chain_file = get_commit_graph_chain_filename(odb);
 	struct stat st;
@@ -707,7 +715,6 @@ struct commit_graph *read_commit_graph_one(struct repository *r,
 static void prepare_commit_graph_one(struct repository *r,
 				     struct object_directory *odb)
 {
-
 	if (r->objects->commit_graph)
 		return;
 
@@ -754,8 +761,7 @@ static int prepare_commit_graph(struct repository *r)
 		return 0;
 
 	prepare_alt_odb(r);
-	for (odb = r->objects->odb;
-	     !r->objects->commit_graph && odb;
+	for (odb = r->objects->odb; !r->objects->commit_graph && odb;
 	     odb = odb->next)
 		prepare_commit_graph_one(r, odb);
 	return !!r->objects->commit_graph;
@@ -766,15 +772,15 @@ int generation_numbers_enabled(struct repository *r)
 	uint32_t first_generation;
 	struct commit_graph *g;
 	if (!prepare_commit_graph(r))
-	       return 0;
+		return 0;
 
 	g = r->objects->commit_graph;
 
 	if (!g->num_commits)
 		return 0;
 
-	first_generation = get_be32(g->chunk_commit_data +
-				    g->hash_len + 8) >> 2;
+	first_generation = get_be32(g->chunk_commit_data + g->hash_len + 8) >>
+			   2;
 
 	return !!first_generation;
 }
@@ -814,14 +820,14 @@ void close_commit_graph(struct raw_object_store *o)
 	o->commit_graph = NULL;
 }
 
-static int bsearch_graph(struct commit_graph *g, const struct object_id *oid, uint32_t *pos)
+static int bsearch_graph(struct commit_graph *g, const struct object_id *oid,
+			 uint32_t *pos)
 {
-	return bsearch_hash(oid->hash, g->chunk_oid_fanout,
-			    g->chunk_oid_lookup, g->hash_len, pos);
+	return bsearch_hash(oid->hash, g->chunk_oid_fanout, g->chunk_oid_lookup,
+			    g->hash_len, pos);
 }
 
-static void load_oid_from_graph(struct commit_graph *g,
-				uint32_t pos,
+static void load_oid_from_graph(struct commit_graph *g, uint32_t pos,
 				struct object_id *oid)
 {
 	uint32_t lex_index;
@@ -849,7 +855,7 @@ static struct commit_list **insert_parent_or_die(struct repository *r,
 	struct object_id oid;
 
 	if (pos >= g->num_commits + g->num_commits_in_base)
-		die("invalid parent position %"PRIu32, pos);
+		die("invalid parent position %" PRIu32, pos);
 
 	load_oid_from_graph(g, pos, &oid);
 	c = lookup_commit(r, &oid);
@@ -859,7 +865,8 @@ static struct commit_list **insert_parent_or_die(struct repository *r,
 	return &commit_list_insert(c, pptr)->next;
 }
 
-static void fill_commit_graph_info(struct commit *item, struct commit_graph *g, uint32_t pos)
+static void fill_commit_graph_info(struct commit *item, struct commit_graph *g,
+				   uint32_t pos)
 {
 	const unsigned char *commit_data;
 	struct commit_graph_data *graph_data;
@@ -873,7 +880,8 @@ static void fill_commit_graph_info(struct commit *item, struct commit_graph *g, 
 		die(_("invalid commit position. commit-graph is likely corrupt"));
 
 	lex_index = pos - g->num_commits_in_base;
-	commit_data = g->chunk_commit_data + st_mult(GRAPH_DATA_WIDTH, lex_index);
+	commit_data =
+		g->chunk_commit_data + st_mult(GRAPH_DATA_WIDTH, lex_index);
 
 	graph_data = commit_graph_data_at(item);
 	graph_data->graph_pos = pos;
@@ -883,24 +891,33 @@ static void fill_commit_graph_info(struct commit *item, struct commit_graph *g, 
 	item->date = (timestamp_t)((date_high << 32) | date_low);
 
 	if (g->read_generation_data) {
-		offset = (timestamp_t)get_be32(g->chunk_generation_data + st_mult(sizeof(uint32_t), lex_index));
+		offset = (timestamp_t)get_be32(
+			g->chunk_generation_data +
+			st_mult(sizeof(uint32_t), lex_index));
 
 		if (offset & CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW) {
 			if (!g->chunk_generation_data_overflow)
 				die(_("commit-graph requires overflow generation data but has none"));
 
-			offset_pos = offset ^ CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW;
-			if (g->chunk_generation_data_overflow_size / sizeof(uint64_t) <= offset_pos)
+			offset_pos = offset ^
+				     CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW;
+			if (g->chunk_generation_data_overflow_size /
+				    sizeof(uint64_t) <=
+			    offset_pos)
 				die(_("commit-graph overflow generation data is too small"));
-			graph_data->generation = item->date +
-				get_be64(g->chunk_generation_data_overflow + sizeof(uint64_t) * offset_pos);
+			graph_data->generation =
+				item->date +
+				get_be64(g->chunk_generation_data_overflow +
+					 sizeof(uint64_t) * offset_pos);
 		} else
 			graph_data->generation = item->date + offset;
 	} else
-		graph_data->generation = get_be32(commit_data + g->hash_len + 8) >> 2;
+		graph_data->generation =
+			get_be32(commit_data + g->hash_len + 8) >> 2;
 
 	if (g->topo_levels)
-		*topo_level_slab_at(g->topo_levels, item) = get_be32(commit_data + g->hash_len + 8) >> 2;
+		*topo_level_slab_at(g->topo_levels, item) =
+			get_be32(commit_data + g->hash_len + 8) >> 2;
 }
 
 static inline void set_commit_tree(struct commit *c, struct tree *t)
@@ -908,8 +925,7 @@ static inline void set_commit_tree(struct commit *c, struct tree *t)
 	c->maybe_tree = t;
 }
 
-static int fill_commit_in_graph(struct repository *r,
-				struct commit *item,
+static int fill_commit_in_graph(struct repository *r, struct commit *item,
 				struct commit_graph *g, uint32_t pos)
 {
 	uint32_t edge_value;
@@ -924,7 +940,8 @@ static int fill_commit_in_graph(struct repository *r,
 	fill_commit_graph_info(item, g, pos);
 
 	lex_index = pos - g->num_commits_in_base;
-	commit_data = g->chunk_commit_data + st_mult(g->hash_len + 16, lex_index);
+	commit_data =
+		g->chunk_commit_data + st_mult(g->hash_len + 16, lex_index);
 
 	item->object.parsed = 1;
 
@@ -947,7 +964,8 @@ static int fill_commit_in_graph(struct repository *r,
 
 	parent_data_pos = edge_value & GRAPH_EDGE_LAST_MASK;
 	do {
-		if (g->chunk_extra_edges_size / sizeof(uint32_t) <= parent_data_pos) {
+		if (g->chunk_extra_edges_size / sizeof(uint32_t) <=
+		    parent_data_pos) {
 			error(_("commit-graph extra-edges pointer out of bounds"));
 			free_commit_list(item->parents);
 			item->parents = NULL;
@@ -956,16 +974,16 @@ static int fill_commit_in_graph(struct repository *r,
 		}
 		edge_value = get_be32(g->chunk_extra_edges +
 				      sizeof(uint32_t) * parent_data_pos);
-		pptr = insert_parent_or_die(r, g,
-					    edge_value & GRAPH_EDGE_LAST_MASK,
-					    pptr);
+		pptr = insert_parent_or_die(
+			r, g, edge_value & GRAPH_EDGE_LAST_MASK, pptr);
 		parent_data_pos++;
 	} while (!(edge_value & GRAPH_LAST_EDGE));
 
 	return 1;
 }
 
-static int search_commit_pos_in_graph(const struct object_id *id, struct commit_graph *g, uint32_t *pos)
+static int search_commit_pos_in_graph(const struct object_id *id,
+				      struct commit_graph *g, uint32_t *pos)
 {
 	struct commit_graph *cur_g = g;
 	uint32_t lex_index;
@@ -981,7 +999,8 @@ static int search_commit_pos_in_graph(const struct object_id *id, struct commit_
 	return 0;
 }
 
-static int find_commit_pos_in_graph(struct commit *item, struct commit_graph *g, uint32_t *pos)
+static int find_commit_pos_in_graph(struct commit *item, struct commit_graph *g,
+				    uint32_t *pos)
 {
 	uint32_t graph_pos = commit_graph_position(item);
 	if (graph_pos != COMMIT_NOT_FROM_GRAPH) {
@@ -1000,14 +1019,16 @@ int repo_find_commit_pos_in_graph(struct repository *r, struct commit *c,
 	return find_commit_pos_in_graph(c, r->objects->commit_graph, pos);
 }
 
-struct commit *lookup_commit_in_graph(struct repository *repo, const struct object_id *id)
+struct commit *lookup_commit_in_graph(struct repository *repo,
+				      const struct object_id *id)
 {
 	static int commit_graph_paranoia = -1;
 	struct commit *commit;
 	uint32_t pos;
 
 	if (commit_graph_paranoia == -1)
-		commit_graph_paranoia = git_env_bool(GIT_COMMIT_GRAPH_PARANOIA, 0);
+		commit_graph_paranoia =
+			git_env_bool(GIT_COMMIT_GRAPH_PARANOIA, 0);
 
 	if (!prepare_commit_graph(repo))
 		return NULL;
@@ -1022,7 +1043,8 @@ struct commit *lookup_commit_in_graph(struct repository *repo, const struct obje
 	if (commit->object.parsed)
 		return commit;
 
-	if (!fill_commit_in_graph(repo, commit, repo->objects->commit_graph, pos))
+	if (!fill_commit_in_graph(repo, commit, repo->objects->commit_graph,
+				  pos))
 		return NULL;
 
 	return commit;
@@ -1047,8 +1069,7 @@ int parse_commit_in_graph(struct repository *r, struct commit *item)
 {
 	static int checked_env = 0;
 
-	if (!checked_env &&
-	    git_env_bool(GIT_TEST_COMMIT_GRAPH_DIE_ON_PARSE, 0))
+	if (!checked_env && git_env_bool(GIT_TEST_COMMIT_GRAPH_DIE_ON_PARSE, 0))
 		die("dying as requested by the '%s' variable on commit-graph parse!",
 		    GIT_TEST_COMMIT_GRAPH_DIE_ON_PARSE);
 	checked_env = 1;
@@ -1076,8 +1097,9 @@ static struct tree *load_tree_for_commit(struct repository *r,
 	while (graph_pos < g->num_commits_in_base)
 		g = g->base_graph;
 
-	commit_data = g->chunk_commit_data +
-			st_mult(GRAPH_DATA_WIDTH, graph_pos - g->num_commits_in_base);
+	commit_data =
+		g->chunk_commit_data +
+		st_mult(GRAPH_DATA_WIDTH, graph_pos - g->num_commits_in_base);
 
 	oidread(&oid, commit_data);
 	set_commit_tree(c, lookup_tree(r, &oid));
@@ -1097,7 +1119,8 @@ static struct tree *get_commit_tree_in_graph_one(struct repository *r,
 	return load_tree_for_commit(r, g, (struct commit *)c);
 }
 
-struct tree *get_commit_tree_in_graph(struct repository *r, const struct commit *c)
+struct tree *get_commit_tree_in_graph(struct repository *r,
+				      const struct commit *c)
 {
 	return get_commit_tree_in_graph_one(r, r->objects->commit_graph, c);
 }
@@ -1130,13 +1153,9 @@ struct write_commit_graph_context {
 	uint32_t new_num_commits_in_base;
 	struct commit_graph *new_base_graph;
 
-	unsigned append:1,
-		 report_progress:1,
-		 split:1,
-		 changed_paths:1,
-		 order_by_pack:1,
-		 write_generation_data:1,
-		 trust_generation_numbers:1;
+	unsigned append : 1, report_progress : 1, split : 1, changed_paths : 1,
+		order_by_pack : 1, write_generation_data : 1,
+		trust_generation_numbers : 1;
 
 	struct topo_level_slab *topo_levels;
 	const struct commit_graph_opts *opts;
@@ -1149,8 +1168,7 @@ struct write_commit_graph_context {
 	int count_bloom_filter_trunc_large;
 };
 
-static int write_graph_chunk_fanout(struct hashfile *f,
-				    void *data)
+static int write_graph_chunk_fanout(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	int i, count = 0;
@@ -1176,8 +1194,7 @@ static int write_graph_chunk_fanout(struct hashfile *f,
 	return 0;
 }
 
-static int write_graph_chunk_oids(struct hashfile *f,
-				  void *data)
+static int write_graph_chunk_oids(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	struct commit **list = ctx->commits.list;
@@ -1192,12 +1209,11 @@ static int write_graph_chunk_oids(struct hashfile *f,
 
 static const struct object_id *commit_to_oid(size_t index, const void *table)
 {
-	const struct commit * const *commits = table;
+	const struct commit *const *commits = table;
 	return &commits[index]->object.oid;
 }
 
-static int write_graph_chunk_data(struct hashfile *f,
-				  void *data)
+static int write_graph_chunk_data(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	struct commit **list = ctx->commits.list;
@@ -1213,7 +1229,7 @@ static int write_graph_chunk_data(struct hashfile *f,
 
 		if (repo_parse_commit_no_graph(ctx->r, *list))
 			die(_("unable to parse commit %s"),
-				oid_to_hex(&(*list)->object.oid));
+			    oid_to_hex(&(*list)->object.oid));
 		tree = get_commit_tree_oid(*list);
 		hashwrite(f, tree->hash, the_hash_algo->rawsz);
 
@@ -1223,17 +1239,16 @@ static int write_graph_chunk_data(struct hashfile *f,
 			edge_value = GRAPH_PARENT_NONE;
 		else {
 			edge_value = oid_pos(&parent->item->object.oid,
-					     ctx->commits.list,
-					     ctx->commits.nr,
+					     ctx->commits.list, ctx->commits.nr,
 					     commit_to_oid);
 
 			if (edge_value >= 0)
 				edge_value += ctx->new_num_commits_in_base;
 			else if (ctx->new_base_graph) {
 				uint32_t pos;
-				if (find_commit_pos_in_graph(parent->item,
-							     ctx->new_base_graph,
-							     &pos))
+				if (find_commit_pos_in_graph(
+					    parent->item, ctx->new_base_graph,
+					    &pos))
 					edge_value = pos;
 			}
 
@@ -1254,17 +1269,16 @@ static int write_graph_chunk_data(struct hashfile *f,
 			edge_value = GRAPH_EXTRA_EDGES_NEEDED | num_extra_edges;
 		else {
 			edge_value = oid_pos(&parent->item->object.oid,
-					     ctx->commits.list,
-					     ctx->commits.nr,
+					     ctx->commits.list, ctx->commits.nr,
 					     commit_to_oid);
 
 			if (edge_value >= 0)
 				edge_value += ctx->new_num_commits_in_base;
 			else if (ctx->new_base_graph) {
 				uint32_t pos;
-				if (find_commit_pos_in_graph(parent->item,
-							     ctx->new_base_graph,
-							     &pos))
+				if (find_commit_pos_in_graph(
+					    parent->item, ctx->new_base_graph,
+					    &pos))
 					edge_value = pos;
 			}
 
@@ -1288,7 +1302,8 @@ static int write_graph_chunk_data(struct hashfile *f,
 		else
 			packedDate[0] = 0;
 
-		packedDate[0] |= htonl(*topo_level_slab_at(ctx->topo_levels, *list) << 2);
+		packedDate[0] |= htonl(
+			*topo_level_slab_at(ctx->topo_levels, *list) << 2);
 
 		packedDate[1] = htonl((*list)->date);
 		hashwrite(f, packedDate, 8);
@@ -1299,8 +1314,7 @@ static int write_graph_chunk_data(struct hashfile *f,
 	return 0;
 }
 
-static int write_graph_chunk_generation_data(struct hashfile *f,
-					     void *data)
+static int write_graph_chunk_generation_data(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	int i, num_generation_data_overflows = 0;
@@ -1313,7 +1327,8 @@ static int write_graph_chunk_generation_data(struct hashfile *f,
 		display_progress(ctx->progress, ++ctx->progress_cnt);
 
 		if (offset > GENERATION_NUMBER_V2_OFFSET_MAX) {
-			offset = CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW | num_generation_data_overflows;
+			offset = CORRECTED_COMMIT_DATE_OFFSET_OVERFLOW |
+				 num_generation_data_overflows;
 			num_generation_data_overflows++;
 		}
 
@@ -1330,20 +1345,20 @@ static int write_graph_chunk_generation_data_overflow(struct hashfile *f,
 	int i;
 	for (i = 0; i < ctx->commits.nr; i++) {
 		struct commit *c = ctx->commits.list[i];
-		timestamp_t offset = commit_graph_data_at(c)->generation - c->date;
+		timestamp_t offset =
+			commit_graph_data_at(c)->generation - c->date;
 		display_progress(ctx->progress, ++ctx->progress_cnt);
 
 		if (offset > GENERATION_NUMBER_V2_OFFSET_MAX) {
 			hashwrite_be32(f, offset >> 32);
-			hashwrite_be32(f, (uint32_t) offset);
+			hashwrite_be32(f, (uint32_t)offset);
 		}
 	}
 
 	return 0;
 }
 
-static int write_graph_chunk_extra_edges(struct hashfile *f,
-					 void *data)
+static int write_graph_chunk_extra_edges(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	struct commit **list = ctx->commits.list;
@@ -1365,7 +1380,8 @@ static int write_graph_chunk_extra_edges(struct hashfile *f,
 		}
 
 		/* Since num_parents > 2, this initializer is safe. */
-		for (parent = (*list)->parents->next; parent; parent = parent->next) {
+		for (parent = (*list)->parents->next; parent;
+		     parent = parent->next) {
 			int edge_value = oid_pos(&parent->item->object.oid,
 						 ctx->commits.list,
 						 ctx->commits.nr,
@@ -1375,9 +1391,9 @@ static int write_graph_chunk_extra_edges(struct hashfile *f,
 				edge_value += ctx->new_num_commits_in_base;
 			else if (ctx->new_base_graph) {
 				uint32_t pos;
-				if (find_commit_pos_in_graph(parent->item,
-							     ctx->new_base_graph,
-							     &pos))
+				if (find_commit_pos_in_graph(
+					    parent->item, ctx->new_base_graph,
+					    &pos))
 					edge_value = pos;
 			}
 
@@ -1397,8 +1413,7 @@ static int write_graph_chunk_extra_edges(struct hashfile *f,
 	return 0;
 }
 
-static int write_graph_chunk_bloom_indexes(struct hashfile *f,
-					   void *data)
+static int write_graph_chunk_bloom_indexes(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	struct commit **list = ctx->commits.list;
@@ -1422,10 +1437,13 @@ static void trace2_bloom_filter_settings(struct write_commit_graph_context *ctx)
 	struct json_writer jw = JSON_WRITER_INIT;
 
 	jw_object_begin(&jw, 0);
-	jw_object_intmax(&jw, "hash_version", ctx->bloom_settings->hash_version);
+	jw_object_intmax(&jw, "hash_version",
+			 ctx->bloom_settings->hash_version);
 	jw_object_intmax(&jw, "num_hashes", ctx->bloom_settings->num_hashes);
-	jw_object_intmax(&jw, "bits_per_entry", ctx->bloom_settings->bits_per_entry);
-	jw_object_intmax(&jw, "max_changed_paths", ctx->bloom_settings->max_changed_paths);
+	jw_object_intmax(&jw, "bits_per_entry",
+			 ctx->bloom_settings->bits_per_entry);
+	jw_object_intmax(&jw, "max_changed_paths",
+			 ctx->bloom_settings->max_changed_paths);
 	jw_end(&jw);
 
 	trace2_data_json("bloom", ctx->r, "settings", &jw);
@@ -1433,8 +1451,7 @@ static void trace2_bloom_filter_settings(struct write_commit_graph_context *ctx)
 	jw_release(&jw);
 }
 
-static int write_graph_chunk_bloom_data(struct hashfile *f,
-					void *data)
+static int write_graph_chunk_bloom_data(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	struct commit **list = ctx->commits.list;
@@ -1460,11 +1477,10 @@ static int write_graph_chunk_bloom_data(struct hashfile *f,
 }
 
 static int add_packed_commits(const struct object_id *oid,
-			      struct packed_git *pack,
-			      uint32_t pos,
-			      void *data)
+			      struct packed_git *pack, uint32_t pos, void *data)
 {
-	struct write_commit_graph_context *ctx = (struct write_commit_graph_context*)data;
+	struct write_commit_graph_context *ctx =
+		(struct write_commit_graph_context *)data;
 	enum object_type type;
 	off_t offset = nth_packed_object_offset(pack, pos);
 	struct object_info oi = OBJECT_INFO_INIT;
@@ -1485,7 +1501,8 @@ static int add_packed_commits(const struct object_id *oid,
 	return 0;
 }
 
-static void add_missing_parents(struct write_commit_graph_context *ctx, struct commit *commit)
+static void add_missing_parents(struct write_commit_graph_context *ctx,
+				struct commit *commit)
 {
 	struct commit_list *parent;
 	for (parent = commit->parents; parent; parent = parent->next) {
@@ -1500,13 +1517,14 @@ static void close_reachable(struct write_commit_graph_context *ctx)
 {
 	int i;
 	struct commit *commit;
-	enum commit_graph_split_flags flags = ctx->opts ?
-		ctx->opts->split_flags : COMMIT_GRAPH_SPLIT_UNSPECIFIED;
+	enum commit_graph_split_flags flags =
+		ctx->opts ? ctx->opts->split_flags :
+			    COMMIT_GRAPH_SPLIT_UNSPECIFIED;
 
 	if (ctx->report_progress)
 		ctx->progress = start_delayed_progress(
-					_("Loading known commits in commit graph"),
-					ctx->oids.nr);
+			_("Loading known commits in commit graph"),
+			ctx->oids.nr);
 	for (i = 0; i < ctx->oids.nr; i++) {
 		display_progress(ctx->progress, i + 1);
 		commit = lookup_commit(ctx->r, &ctx->oids.oid[i]);
@@ -1522,8 +1540,7 @@ static void close_reachable(struct write_commit_graph_context *ctx)
 	 */
 	if (ctx->report_progress)
 		ctx->progress = start_delayed_progress(
-					_("Expanding reachable commits in commit graph"),
-					0);
+			_("Expanding reachable commits in commit graph"), 0);
 	for (i = 0; i < ctx->oids.nr; i++) {
 		display_progress(ctx->progress, i + 1);
 		commit = lookup_commit(ctx->r, &ctx->oids.oid[i]);
@@ -1532,7 +1549,8 @@ static void close_reachable(struct write_commit_graph_context *ctx)
 			continue;
 		if (ctx->split) {
 			if ((!repo_parse_commit(ctx->r, commit) &&
-			     commit_graph_position(commit) == COMMIT_NOT_FROM_GRAPH) ||
+			     commit_graph_position(commit) ==
+				     COMMIT_NOT_FROM_GRAPH) ||
 			    flags == COMMIT_GRAPH_SPLIT_REPLACE)
 				add_missing_parents(ctx, commit);
 		} else if (!repo_parse_commit_no_graph(ctx->r, commit))
@@ -1542,8 +1560,8 @@ static void close_reachable(struct write_commit_graph_context *ctx)
 
 	if (ctx->report_progress)
 		ctx->progress = start_delayed_progress(
-					_("Clearing commit marks in commit graph"),
-					ctx->oids.nr);
+			_("Clearing commit marks in commit graph"),
+			ctx->oids.nr);
 	for (i = 0; i < ctx->oids.nr; i++) {
 		display_progress(ctx->progress, i + 1);
 		commit = lookup_commit(ctx->r, &ctx->oids.oid[i]);
@@ -1585,9 +1603,9 @@ static timestamp_t compute_generation_from_max(struct commit *c,
 	}
 }
 
-static void compute_reachable_generation_numbers(
-			struct compute_generation_info *info,
-			int generation_version)
+static void
+compute_reachable_generation_numbers(struct compute_generation_info *info,
+				     int generation_version)
 {
 	int i;
 	struct commit_list *list = NULL;
@@ -1599,7 +1617,8 @@ static void compute_reachable_generation_numbers(
 		gen = info->get_generation(c, info->data);
 		display_progress(info->progress, info->progress_cnt + 1);
 
-		if (gen != GENERATION_NUMBER_ZERO && gen != GENERATION_NUMBER_INFINITY)
+		if (gen != GENERATION_NUMBER_ZERO &&
+		    gen != GENERATION_NUMBER_INFINITY)
 			continue;
 
 		commit_list_insert(c, &list);
@@ -1609,9 +1628,11 @@ static void compute_reachable_generation_numbers(
 			int all_parents_computed = 1;
 			uint32_t max_gen = 0;
 
-			for (parent = current->parents; parent; parent = parent->next) {
+			for (parent = current->parents; parent;
+			     parent = parent->next) {
 				repo_parse_commit(info->r, parent->item);
-				gen = info->get_generation(parent->item, info->data);
+				gen = info->get_generation(parent->item,
+							   info->data);
 
 				if (gen == GENERATION_NUMBER_ZERO) {
 					all_parents_computed = 0;
@@ -1626,8 +1647,7 @@ static void compute_reachable_generation_numbers(
 			if (all_parents_computed) {
 				pop_commit(&list);
 				gen = compute_generation_from_max(
-						current, max_gen,
-						generation_version);
+					current, max_gen, generation_version);
 				info->set_generation(current, gen, info->data);
 			}
 		}
@@ -1657,10 +1677,9 @@ static void compute_topological_levels(struct write_commit_graph_context *ctx)
 	};
 
 	if (ctx->report_progress)
-		info.progress = ctx->progress
-			      = start_delayed_progress(
-					_("Computing commit graph topological levels"),
-					ctx->commits.nr);
+		info.progress = ctx->progress = start_delayed_progress(
+			_("Computing commit graph topological levels"),
+			ctx->commits.nr);
 
 	compute_reachable_generation_numbers(&info, 1);
 
@@ -1691,16 +1710,16 @@ static void compute_generation_numbers(struct write_commit_graph_context *ctx)
 	};
 
 	if (ctx->report_progress)
-		info.progress = ctx->progress
-			      = start_delayed_progress(
-					_("Computing commit graph generation numbers"),
-					ctx->commits.nr);
+		info.progress = ctx->progress = start_delayed_progress(
+			_("Computing commit graph generation numbers"),
+			ctx->commits.nr);
 
 	if (!ctx->trust_generation_numbers) {
 		for (i = 0; i < ctx->commits.nr; i++) {
 			struct commit *c = ctx->commits.list[i];
 			repo_parse_commit(ctx->r, c);
-			commit_graph_data_at(c)->generation = GENERATION_NUMBER_ZERO;
+			commit_graph_data_at(c)->generation =
+				GENERATION_NUMBER_ZERO;
 		}
 	}
 
@@ -1708,7 +1727,8 @@ static void compute_generation_numbers(struct write_commit_graph_context *ctx)
 
 	for (i = 0; i < ctx->commits.nr; i++) {
 		struct commit *c = ctx->commits.list[i];
-		timestamp_t offset = commit_graph_data_at(c)->generation - c->date;
+		timestamp_t offset =
+			commit_graph_data_at(c)->generation - c->date;
 		if (offset > GENERATION_NUMBER_V2_OFFSET_MAX)
 			ctx->num_generation_data_overflows++;
 	}
@@ -1725,8 +1745,8 @@ static void set_generation_in_graph_data(struct commit *c, timestamp_t t,
  * After this method, all commits reachable from those in the given
  * list will have non-zero, non-infinite generation numbers.
  */
-void ensure_generations_valid(struct repository *r,
-			      struct commit **commits, size_t nr)
+void ensure_generations_valid(struct repository *r, struct commit **commits,
+			      size_t nr)
 {
 	int generation_version = get_configured_generation_version(r);
 	struct packed_commit_list list = {
@@ -1744,7 +1764,8 @@ void ensure_generations_valid(struct repository *r,
 	compute_reachable_generation_numbers(&info, generation_version);
 }
 
-static void trace2_bloom_filter_write_statistics(struct write_commit_graph_context *ctx)
+static void
+trace2_bloom_filter_write_statistics(struct write_commit_graph_context *ctx)
 {
 	trace2_data_intmax("commit-graph", ctx->r, "filter-computed",
 			   ctx->count_bloom_filter_computed);
@@ -1778,17 +1799,16 @@ static void compute_bloom_filters(struct write_commit_graph_context *ctx)
 		QSORT(sorted_commits, ctx->commits.nr, commit_gen_cmp);
 
 	max_new_filters = ctx->opts && ctx->opts->max_new_filters >= 0 ?
-		ctx->opts->max_new_filters : ctx->commits.nr;
+				  ctx->opts->max_new_filters :
+				  ctx->commits.nr;
 
 	for (i = 0; i < ctx->commits.nr; i++) {
 		enum bloom_filter_computed computed = 0;
 		struct commit *c = sorted_commits[i];
 		struct bloom_filter *filter = get_or_compute_bloom_filter(
-			ctx->r,
-			c,
+			ctx->r, c,
 			ctx->count_bloom_filter_computed < max_new_filters,
-			ctx->bloom_settings,
-			&computed);
+			ctx->bloom_settings, &computed);
 		if (computed & BLOOM_COMPUTED) {
 			ctx->count_bloom_filter_computed++;
 			if (computed & BLOOM_TRUNC_EMPTY)
@@ -1797,8 +1817,8 @@ static void compute_bloom_filters(struct write_commit_graph_context *ctx)
 				ctx->count_bloom_filter_trunc_large++;
 		} else if (computed & BLOOM_NOT_COMPUTED)
 			ctx->count_bloom_filter_not_computed++;
-		ctx->total_bloom_filter_data_size += filter
-			? sizeof(unsigned char) * filter->len : 0;
+		ctx->total_bloom_filter_data_size +=
+			filter ? sizeof(unsigned char) * filter->len : 0;
 		display_progress(progress, i + 1);
 	}
 
@@ -1815,8 +1835,8 @@ struct refs_cb_data {
 };
 
 static int add_ref_to_set(const char *refname UNUSED,
-			  const struct object_id *oid,
-			  int flags UNUSED, void *cb_data)
+			  const struct object_id *oid, int flags UNUSED,
+			  void *cb_data)
 {
 	struct object_id peeled;
 	struct refs_cb_data *data = (struct refs_cb_data *)cb_data;
@@ -1849,8 +1869,7 @@ int write_commit_graph_reachable(struct object_directory *odb,
 
 	stop_progress(&data.progress);
 
-	result = write_commit_graph(odb, NULL, &commits,
-				    flags, opts);
+	result = write_commit_graph(odb, NULL, &commits, flags, opts);
 
 	oidset_clear(&commits);
 	return result;
@@ -1869,8 +1888,10 @@ static int fill_oids_from_packs(struct write_commit_graph_context *ctx,
 	dirlen = packname.len;
 	if (ctx->report_progress) {
 		strbuf_addf(&progress_title,
-			    Q_("Finding commits for commit graph in %"PRIuMAX" pack",
-			       "Finding commits for commit graph in %"PRIuMAX" packs",
+			    Q_("Finding commits for commit graph in %" PRIuMAX
+			       " pack",
+			       "Finding commits for commit graph in %" PRIuMAX
+			       " packs",
 			       pack_indexes->nr),
 			    (uintmax_t)pack_indexes->nr);
 		ctx->progress = start_delayed_progress(progress_title.buf, 0);
@@ -1886,7 +1907,8 @@ static int fill_oids_from_packs(struct write_commit_graph_context *ctx,
 			goto cleanup;
 		}
 		if (open_pack_index(p)) {
-			ret = error(_("error opening index for %s"), packname.buf);
+			ret = error(_("error opening index for %s"),
+				    packname.buf);
 			goto cleanup;
 		}
 		for_each_object_in_pack(p, add_packed_commits, ctx,
@@ -1936,33 +1958,40 @@ static void fill_oids_from_all_packs(struct write_commit_graph_context *ctx)
 static void copy_oids_to_commits(struct write_commit_graph_context *ctx)
 {
 	uint32_t i;
-	enum commit_graph_split_flags flags = ctx->opts ?
-		ctx->opts->split_flags : COMMIT_GRAPH_SPLIT_UNSPECIFIED;
+	enum commit_graph_split_flags flags =
+		ctx->opts ? ctx->opts->split_flags :
+			    COMMIT_GRAPH_SPLIT_UNSPECIFIED;
 
 	ctx->num_extra_edges = 0;
 	if (ctx->report_progress)
 		ctx->progress = start_delayed_progress(
-			_("Finding extra edges in commit graph"),
-			ctx->oids.nr);
+			_("Finding extra edges in commit graph"), ctx->oids.nr);
 	oid_array_sort(&ctx->oids);
-	for (i = 0; i < ctx->oids.nr; i = oid_array_next_unique(&ctx->oids, i)) {
+	for (i = 0; i < ctx->oids.nr;
+	     i = oid_array_next_unique(&ctx->oids, i)) {
 		unsigned int num_parents;
 
 		display_progress(ctx->progress, i + 1);
 
-		ALLOC_GROW(ctx->commits.list, ctx->commits.nr + 1, ctx->commits.alloc);
-		ctx->commits.list[ctx->commits.nr] = lookup_commit(ctx->r, &ctx->oids.oid[i]);
+		ALLOC_GROW(ctx->commits.list, ctx->commits.nr + 1,
+			   ctx->commits.alloc);
+		ctx->commits.list[ctx->commits.nr] =
+			lookup_commit(ctx->r, &ctx->oids.oid[i]);
 
 		if (ctx->split && flags != COMMIT_GRAPH_SPLIT_REPLACE &&
-		    commit_graph_position(ctx->commits.list[ctx->commits.nr]) != COMMIT_NOT_FROM_GRAPH)
+		    commit_graph_position(ctx->commits.list[ctx->commits.nr]) !=
+			    COMMIT_NOT_FROM_GRAPH)
 			continue;
 
 		if (ctx->split && flags == COMMIT_GRAPH_SPLIT_REPLACE)
-			repo_parse_commit(ctx->r, ctx->commits.list[ctx->commits.nr]);
+			repo_parse_commit(ctx->r,
+					  ctx->commits.list[ctx->commits.nr]);
 		else
-			repo_parse_commit_no_graph(ctx->r, ctx->commits.list[ctx->commits.nr]);
+			repo_parse_commit_no_graph(
+				ctx->r, ctx->commits.list[ctx->commits.nr]);
 
-		num_parents = commit_list_count(ctx->commits.list[ctx->commits.nr]->parents);
+		num_parents = commit_list_count(
+			ctx->commits.list[ctx->commits.nr]->parents);
 		if (num_parents > 2)
 			ctx->num_extra_edges += num_parents - 1;
 
@@ -1971,8 +2000,7 @@ static void copy_oids_to_commits(struct write_commit_graph_context *ctx)
 	stop_progress(&ctx->progress);
 }
 
-static int write_graph_chunk_base_1(struct hashfile *f,
-				    struct commit_graph *g)
+static int write_graph_chunk_base_1(struct hashfile *f, struct commit_graph *g)
 {
 	int num = 0;
 
@@ -1984,8 +2012,7 @@ static int write_graph_chunk_base_1(struct hashfile *f,
 	return num + 1;
 }
 
-static int write_graph_chunk_base(struct hashfile *f,
-				    void *data)
+static int write_graph_chunk_base(struct hashfile *f, void *data)
 {
 	struct write_commit_graph_context *ctx = data;
 	int num = write_graph_chunk_base_1(f, ctx->new_base_graph);
@@ -2012,8 +2039,7 @@ static int write_commit_graph_file(struct write_commit_graph_context *ctx)
 	if (ctx->split) {
 		struct strbuf tmp_file = STRBUF_INIT;
 
-		strbuf_addf(&tmp_file,
-			    "%s/info/commit-graphs/tmp_graph_XXXXXX",
+		strbuf_addf(&tmp_file, "%s/info/commit-graphs/tmp_graph_XXXXXX",
 			    ctx->odb->path);
 		ctx->graph_name = strbuf_detach(&tmp_file, NULL);
 	} else {
@@ -2023,7 +2049,7 @@ static int write_commit_graph_file(struct write_commit_graph_context *ctx)
 	if (safe_create_leading_directories(ctx->graph_name)) {
 		UNLEAK(ctx->graph_name);
 		error(_("unable to create leading directories of %s"),
-			ctx->graph_name);
+		      ctx->graph_name);
 		return -1;
 	}
 
@@ -2069,7 +2095,8 @@ static int write_commit_graph_file(struct write_commit_graph_context *ctx)
 			  write_graph_chunk_generation_data);
 	if (ctx->num_generation_data_overflows)
 		add_chunk(cf, GRAPH_CHUNKID_GENERATION_DATA_OVERFLOW,
-			  st_mult(sizeof(timestamp_t), ctx->num_generation_data_overflows),
+			  st_mult(sizeof(timestamp_t),
+				  ctx->num_generation_data_overflows),
 			  write_graph_chunk_generation_data_overflow);
 	if (ctx->num_extra_edges)
 		add_chunk(cf, GRAPH_CHUNKID_EXTRAEDGES,
@@ -2112,14 +2139,21 @@ static int write_commit_graph_file(struct write_commit_graph_context *ctx)
 	stop_progress(&ctx->progress);
 	strbuf_release(&progress_title);
 
-	if (ctx->split && ctx->base_graph_name && ctx->num_commit_graphs_after > 1) {
-		char *new_base_hash = xstrdup(oid_to_hex(&ctx->new_base_graph->oid));
-		char *new_base_name = get_split_graph_filename(ctx->new_base_graph->odb, new_base_hash);
+	if (ctx->split && ctx->base_graph_name &&
+	    ctx->num_commit_graphs_after > 1) {
+		char *new_base_hash =
+			xstrdup(oid_to_hex(&ctx->new_base_graph->oid));
+		char *new_base_name = get_split_graph_filename(
+			ctx->new_base_graph->odb, new_base_hash);
 
-		free(ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after - 2]);
-		free(ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 2]);
-		ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after - 2] = new_base_name;
-		ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 2] = new_base_hash;
+		free(ctx->commit_graph_filenames_after
+			     [ctx->num_commit_graphs_after - 2]);
+		free(ctx->commit_graph_hash_after[ctx->num_commit_graphs_after -
+						  2]);
+		ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after -
+						  2] = new_base_name;
+		ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 2] =
+			new_base_hash;
 	}
 
 	close_commit_graph(ctx->r->objects);
@@ -2161,17 +2195,23 @@ static int write_commit_graph_file(struct write_commit_graph_context *ctx)
 			free(graph_name);
 		}
 
-		free(ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 1]);
-		ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 1] = xstrdup(hash_to_hex(file_hash));
-		final_graph_name = get_split_graph_filename(ctx->odb,
-					ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 1]);
-		free(ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after - 1]);
-		ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after - 1] = final_graph_name;
+		free(ctx->commit_graph_hash_after[ctx->num_commit_graphs_after -
+						  1]);
+		ctx->commit_graph_hash_after[ctx->num_commit_graphs_after - 1] =
+			xstrdup(hash_to_hex(file_hash));
+		final_graph_name = get_split_graph_filename(
+			ctx->odb, ctx->commit_graph_hash_after
+					  [ctx->num_commit_graphs_after - 1]);
+		free(ctx->commit_graph_filenames_after
+			     [ctx->num_commit_graphs_after - 1]);
+		ctx->commit_graph_filenames_after[ctx->num_commit_graphs_after -
+						  1] = final_graph_name;
 
 		result = rename(ctx->graph_name, final_graph_name);
 
 		for (i = 0; i < ctx->num_commit_graphs_after; i++)
-			fprintf(get_lock_file_fp(&lk), "%s\n", ctx->commit_graph_hash_after[i]);
+			fprintf(get_lock_file_fp(&lk), "%s\n",
+				ctx->commit_graph_hash_after[i]);
 
 		if (result) {
 			error(_("failed to rename temporary commit-graph file"));
@@ -2208,18 +2248,20 @@ static void split_graph_merge_strategy(struct write_commit_graph_context *ctx)
 	if (flags == COMMIT_GRAPH_SPLIT_REPLACE)
 		ctx->num_commit_graphs_after = 1;
 	else
-		ctx->num_commit_graphs_after = ctx->num_commit_graphs_before + 1;
+		ctx->num_commit_graphs_after =
+			ctx->num_commit_graphs_before + 1;
 
 	if (flags != COMMIT_GRAPH_SPLIT_MERGE_PROHIBITED &&
 	    flags != COMMIT_GRAPH_SPLIT_REPLACE) {
-		while (g && (g->num_commits <= st_mult(size_mult, num_commits) ||
-			    (max_commits && num_commits > max_commits))) {
+		while (g &&
+		       (g->num_commits <= st_mult(size_mult, num_commits) ||
+			(max_commits && num_commits > max_commits))) {
 			if (g->odb != ctx->odb)
 				break;
 
 			if (unsigned_add_overflows(num_commits, g->num_commits))
-				die(_("cannot merge graphs with %"PRIuMAX", "
-				      "%"PRIuMAX" commits"),
+				die(_("cannot merge graphs with %" PRIuMAX ", "
+				      "%" PRIuMAX " commits"),
 				    (uintmax_t)num_commits,
 				    (uintmax_t)g->num_commits);
 			num_commits += g->num_commits;
@@ -2247,19 +2289,24 @@ static void split_graph_merge_strategy(struct write_commit_graph_context *ctx)
 		free(old_graph_name);
 	}
 
-	CALLOC_ARRAY(ctx->commit_graph_filenames_after, ctx->num_commit_graphs_after);
-	CALLOC_ARRAY(ctx->commit_graph_hash_after, ctx->num_commit_graphs_after);
+	CALLOC_ARRAY(ctx->commit_graph_filenames_after,
+		     ctx->num_commit_graphs_after);
+	CALLOC_ARRAY(ctx->commit_graph_hash_after,
+		     ctx->num_commit_graphs_after);
 
 	for (i = 0; i < ctx->num_commit_graphs_after &&
-		    i < ctx->num_commit_graphs_before; i++)
-		ctx->commit_graph_filenames_after[i] = xstrdup(ctx->commit_graph_filenames_before[i]);
+		    i < ctx->num_commit_graphs_before;
+	     i++)
+		ctx->commit_graph_filenames_after[i] =
+			xstrdup(ctx->commit_graph_filenames_before[i]);
 
 	i = ctx->num_commit_graphs_before - 1;
 	g = ctx->r->objects->commit_graph;
 
 	while (g) {
 		if (i < ctx->num_commit_graphs_after)
-			ctx->commit_graph_hash_after[i] = xstrdup(oid_to_hex(&g->oid));
+			ctx->commit_graph_hash_after[i] =
+				xstrdup(oid_to_hex(&g->oid));
 
 		/*
 		 * If the topmost remaining layer has generation data chunk, the
@@ -2280,11 +2327,12 @@ static void merge_commit_graph(struct write_commit_graph_context *ctx,
 	uint32_t offset = g->num_commits_in_base;
 
 	if (unsigned_add_overflows(ctx->commits.nr, g->num_commits))
-		die(_("cannot merge graph %s, too many commits: %"PRIuMAX),
+		die(_("cannot merge graph %s, too many commits: %" PRIuMAX),
 		    oid_to_hex(&g->oid),
 		    (uintmax_t)st_add(ctx->commits.nr, g->num_commits));
 
-	ALLOC_GROW(ctx->commits.list, ctx->commits.nr + g->num_commits, ctx->commits.alloc);
+	ALLOC_GROW(ctx->commits.list, ctx->commits.nr + g->num_commits,
+		   ctx->commits.alloc);
 
 	for (i = 0; i < g->num_commits; i++) {
 		struct object_id oid;
@@ -2317,8 +2365,7 @@ static void sort_and_scan_merged_commits(struct write_commit_graph_context *ctx)
 
 	if (ctx->report_progress)
 		ctx->progress = start_delayed_progress(
-					_("Scanning merged commits"),
-					ctx->commits.nr);
+			_("Scanning merged commits"), ctx->commits.nr);
 
 	QSORT(ctx->commits.list, ctx->commits.nr, commit_compare);
 
@@ -2327,7 +2374,7 @@ static void sort_and_scan_merged_commits(struct write_commit_graph_context *ctx)
 		display_progress(ctx->progress, i + 1);
 
 		if (i && oideq(&ctx->commits.list[i - 1]->object.oid,
-			  &ctx->commits.list[i]->object.oid)) {
+			       &ctx->commits.list[i]->object.oid)) {
 			/*
 			 * Silently ignore duplicates. These were likely
 			 * created due to a commit appearing in multiple
@@ -2341,7 +2388,8 @@ static void sort_and_scan_merged_commits(struct write_commit_graph_context *ctx)
 			ctx->commits.list[dedup_i] = ctx->commits.list[i];
 			dedup_i++;
 
-			num_parents = commit_list_count(ctx->commits.list[i]->parents);
+			num_parents = commit_list_count(
+				ctx->commits.list[i]->parents);
 			if (num_parents > 2)
 				ctx->num_extra_edges += num_parents - 1;
 		}
@@ -2361,7 +2409,8 @@ static void merge_commit_graphs(struct write_commit_graph_context *ctx)
 		current_graph_number--;
 
 		if (ctx->report_progress)
-			ctx->progress = start_delayed_progress(_("Merging commit-graph"), 0);
+			ctx->progress = start_delayed_progress(
+				_("Merging commit-graph"), 0);
 
 		merge_commit_graph(ctx, g);
 		stop_progress(&ctx->progress);
@@ -2371,7 +2420,8 @@ static void merge_commit_graphs(struct write_commit_graph_context *ctx)
 
 	if (g) {
 		ctx->new_base_graph = g;
-		ctx->new_num_commits_in_base = g->num_commits + g->num_commits_in_base;
+		ctx->new_num_commits_in_base =
+			g->num_commits + g->num_commits_in_base;
 	}
 
 	if (ctx->new_base_graph)
@@ -2385,7 +2435,8 @@ static void mark_commit_graphs(struct write_commit_graph_context *ctx)
 	uint32_t i;
 	time_t now = time(NULL);
 
-	for (i = ctx->num_commit_graphs_after - 1; i < ctx->num_commit_graphs_before; i++) {
+	for (i = ctx->num_commit_graphs_after - 1;
+	     i < ctx->num_commit_graphs_before; i++) {
 		struct stat st;
 		struct utimbuf updated_time;
 
@@ -2409,7 +2460,8 @@ static void expire_commit_graphs(struct write_commit_graph_context *ctx)
 	if (ctx->opts && ctx->opts->expire_time)
 		expire_time = ctx->opts->expire_time;
 	if (!ctx->split) {
-		char *chain_file_name = get_commit_graph_chain_filename(ctx->odb);
+		char *chain_file_name =
+			get_commit_graph_chain_filename(ctx->odb);
 		unlink(chain_file_name);
 		free(chain_file_name);
 		ctx->num_commit_graphs_after = 0;
@@ -2452,7 +2504,7 @@ static void expire_commit_graphs(struct write_commit_graph_context *ctx)
 	}
 
 out:
-	if(dir)
+	if (dir)
 		closedir(dir);
 	strbuf_release(&path);
 }
@@ -2468,12 +2520,14 @@ int write_commit_graph(struct object_directory *odb,
 	uint32_t i;
 	int res = 0;
 	int replace = 0;
-	struct bloom_filter_settings bloom_settings = DEFAULT_BLOOM_FILTER_SETTINGS;
+	struct bloom_filter_settings bloom_settings =
+		DEFAULT_BLOOM_FILTER_SETTINGS;
 	struct topo_level_slab topo_levels;
 
 	prepare_repo_settings(r);
 	if (!r->settings.core_commit_graph) {
-		warning(_("attempting to write a commit-graph, but 'core.commitGraph' is disabled"));
+		warning(_(
+			"attempting to write a commit-graph, but 'core.commitGraph' is disabled"));
 		return 0;
 	}
 	if (!commit_graph_compatible(r))
@@ -2487,15 +2541,19 @@ int write_commit_graph(struct object_directory *odb,
 	ctx->split = flags & COMMIT_GRAPH_WRITE_SPLIT ? 1 : 0;
 	ctx->opts = opts;
 	ctx->total_bloom_filter_data_size = 0;
-	ctx->write_generation_data = (get_configured_generation_version(r) == 2);
+	ctx->write_generation_data =
+		(get_configured_generation_version(r) == 2);
 	ctx->num_generation_data_overflows = 0;
 
-	bloom_settings.bits_per_entry = git_env_ulong("GIT_TEST_BLOOM_SETTINGS_BITS_PER_ENTRY",
-						      bloom_settings.bits_per_entry);
-	bloom_settings.num_hashes = git_env_ulong("GIT_TEST_BLOOM_SETTINGS_NUM_HASHES",
-						  bloom_settings.num_hashes);
-	bloom_settings.max_changed_paths = git_env_ulong("GIT_TEST_BLOOM_SETTINGS_MAX_CHANGED_PATHS",
-							 bloom_settings.max_changed_paths);
+	bloom_settings.bits_per_entry =
+		git_env_ulong("GIT_TEST_BLOOM_SETTINGS_BITS_PER_ENTRY",
+			      bloom_settings.bits_per_entry);
+	bloom_settings.num_hashes =
+		git_env_ulong("GIT_TEST_BLOOM_SETTINGS_NUM_HASHES",
+			      bloom_settings.num_hashes);
+	bloom_settings.max_changed_paths =
+		git_env_ulong("GIT_TEST_BLOOM_SETTINGS_MAX_CHANGED_PATHS",
+			      bloom_settings.max_changed_paths);
 	ctx->bloom_settings = &bloom_settings;
 
 	init_topo_level_slab(&topo_levels);
@@ -2534,18 +2592,21 @@ int write_commit_graph(struct object_directory *odb,
 		}
 
 		if (ctx->num_commit_graphs_before) {
-			ALLOC_ARRAY(ctx->commit_graph_filenames_before, ctx->num_commit_graphs_before);
+			ALLOC_ARRAY(ctx->commit_graph_filenames_before,
+				    ctx->num_commit_graphs_before);
 			i = ctx->num_commit_graphs_before;
 			g = ctx->r->objects->commit_graph;
 
 			while (g) {
-				ctx->commit_graph_filenames_before[--i] = xstrdup(g->filename);
+				ctx->commit_graph_filenames_before[--i] =
+					xstrdup(g->filename);
 				g = g->base_graph;
 			}
 		}
 
 		if (ctx->opts)
-			replace = ctx->opts->split_flags & COMMIT_GRAPH_SPLIT_REPLACE;
+			replace = ctx->opts->split_flags &
+				  COMMIT_GRAPH_SPLIT_REPLACE;
 	}
 
 	ctx->approx_nr_objects = repo_approximate_object_count(the_repository);
@@ -2554,7 +2615,8 @@ int write_commit_graph(struct object_directory *odb,
 		struct commit_graph *g = ctx->r->objects->commit_graph;
 		for (i = 0; i < g->num_commits; i++) {
 			struct object_id oid;
-			oidread(&oid, g->chunk_oid_lookup + st_mult(g->hash_len, i));
+			oidread(&oid,
+				g->chunk_oid_lookup + st_mult(g->hash_len, i));
 			oid_array_append(&ctx->oids, &oid);
 		}
 	}
@@ -2596,7 +2658,8 @@ int write_commit_graph(struct object_directory *odb,
 	} else
 		ctx->num_commit_graphs_after = 1;
 
-	ctx->trust_generation_numbers = validate_mixed_generation_chain(ctx->r->objects->commit_graph);
+	ctx->trust_generation_numbers =
+		validate_mixed_generation_chain(ctx->r->objects->commit_graph);
 
 	compute_topological_levels(ctx);
 	if (ctx->write_generation_data)
@@ -2638,8 +2701,8 @@ cleanup:
 #define VERIFY_COMMIT_GRAPH_ERROR_HASH 2
 static int verify_commit_graph_error;
 
-__attribute__((format (printf, 1, 2)))
-static void graph_report(const char *fmt, ...)
+__attribute__((format(printf, 1, 2))) static void graph_report(const char *fmt,
+							       ...)
 {
 	va_list ap;
 
@@ -2655,10 +2718,8 @@ static int commit_graph_checksum_valid(struct commit_graph *g)
 	return hashfile_checksum_valid(g->data, g->data_len);
 }
 
-static int verify_one_commit_graph(struct repository *r,
-				   struct commit_graph *g,
-				   struct progress *progress,
-				   uint64_t *seen)
+static int verify_one_commit_graph(struct repository *r, struct commit_graph *g,
+				   struct progress *progress, uint64_t *seen)
 {
 	uint32_t i, cur_fanout_pos = 0;
 	struct object_id prev_oid, cur_oid;
@@ -2666,43 +2727,50 @@ static int verify_one_commit_graph(struct repository *r,
 	struct commit *seen_gen_non_zero = NULL;
 
 	if (!commit_graph_checksum_valid(g)) {
-		graph_report(_("the commit-graph file has incorrect checksum and is likely corrupt"));
+		graph_report(_(
+			"the commit-graph file has incorrect checksum and is likely corrupt"));
 		verify_commit_graph_error = VERIFY_COMMIT_GRAPH_ERROR_HASH;
 	}
 
 	for (i = 0; i < g->num_commits; i++) {
 		struct commit *graph_commit;
 
-		oidread(&cur_oid, g->chunk_oid_lookup + st_mult(g->hash_len, i));
+		oidread(&cur_oid,
+			g->chunk_oid_lookup + st_mult(g->hash_len, i));
 
 		if (i && oidcmp(&prev_oid, &cur_oid) >= 0)
-			graph_report(_("commit-graph has incorrect OID order: %s then %s"),
-				     oid_to_hex(&prev_oid),
-				     oid_to_hex(&cur_oid));
+			graph_report(
+				_("commit-graph has incorrect OID order: %s then %s"),
+				oid_to_hex(&prev_oid), oid_to_hex(&cur_oid));
 
 		oidcpy(&prev_oid, &cur_oid);
 
 		while (cur_oid.hash[0] > cur_fanout_pos) {
-			uint32_t fanout_value = get_be32(g->chunk_oid_fanout + cur_fanout_pos);
+			uint32_t fanout_value =
+				get_be32(g->chunk_oid_fanout + cur_fanout_pos);
 
 			if (i != fanout_value)
-				graph_report(_("commit-graph has incorrect fanout value: fanout[%d] = %u != %u"),
-					     cur_fanout_pos, fanout_value, i);
+				graph_report(
+					_("commit-graph has incorrect fanout value: fanout[%d] = %u != %u"),
+					cur_fanout_pos, fanout_value, i);
 			cur_fanout_pos++;
 		}
 
 		graph_commit = lookup_commit(r, &cur_oid);
 		if (!parse_commit_in_graph_one(r, g, graph_commit))
-			graph_report(_("failed to parse commit %s from commit-graph"),
-				     oid_to_hex(&cur_oid));
+			graph_report(
+				_("failed to parse commit %s from commit-graph"),
+				oid_to_hex(&cur_oid));
 	}
 
 	while (cur_fanout_pos < 256) {
-		uint32_t fanout_value = get_be32(g->chunk_oid_fanout + cur_fanout_pos);
+		uint32_t fanout_value =
+			get_be32(g->chunk_oid_fanout + cur_fanout_pos);
 
 		if (g->num_commits != fanout_value)
-			graph_report(_("commit-graph has incorrect fanout value: fanout[%d] = %u != %u"),
-				     cur_fanout_pos, fanout_value, i);
+			graph_report(
+				_("commit-graph has incorrect fanout value: fanout[%d] = %u != %u"),
+				cur_fanout_pos, fanout_value, i);
 
 		cur_fanout_pos++;
 	}
@@ -2717,43 +2785,54 @@ static int verify_one_commit_graph(struct repository *r,
 		timestamp_t generation;
 
 		display_progress(progress, ++(*seen));
-		oidread(&cur_oid, g->chunk_oid_lookup + st_mult(g->hash_len, i));
+		oidread(&cur_oid,
+			g->chunk_oid_lookup + st_mult(g->hash_len, i));
 
 		graph_commit = lookup_commit(r, &cur_oid);
-		odb_commit = (struct commit *)create_object(r, &cur_oid, alloc_commit_node(r));
+		odb_commit = (struct commit *)create_object(
+			r, &cur_oid, alloc_commit_node(r));
 		if (repo_parse_commit_internal(r, odb_commit, 0, 0)) {
-			graph_report(_("failed to parse commit %s from object database for commit-graph"),
-				     oid_to_hex(&cur_oid));
+			graph_report(
+				_("failed to parse commit %s from object database for commit-graph"),
+				oid_to_hex(&cur_oid));
 			continue;
 		}
 
-		if (!oideq(&get_commit_tree_in_graph_one(r, g, graph_commit)->object.oid,
+		if (!oideq(&get_commit_tree_in_graph_one(r, g, graph_commit)
+				    ->object.oid,
 			   get_commit_tree_oid(odb_commit)))
-			graph_report(_("root tree OID for commit %s in commit-graph is %s != %s"),
-				     oid_to_hex(&cur_oid),
-				     oid_to_hex(get_commit_tree_oid(graph_commit)),
-				     oid_to_hex(get_commit_tree_oid(odb_commit)));
+			graph_report(
+				_("root tree OID for commit %s in commit-graph is %s != %s"),
+				oid_to_hex(&cur_oid),
+				oid_to_hex(get_commit_tree_oid(graph_commit)),
+				oid_to_hex(get_commit_tree_oid(odb_commit)));
 
 		graph_parents = graph_commit->parents;
 		odb_parents = odb_commit->parents;
 
 		while (graph_parents) {
 			if (!odb_parents) {
-				graph_report(_("commit-graph parent list for commit %s is too long"),
-					     oid_to_hex(&cur_oid));
+				graph_report(
+					_("commit-graph parent list for commit %s is too long"),
+					oid_to_hex(&cur_oid));
 				break;
 			}
 
 			/* parse parent in case it is in a base graph */
 			parse_commit_in_graph_one(r, g, graph_parents->item);
 
-			if (!oideq(&graph_parents->item->object.oid, &odb_parents->item->object.oid))
-				graph_report(_("commit-graph parent for %s is %s != %s"),
-					     oid_to_hex(&cur_oid),
-					     oid_to_hex(&graph_parents->item->object.oid),
-					     oid_to_hex(&odb_parents->item->object.oid));
+			if (!oideq(&graph_parents->item->object.oid,
+				   &odb_parents->item->object.oid))
+				graph_report(
+					_("commit-graph parent for %s is %s != %s"),
+					oid_to_hex(&cur_oid),
+					oid_to_hex(&graph_parents->item->object
+							    .oid),
+					oid_to_hex(
+						&odb_parents->item->object.oid));
 
-			generation = commit_graph_generation_from_graph(graph_parents->item);
+			generation = commit_graph_generation_from_graph(
+				graph_parents->item);
 			if (generation > max_generation)
 				max_generation = generation;
 
@@ -2762,8 +2841,9 @@ static int verify_one_commit_graph(struct repository *r,
 		}
 
 		if (odb_parents)
-			graph_report(_("commit-graph parent list for commit %s terminates early"),
-				     oid_to_hex(&cur_oid));
+			graph_report(
+				_("commit-graph parent list for commit %s terminates early"),
+				oid_to_hex(&cur_oid));
 
 		if (commit_graph_generation_from_graph(graph_commit))
 			seen_gen_non_zero = graph_commit;
@@ -2779,21 +2859,24 @@ static int verify_one_commit_graph(struct repository *r,
 		 * also GENERATION_NUMBER_V1_MAX. Decrement to avoid extra logic
 		 * in the following condition.
 		 */
-		if (!g->read_generation_data && max_generation == GENERATION_NUMBER_V1_MAX)
+		if (!g->read_generation_data &&
+		    max_generation == GENERATION_NUMBER_V1_MAX)
 			max_generation--;
 
 		generation = commit_graph_generation(graph_commit);
 		if (generation < max_generation + 1)
-			graph_report(_("commit-graph generation for commit %s is %"PRItime" < %"PRItime),
-				     oid_to_hex(&cur_oid),
-				     generation,
-				     max_generation + 1);
+			graph_report(
+				_("commit-graph generation for commit %s is %" PRItime
+				  " < %" PRItime),
+				oid_to_hex(&cur_oid), generation,
+				max_generation + 1);
 
 		if (graph_commit->date != odb_commit->date)
-			graph_report(_("commit date for commit %s in commit-graph is %"PRItime" != %"PRItime),
-				     oid_to_hex(&cur_oid),
-				     graph_commit->date,
-				     odb_commit->date);
+			graph_report(
+				_("commit date for commit %s in commit-graph is %" PRItime
+				  " != %" PRItime),
+				oid_to_hex(&cur_oid), graph_commit->date,
+				odb_commit->date);
 	}
 
 	if (seen_gen_zero && seen_gen_non_zero)
@@ -2821,8 +2904,8 @@ int verify_commit_graph(struct repository *r, struct commit_graph *g, int flags)
 		if (!(flags & COMMIT_GRAPH_VERIFY_SHALLOW))
 			total += g->num_commits_in_base;
 
-		progress = start_progress(_("Verifying commits in commit graph"),
-					  total);
+		progress = start_progress(
+			_("Verifying commits in commit graph"), total);
 	}
 
 	for (; g; g = g->base_graph) {

@@ -1,12 +1,11 @@
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "test-tool.h"
 #include "test-tool-utils.h"
-#include "trace2.h"
-#include "parse-options.h"
+#include "components/trace2.h"
+#include "components/parse-options.h"
 
-static const char * const test_tool_usage[] = {
-	"test-tool [-C <directory>] <command [<arguments>...]]",
-	NULL
+static const char *const test_tool_usage[] = {
+	"test-tool [-C <directory>] <command [<arguments>...]]", NULL
 };
 
 static struct test_cmd cmds[] = {
@@ -110,16 +109,15 @@ int cmd_main(int argc, const char **argv)
 {
 	int i;
 	const char *working_directory = NULL;
-	struct option options[] = {
-		OPT_STRING('C', NULL, &working_directory, "directory",
-			   "change the working directory"),
-		OPT_END()
-	};
+	struct option options[] = { OPT_STRING('C', NULL, &working_directory,
+					       "directory",
+					       "change the working directory"),
+				    OPT_END() };
 
 	BUG_exit_code = 99;
 	argc = parse_options(argc, argv, NULL, options, test_tool_usage,
 			     PARSE_OPT_STOP_AT_NON_OPTION |
-			     PARSE_OPT_KEEP_ARGV0);
+				     PARSE_OPT_KEEP_ARGV0);
 
 	if (argc < 2)
 		die_usage();

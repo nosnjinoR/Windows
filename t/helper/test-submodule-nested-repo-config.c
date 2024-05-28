@@ -1,7 +1,7 @@
 #include "test-tool.h"
-#include "repository.h"
-#include "setup.h"
-#include "submodule-config.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/submodule-config.h"
 
 static void die_usage(const char **argv, const char *msg)
 {
@@ -19,7 +19,8 @@ int cmd__submodule_nested_repo_config(int argc, const char **argv)
 
 	setup_git_directory();
 
-	if (repo_submodule_init(&subrepo, the_repository, argv[1], null_oid())) {
+	if (repo_submodule_init(&subrepo, the_repository, argv[1],
+				null_oid())) {
 		die_usage(argv, "Submodule not found.");
 	}
 

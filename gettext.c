@@ -2,16 +2,16 @@
  * Copyright (c) 2010 Ævar Arnfjörð Bjarmason
  */
 
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "environment.h"
-#include "exec-cmd.h"
-#include "gettext.h"
-#include "utf8.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/environment.h"
+#include "components/exec-cmd.h"
+#include "components/gettext.h"
+#include "components/utf8.h"
 
 #ifndef NO_GETTEXT
-#	include <libintl.h>
-#	ifdef GIT_WINDOWS_NATIVE
+#include <libintl.h>
+#ifdef GIT_WINDOWS_NATIVE
 
 static const char *locale_charset(void)
 {
@@ -29,12 +29,12 @@ static const char *locale_charset(void)
 	return !dot ? env : dot + 1;
 }
 
-#	elif defined HAVE_LIBCHARSET_H
-#		include <libcharset.h>
-#	else
-#		include <langinfo.h>
-#		define locale_charset() nl_langinfo(CODESET)
-#	endif
+#elif defined HAVE_LIBCHARSET_H
+#include <libcharset.h>
+#else
+#include <langinfo.h>
+#define locale_charset() nl_langinfo(CODESET)
+#endif
 #endif
 
 static const char *charset;
@@ -55,9 +55,7 @@ const char *get_preferred_languages(void)
 
 #ifndef NO_GETTEXT
 	retval = setlocale(LC_MESSAGES, NULL);
-	if (retval && *retval &&
-		strcmp(retval, "C") &&
-		strcmp(retval, "POSIX"))
+	if (retval && *retval && strcmp(retval, "C") && strcmp(retval, "POSIX"))
 		return retval;
 #endif
 
@@ -65,8 +63,8 @@ const char *get_preferred_languages(void)
 }
 
 #ifndef NO_GETTEXT
-__attribute__((format (printf, 1, 2)))
-static int test_vsnprintf(const char *fmt, ...)
+__attribute__((format(printf, 1, 2))) static int test_vsnprintf(const char *fmt,
+								...)
 {
 	char buf[26];
 	int ret;

@@ -3,13 +3,13 @@
  */
 
 #include "test-tool.h"
-#include "gettext.h"
-#include "simple-ipc.h"
-#include "parse-options.h"
-#include "thread-utils.h"
-#include "strvec.h"
-#include "run-command.h"
-#include "trace2.h"
+#include "components/gettext.h"
+#include "components/simple-ipc.h"
+#include "components/parse-options.h"
+#include "components/thread-utils.h"
+#include "components/strvec.h"
+#include "components/run-command.h"
+#include "components/trace2.h"
 
 #ifndef SUPPORTS_SIMPLE_IPC
 int cmd__simple_ipc(int argc, const char **argv)
@@ -89,7 +89,7 @@ static int app__chunk_command(ipc_server_reply_cb *reply_cb,
  * compute chunked response (which might happen if this callback is running
  * in a thread and is fighting for a lock with other threads).
  */
-#define SLOW_ROWS     (1000)
+#define SLOW_ROWS (1000)
 #define SLOW_DELAY_MS (10)
 static int app__slow_command(ipc_server_reply_cb *reply_cb,
 			     struct ipc_server_reply_data *reply_data)
@@ -167,9 +167,8 @@ static ipc_server_application_cb test_app_cb;
  * "ipc-server".  It completely defines the set of commands supported
  * by this application.
  */
-static int test_app_cb(void *application_data,
-		       const char *command, size_t command_len,
-		       ipc_server_reply_cb *reply_cb,
+static int test_app_cb(void *application_data, const char *command,
+		       size_t command_len, ipc_server_reply_cb *reply_cb,
 		       struct ipc_server_reply_data *reply_data)
 {
 	/*
@@ -178,7 +177,7 @@ static int test_app_cb(void *application_data,
 	 * callbacks calling callbacks and it's easy to get things mixed
 	 * up (especially when some are "void*").)
 	 */
-	if (application_data != (void*)&my_app_data)
+	if (application_data != (void *)&my_app_data)
 		BUG("application_cb: application_data pointer wrong");
 
 	if (command_len == 4 && !strncmp(command, "quit", 4)) {
@@ -216,14 +215,13 @@ static int test_app_cb(void *application_data,
 		return app__slow_command(reply_cb, reply_data);
 
 	if (command_len >= 10 && starts_with(command, "sendbytes "))
-		return app__sendbytes_command(command, command_len,
-					      reply_cb, reply_data);
+		return app__sendbytes_command(command, command_len, reply_cb,
+					      reply_data);
 
 	return app__unhandled_command(command, reply_cb, reply_data);
 }
 
-struct cl_args
-{
+struct cl_args {
 	const char *subcommand;
 	const char *path;
 	const char *token;
@@ -266,7 +264,8 @@ static int daemon__run_server(void)
 	 * instance data, so pass an arbitrary pointer (that we'll later
 	 * verify made the round trip).
 	 */
-	ret = ipc_server_run(cl_args.path, &opts, test_app_cb, (void*)&my_app_data);
+	ret = ipc_server_run(cl_args.path, &opts, test_app_cb,
+			     (void *)&my_app_data);
 	if (ret == -2)
 		error("socket/pipe already in use: '%s'", cl_args.path);
 	else if (ret == -1)
@@ -375,8 +374,8 @@ static int client__send_ipc(void)
 {
 	const char *command = "(no-command)";
 	struct strbuf buf = STRBUF_INIT;
-	struct ipc_client_connect_options options
-		= IPC_CLIENT_CONNECT_OPTIONS_INIT;
+	struct ipc_client_connect_options options =
+		IPC_CLIENT_CONNECT_OPTIONS_INIT;
 
 	if (cl_args.token && *cl_args.token)
 		command = cl_args.token;
@@ -384,9 +383,8 @@ static int client__send_ipc(void)
 	options.wait_if_busy = 1;
 	options.wait_if_not_found = 0;
 
-	if (!ipc_client_send_command(cl_args.path, &options,
-				     command, strlen(command),
-				     &buf)) {
+	if (!ipc_client_send_command(cl_args.path, &options, command,
+				     strlen(command), &buf)) {
 		if (buf.len) {
 			printf("%s\n", buf.buf);
 			fflush(stdout);
@@ -454,8 +452,7 @@ static int do_sendbytes(int bytecount, char byte, const char *path,
 	strbuf_addstr(&buf_send, "sendbytes ");
 	strbuf_addchars(&buf_send, byte, bytecount);
 
-	if (!ipc_client_send_command(path, options,
-				     buf_send.buf, buf_send.len,
+	if (!ipc_client_send_command(path, options, buf_send.buf, buf_send.len,
 				     &buf_resp)) {
 		strbuf_rtrim(&buf_resp);
 		printf("sent:%c%08d %s\n", byte, bytecount, buf_resp.buf);
@@ -466,8 +463,8 @@ static int do_sendbytes(int bytecount, char byte, const char *path,
 		return 0;
 	}
 
-	return error("client failed to sendbytes(%d, '%c') to '%s'",
-		     bytecount, byte, path);
+	return error("client failed to sendbytes(%d, '%c') to '%s'", bytecount,
+		     byte, path);
 }
 
 /*
@@ -475,8 +472,8 @@ static int do_sendbytes(int bytecount, char byte, const char *path,
  */
 static int client__sendbytes(void)
 {
-	struct ipc_client_connect_options options
-		= IPC_CLIENT_CONNECT_OPTIONS_INIT;
+	struct ipc_client_connect_options options =
+		IPC_CLIENT_CONNECT_OPTIONS_INIT;
 
 	options.wait_if_busy = 1;
 	options.wait_if_not_found = 0;
@@ -501,8 +498,8 @@ static void *multiple_thread_proc(void *_multiple_thread_data)
 {
 	struct multiple_thread_data *d = _multiple_thread_data;
 	int k;
-	struct ipc_client_connect_options options
-		= IPC_CLIENT_CONNECT_OPTIONS_INIT;
+	struct ipc_client_connect_options options =
+		IPC_CLIENT_CONNECT_OPTIONS_INIT;
 
 	options.wait_if_busy = 1;
 	options.wait_if_not_found = 0;
@@ -516,7 +513,8 @@ static void *multiple_thread_proc(void *_multiple_thread_data)
 	trace2_thread_start("multiple");
 
 	for (k = 0; k < d->batchsize; k++) {
-		if (do_sendbytes(d->bytecount + k, d->letter, d->path, &options))
+		if (do_sendbytes(d->bytecount + k, d->letter, d->path,
+				 &options))
 			d->sum_errors++;
 		else
 			d->sum_good++;
@@ -542,14 +540,16 @@ static int client__multiple(void)
 		struct multiple_thread_data *d = xcalloc(1, sizeof(*d));
 		d->next = list;
 		d->path = cl_args.path;
-		d->bytecount = cl_args.bytecount + cl_args.batchsize*(k/26);
+		d->bytecount = cl_args.bytecount + cl_args.batchsize * (k / 26);
 		d->batchsize = cl_args.batchsize;
 		d->sum_errors = 0;
 		d->sum_good = 0;
 		d->letter = 'A' + (k % 26);
 
-		if (pthread_create(&d->pthread_id, NULL, multiple_thread_proc, d)) {
-			warning("failed to create thread[%d] skipping remainder", k);
+		if (pthread_create(&d->pthread_id, NULL, multiple_thread_proc,
+				   d)) {
+			warning("failed to create thread[%d] skipping remainder",
+				k);
 			free(d);
 			break;
 		}
@@ -570,15 +570,15 @@ static int client__multiple(void)
 		free(d);
 	}
 
-	printf("client (good %d) (join %d), (errors %d)\n",
-	       sum_good, sum_join_errors, sum_thread_errors);
+	printf("client (good %d) (join %d), (errors %d)\n", sum_good,
+	       sum_join_errors, sum_thread_errors);
 
 	return (sum_join_errors + sum_thread_errors) ? 1 : 0;
 }
 
 int cmd__simple_ipc(int argc, const char **argv)
 {
-	const char * const simple_ipc_usage[] = {
+	const char *const simple_ipc_usage[] = {
 		N_("test-helper simple-ipc is-active    [<name>] [<options>]"),
 		N_("test-helper simple-ipc run-daemon   [<name>] [<threads>]"),
 		N_("test-helper simple-ipc start-daemon [<name>] [<threads>] [<max-wait>]"),
@@ -593,18 +593,26 @@ int cmd__simple_ipc(int argc, const char **argv)
 
 	struct option options[] = {
 #ifndef GIT_WINDOWS_NATIVE
-		OPT_STRING(0, "name", &cl_args.path, N_("name"), N_("name or pathname of unix domain socket")),
+		OPT_STRING(0, "name", &cl_args.path, N_("name"),
+			   N_("name or pathname of unix domain socket")),
 #else
-		OPT_STRING(0, "name", &cl_args.path, N_("name"), N_("named-pipe name")),
+		OPT_STRING(0, "name", &cl_args.path, N_("name"),
+			   N_("named-pipe name")),
 #endif
-		OPT_INTEGER(0, "threads", &cl_args.nr_threads, N_("number of threads in server thread pool")),
-		OPT_INTEGER(0, "max-wait", &cl_args.max_wait_sec, N_("seconds to wait for daemon to start or stop")),
+		OPT_INTEGER(0, "threads", &cl_args.nr_threads,
+			    N_("number of threads in server thread pool")),
+		OPT_INTEGER(0, "max-wait", &cl_args.max_wait_sec,
+			    N_("seconds to wait for daemon to start or stop")),
 
-		OPT_INTEGER(0, "bytecount", &cl_args.bytecount, N_("number of bytes")),
-		OPT_INTEGER(0, "batchsize", &cl_args.batchsize, N_("number of requests per thread")),
+		OPT_INTEGER(0, "bytecount", &cl_args.bytecount,
+			    N_("number of bytes")),
+		OPT_INTEGER(0, "batchsize", &cl_args.batchsize,
+			    N_("number of requests per thread")),
 
-		OPT_STRING(0, "byte", &bytevalue, N_("byte"), N_("ballast character")),
-		OPT_STRING(0, "token", &cl_args.token, N_("token"), N_("command token to send to the server")),
+		OPT_STRING(0, "byte", &bytevalue, N_("byte"),
+			   N_("ballast character")),
+		OPT_STRING(0, "token", &cl_args.token, N_("token"),
+			   N_("command token to send to the server")),
 
 		OPT_END()
 	};

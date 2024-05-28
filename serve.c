@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "repository.h"
-#include "config.h"
-#include "hash-ll.h"
-#include "pkt-line.h"
-#include "version.h"
-#include "ls-refs.h"
-#include "protocol-caps.h"
-#include "serve.h"
-#include "upload-pack.h"
-#include "bundle-uri.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/repository.h"
+#include "components/config.h"
+#include "components/hash-ll.h"
+#include "components/pkt-line.h"
+#include "components/version.h"
+#include "components/ls-refs.h"
+#include "components/protocol-caps.h"
+#include "components/serve.h"
+#include "components/upload-pack.h"
+#include "components/bundle-uri.h"
+#include "components/trace2.h"
 
 static int advertise_sid = -1;
 static int advertise_object_info = -1;
@@ -21,16 +21,14 @@ static int always_advertise(struct repository *r UNUSED,
 	return 1;
 }
 
-static int agent_advertise(struct repository *r UNUSED,
-			   struct strbuf *value)
+static int agent_advertise(struct repository *r UNUSED, struct strbuf *value)
 {
 	if (value)
 		strbuf_addstr(value, git_user_agent_sanitized());
 	return 1;
 }
 
-static int object_format_advertise(struct repository *r,
-				   struct strbuf *value)
+static int object_format_advertise(struct repository *r, struct strbuf *value)
 {
 	if (value)
 		strbuf_addstr(value, r->hash_algo->name);
@@ -68,7 +66,8 @@ static void session_id_receive(struct repository *r UNUSED,
 	trace2_data_string("transfer", NULL, "client-sid", client_sid);
 }
 
-static int object_info_advertise(struct repository *r, struct strbuf *value UNUSED)
+static int object_info_advertise(struct repository *r,
+				 struct strbuf *value UNUSED)
 {
 	if (advertise_object_info == -1 &&
 	    repo_config_get_bool(r, "transfer.advertiseobjectinfo",
@@ -190,7 +189,8 @@ void protocol_v2_advertise_capabilities(void)
 	strbuf_release(&value);
 }
 
-static struct protocol_capability *get_capability(const char *key, const char **value)
+static struct protocol_capability *get_capability(const char *key,
+						  const char **value)
 {
 	int i;
 
@@ -239,7 +239,8 @@ static int parse_command(const char *key, struct protocol_capability **command)
 		if (*command)
 			die("command '%s' requested after already requesting command '%s'",
 			    out, (*command)->name);
-		if (!cmd || !cmd->advertise(the_repository, NULL) || !cmd->command || value)
+		if (!cmd || !cmd->advertise(the_repository, NULL) ||
+		    !cmd->command || value)
 			die("invalid command '%s'", out);
 
 		*command = cmd;
@@ -263,8 +264,8 @@ static int process_request(void)
 
 	packet_reader_init(&reader, 0, NULL, 0,
 			   PACKET_READ_CHOMP_NEWLINE |
-			   PACKET_READ_GENTLE_ON_EOF |
-			   PACKET_READ_DIE_ON_ERR_PACKET);
+				   PACKET_READ_GENTLE_ON_EOF |
+				   PACKET_READ_DIE_ON_ERR_PACKET);
 
 	/*
 	 * Check to see if the client closed their end before sending another

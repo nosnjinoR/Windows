@@ -1,16 +1,16 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "object-store-ll.h"
-#include "reflog.h"
-#include "refs.h"
-#include "revision.h"
-#include "tree.h"
-#include "tree-walk.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/object-store-ll.h"
+#include "components/reflog.h"
+#include "components/refs.h"
+#include "components/revision.h"
+#include "components/tree.h"
+#include "components/tree-walk.h"
 
 /* Remember to update object flag allocation in object.h */
-#define INCOMPLETE	(1u<<10)
-#define STUDYING	(1u<<11)
-#define REACHABLE	(1u<<12)
+#define INCOMPLETE (1u << 10)
+#define STUDYING (1u << 11)
+#define REACHABLE (1u << 12)
 
 static int tree_is_complete(const struct object_id *oid)
 {
@@ -84,14 +84,14 @@ static int commit_is_complete(struct commit *commit)
 		struct commit_list *parent;
 
 		c = (struct commit *)object_array_pop(&study);
-		if (!c->object.parsed && !parse_object(the_repository, &c->object.oid))
+		if (!c->object.parsed &&
+		    !parse_object(the_repository, &c->object.oid))
 			c->object.flags |= INCOMPLETE;
 
 		if (c->object.flags & INCOMPLETE) {
 			is_incomplete = 1;
 			break;
-		}
-		else if (c->object.flags & SEEN)
+		} else if (c->object.flags & SEEN)
 			continue;
 		for (parent = c->parents; parent; parent = parent->next) {
 			struct commit *p = parent->item;
@@ -208,7 +208,8 @@ static void mark_reachable(struct expire_reflog_policy_cb *cb)
 	cb->mark_list = leftover;
 }
 
-static int unreachable(struct expire_reflog_policy_cb *cb, struct commit *commit, struct object_id *oid)
+static int unreachable(struct expire_reflog_policy_cb *cb,
+		       struct commit *commit, struct object_id *oid)
 {
 	/*
 	 * We may or may not have the commit yet - if not, look it
@@ -218,8 +219,7 @@ static int unreachable(struct expire_reflog_policy_cb *cb, struct commit *commit
 		if (is_null_oid(oid))
 			return 0;
 
-		commit = lookup_commit_reference_gently(the_repository, oid,
-							1);
+		commit = lookup_commit_reference_gently(the_repository, oid, 1);
 
 		/* Not a commit -- keep it */
 		if (!commit)
@@ -242,9 +242,9 @@ static int unreachable(struct expire_reflog_policy_cb *cb, struct commit *commit
  * Return true iff the specified reflog entry should be expired.
  */
 int should_expire_reflog_ent(struct object_id *ooid, struct object_id *noid,
-			     const char *email UNUSED,
-			     timestamp_t timestamp, int tz UNUSED,
-			     const char *message UNUSED, void *cb_data)
+			     const char *email UNUSED, timestamp_t timestamp,
+			     int tz UNUSED, const char *message UNUSED,
+			     void *cb_data)
 {
 	struct expire_reflog_policy_cb *cb = cb_data;
 	struct commit *old_commit, *new_commit;
@@ -263,7 +263,8 @@ int should_expire_reflog_ent(struct object_id *ooid, struct object_id *noid,
 			return 1;
 		case UE_NORMAL:
 		case UE_HEAD:
-			if (unreachable(cb, old_commit, ooid) || unreachable(cb, new_commit, noid))
+			if (unreachable(cb, old_commit, ooid) ||
+			    unreachable(cb, new_commit, noid))
 				return 1;
 			break;
 		}
@@ -276,8 +277,7 @@ int should_expire_reflog_ent(struct object_id *ooid, struct object_id *noid,
 }
 
 int should_expire_reflog_ent_verbose(struct object_id *ooid,
-				     struct object_id *noid,
-				     const char *email,
+				     struct object_id *noid, const char *email,
 				     timestamp_t timestamp, int tz,
 				     const char *message, void *cb_data)
 {
@@ -298,8 +298,8 @@ int should_expire_reflog_ent_verbose(struct object_id *ooid,
 }
 
 static int push_tip_to_list(const char *refname UNUSED,
-			    const struct object_id *oid,
-			    int flags, void *cb_data)
+			    const struct object_id *oid, int flags,
+			    void *cb_data)
 {
 	struct commit_list **list = cb_data;
 	struct commit *tip_commit;
@@ -319,8 +319,7 @@ static int is_head(const char *refname)
 	return !strcmp(stripped_refname, "HEAD");
 }
 
-void reflog_expiry_prepare(const char *refname,
-			   const struct object_id *oid,
+void reflog_expiry_prepare(const char *refname, const struct object_id *oid,
 			   void *cb_data)
 {
 	struct expire_reflog_policy_cb *cb = cb_data;
@@ -379,8 +378,7 @@ void reflog_expiry_cleanup(void *cb_data)
 }
 
 int count_reflog_ent(struct object_id *ooid UNUSED,
-		     struct object_id *noid UNUSED,
-		     const char *email UNUSED,
+		     struct object_id *noid UNUSED, const char *email UNUSED,
 		     timestamp_t timestamp, int tz UNUSED,
 		     const char *message UNUSED, void *cb_data)
 {
@@ -394,7 +392,8 @@ int reflog_delete(const char *rev, enum expire_reflog_flags flags, int verbose)
 {
 	struct cmd_reflog_expire_cb cmd = { 0 };
 	int status = 0;
-	reflog_expiry_should_prune_fn *should_prune_fn = should_expire_reflog_ent;
+	reflog_expiry_should_prune_fn *should_prune_fn =
+		should_expire_reflog_ent;
 	const char *spec = strstr(rev, "@{");
 	char *ep, *ref;
 	int recno;
@@ -424,13 +423,10 @@ int reflog_delete(const char *rev, enum expire_reflog_flags flags, int verbose)
 	}
 
 	cb.cmd = cmd;
-	status |= reflog_expire(ref, flags,
-				reflog_expiry_prepare,
-				should_prune_fn,
-				reflog_expiry_cleanup,
-				&cb);
+	status |= reflog_expire(ref, flags, reflog_expiry_prepare,
+				should_prune_fn, reflog_expiry_cleanup, &cb);
 
- cleanup:
+cleanup:
 	free(ref);
 	return status;
 }

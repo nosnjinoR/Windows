@@ -3,20 +3,19 @@
  */
 
 #define USE_THE_INDEX_VARIABLE
-#include "git-compat-util.h"
-
-#include "builtin.h"
-#include "environment.h"
-#include "hex.h"
-#include "lockfile.h"
-#include "merge-ort.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "refs.h"
-#include "revision.h"
-#include "strmap.h"
-#include <oidset.h>
-#include <tree.h>
+#include "components/git-compat-util.h"
+#include "components/builtin.h"
+#include "components/environment.h"
+#include "components/hex.h"
+#include "components/lockfile.h"
+#include "components/merge-ort.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/refs.h"
+#include "components/revision.h"
+#include "components/strmap.h"
+#include <components/oidset.h>
+#include <components/tree.h>
 
 static const char *short_commit_name(struct commit *commit)
 {
@@ -48,20 +47,20 @@ static char *get_author(const char *message)
 	return NULL;
 }
 
-static struct commit *create_commit(struct tree *tree,
-				    struct commit *based_on,
+static struct commit *create_commit(struct tree *tree, struct commit *based_on,
 				    struct commit *parent)
 {
 	struct object_id ret;
 	struct object *obj;
 	struct commit_list *parents = NULL;
 	char *author;
-	char *sign_commit = NULL; /* FIXME: cli users might want to sign again */
+	char *sign_commit = NULL; /* FIXME: cli users might want to sign again
+				   */
 	struct commit_extra_header *extra;
 	struct strbuf msg = STRBUF_INIT;
 	const char *out_enc = get_commit_output_encoding();
-	const char *message = repo_logmsg_reencode(the_repository, based_on,
-						   NULL, out_enc);
+	const char *message =
+		repo_logmsg_reencode(the_repository, based_on, NULL, out_enc);
 	const char *orig_message = NULL;
 	const char *exclude_gpgsig[] = { "gpgsig", NULL };
 
@@ -126,15 +125,16 @@ static void get_ref_information(struct rev_cmdline_info *cmd_info,
 
 		if (*refexpr == '^')
 			refexpr++;
-		if (repo_dwim_ref(the_repository, refexpr, strlen(refexpr), &oid, &fullname, 0) != 1)
+		if (repo_dwim_ref(the_repository, refexpr, strlen(refexpr),
+				  &oid, &fullname, 0) != 1)
 			can_uniquely_dwim = 0;
 
 		if (e->flags & BOTTOM) {
 			if (can_uniquely_dwim)
 				strset_add(&ref_info->negative_refs, fullname);
 			if (!ref_info->negative_refexprs)
-				ref_info->onto = lookup_commit_reference_gently(the_repository,
-										&e->item->oid, 1);
+				ref_info->onto = lookup_commit_reference_gently(
+					the_repository, &e->item->oid, 1);
 			ref_info->negative_refexprs++;
 		} else {
 			if (can_uniquely_dwim)
@@ -169,8 +169,9 @@ static void determine_replay_mode(struct rev_cmdline_info *cmd_info,
 		char *fullname = NULL;
 
 		*onto = peel_committish(*advance_name);
-		if (repo_dwim_ref(the_repository, *advance_name, strlen(*advance_name),
-			     &oid, &fullname, 0) == 1) {
+		if (repo_dwim_ref(the_repository, *advance_name,
+				  strlen(*advance_name), &oid, &fullname,
+				  0) == 1) {
 			*advance_name = fullname;
 		} else {
 			die(_("argument to --advance must be a reference"));
@@ -178,12 +179,12 @@ static void determine_replay_mode(struct rev_cmdline_info *cmd_info,
 		if (rinfo.positive_refexprs > 1)
 			die(_("cannot advance target with multiple sources because ordering would be ill-defined"));
 	} else {
-		int positive_refs_complete = (
-			rinfo.positive_refexprs ==
-			strset_get_size(&rinfo.positive_refs));
-		int negative_refs_complete = (
-			rinfo.negative_refexprs ==
-			strset_get_size(&rinfo.negative_refs));
+		int positive_refs_complete =
+			(rinfo.positive_refexprs ==
+			 strset_get_size(&rinfo.positive_refs));
+		int negative_refs_complete =
+			(rinfo.negative_refexprs ==
+			 strset_get_size(&rinfo.negative_refs));
 		/*
 		 * We need either positive_refs_complete or
 		 * negative_refs_complete, but not both.
@@ -203,8 +204,9 @@ static void determine_replay_mode(struct rev_cmdline_info *cmd_info,
 				die(_("cannot advance target with multiple source branches because ordering would be ill-defined"));
 
 			/* Only one entry, but we have to loop to get it */
-			strset_for_each_entry(&rinfo.negative_refs,
-					      &iter, entry) {
+			strset_for_each_entry(&rinfo.negative_refs, &iter,
+					      entry)
+			{
 				*advance_name = entry->key;
 			}
 		} else { /* positive_refs_complete */
@@ -253,13 +255,10 @@ static struct commit *pick_regular_commit(struct commit *pickme,
 	merge_opt->branch2 = short_commit_name(pickme);
 	merge_opt->ancestor = xstrfmt("parent of %s", merge_opt->branch2);
 
-	merge_incore_nonrecursive(merge_opt,
-				  base_tree,
-				  result->tree,
-				  pickme_tree,
-				  result);
+	merge_incore_nonrecursive(merge_opt, base_tree, result->tree,
+				  pickme_tree, result);
 
-	free((char*)merge_opt->ancestor);
+	free((char *)merge_opt->ancestor);
 	merge_opt->ancestor = NULL;
 	if (!result->clean)
 		return NULL;
@@ -282,18 +281,16 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 	kh_oid_map_t *replayed_commits;
 	int ret = 0;
 
-	const char * const replay_usage[] = {
+	const char *const replay_usage[] = {
 		N_("(EXPERIMENTAL!) git replay "
 		   "([--contained] --onto <newbase> | --advance <branch>) "
 		   "<revision-range>..."),
 		NULL
 	};
 	struct option replay_options[] = {
-		OPT_STRING(0, "advance", &advance_name,
-			   N_("branch"),
+		OPT_STRING(0, "advance", &advance_name, N_("branch"),
 			   N_("make replay advance given branch")),
-		OPT_STRING(0, "onto", &onto_name,
-			   N_("revision"),
+		OPT_STRING(0, "onto", &onto_name, N_("revision"),
 			   N_("replay onto given commit")),
 		OPT_BOOL(0, "contained", &contained,
 			 N_("advance all branches contained in revision-range")),
@@ -363,8 +360,8 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 		revs.simplify_history = 0;
 	}
 
-	determine_replay_mode(&revs.cmdline, onto_name, &advance_name,
-			      &onto, &update_refs);
+	determine_replay_mode(&revs.cmdline, onto_name, &advance_name, &onto,
+			      &update_refs);
 
 	if (!onto) /* FIXME: Should handle replaying down to root commit */
 		die("Replaying down to root commit is not supported yet!");
@@ -389,8 +386,8 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 		if (commit->parents->next)
 			die(_("replaying merge commits is not supported yet!"));
 
-		last_commit = pick_regular_commit(commit, replayed_commits, onto,
-						  &merge_opt, &result);
+		last_commit = pick_regular_commit(commit, replayed_commits,
+						  onto, &merge_opt, &result);
 		if (!last_commit)
 			break;
 
@@ -409,10 +406,9 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 			continue;
 		while (decoration) {
 			if (decoration->type == DECORATION_REF_LOCAL &&
-			    (contained || strset_contains(update_refs,
-							  decoration->name))) {
-				printf("update %s %s %s\n",
-				       decoration->name,
+			    (contained ||
+			     strset_contains(update_refs, decoration->name))) {
+				printf("update %s %s %s\n", decoration->name,
 				       oid_to_hex(&last_commit->object.oid),
 				       oid_to_hex(&commit->object.oid));
 			}
@@ -422,8 +418,7 @@ int cmd_replay(int argc, const char **argv, const char *prefix)
 
 	/* In --advance mode, advance the target ref */
 	if (result.clean == 1 && advance_name) {
-		printf("update %s %s %s\n",
-		       advance_name,
+		printf("update %s %s %s\n", advance_name,
 		       oid_to_hex(&last_commit->object.oid),
 		       oid_to_hex(&onto->object.oid));
 	}

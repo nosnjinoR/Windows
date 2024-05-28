@@ -1,9 +1,9 @@
 #include "test-tool.h"
-#include "object-name.h"
-#include "object-store.h"
-#include "packfile.h"
-#include "parse-options.h"
-#include "setup.h"
+#include "components/object-name.h"
+#include "components/object-store.h"
+#include "components/packfile.h"
+#include "components/parse-options.h"
+#include "components/setup.h"
 
 /*
  * Display the path(s), one per line, of the packfile(s) containing
@@ -14,8 +14,7 @@
  */
 
 static const char *find_pack_usage[] = {
-	"test-tool find-pack [--check-count <n>] <object>",
-	NULL
+	"test-tool find-pack [--check-count <n>] <object>", NULL
 };
 
 int cmd__find_pack(int argc, const char **argv)
@@ -26,7 +25,8 @@ int cmd__find_pack(int argc, const char **argv)
 	const char *prefix = setup_git_directory();
 
 	struct option options[] = {
-		OPT_INTEGER('c', "check-count", &count, "expected number of packs"),
+		OPT_INTEGER('c', "check-count", &count,
+			    "expected number of packs"),
 		OPT_END(),
 	};
 

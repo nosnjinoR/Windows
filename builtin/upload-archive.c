@@ -1,20 +1,18 @@
 /*
  * Copyright (c) 2006 Franck Bui-Huu
  */
-#include "builtin.h"
-#include "archive.h"
-#include "path.h"
-#include "pkt-line.h"
-#include "sideband.h"
-#include "repository.h"
-#include "run-command.h"
-#include "strvec.h"
+#include "components/builtin.h"
+#include "components/archive.h"
+#include "components/path.h"
+#include "components/pkt-line.h"
+#include "components/sideband.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/strvec.h"
 
-static const char upload_archive_usage[] =
-	"git upload-archive <repository>";
+static const char upload_archive_usage[] = "git upload-archive <repository>";
 
-static const char deadchild[] =
-"git upload-archive: archiver died with error";
+static const char deadchild[] = "git upload-archive: archiver died with error";
 
 #define MAX_ARGS (64)
 
@@ -36,7 +34,7 @@ int cmd_upload_archive_writer(int argc, const char **argv, const char *prefix)
 	for (;;) {
 		char *buf = packet_read_line(0, NULL);
 		if (!buf)
-			break;	/* got a flush */
+			break; /* got a flush */
 		if (sent_argv.nr > MAX_ARGS)
 			die("Too many options (>%d)", MAX_ARGS - 1);
 
@@ -46,12 +44,12 @@ int cmd_upload_archive_writer(int argc, const char **argv, const char *prefix)
 	}
 
 	/* parse all options sent by the client */
-	return write_archive(sent_argv.nr, sent_argv.v, prefix,
-			     the_repository, NULL, 1);
+	return write_archive(sent_argv.nr, sent_argv.v, prefix, the_repository,
+			     NULL, 1);
 }
 
-__attribute__((format (printf, 1, 2)))
-static void error_clnt(const char *fmt, ...)
+__attribute__((format(printf, 1, 2))) static void error_clnt(const char *fmt,
+							     ...)
 {
 	struct strbuf buf = STRBUF_INIT;
 	va_list params;

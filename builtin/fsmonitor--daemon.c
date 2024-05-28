@@ -1,29 +1,27 @@
-#include "builtin.h"
-#include "abspath.h"
-#include "config.h"
-#include "dir.h"
-#include "environment.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "fsmonitor-ll.h"
-#include "fsmonitor-ipc.h"
-#include "fsmonitor-settings.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/config.h"
+#include "components/dir.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/fsmonitor-ll.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/fsmonitor-settings.h"
 #include "compat/fsmonitor/fsm-health.h"
 #include "compat/fsmonitor/fsm-listen.h"
-#include "fsmonitor--daemon.h"
-#include "repository.h"
-#include "simple-ipc.h"
-#include "khash.h"
-#include "run-command.h"
-#include "trace.h"
-#include "trace2.h"
+#include "components/fsmonitor--daemon.h"
+#include "components/repository.h"
+#include "components/simple-ipc.h"
+#include "components/khash.h"
+#include "components/run-command.h"
+#include "components/trace.h"
+#include "components/trace2.h"
 
-static const char * const builtin_fsmonitor__daemon_usage[] = {
+static const char *const builtin_fsmonitor__daemon_usage[] = {
 	N_("git fsmonitor--daemon start [<options>]"),
 	N_("git fsmonitor--daemon run [<options>]"),
-	"git fsmonitor--daemon stop",
-	"git fsmonitor--daemon status",
-	NULL
+	"git fsmonitor--daemon stop", "git fsmonitor--daemon status", NULL
 };
 
 #ifdef HAVE_FSMONITOR_DAEMON_BACKEND
@@ -130,8 +128,7 @@ struct fsmonitor_cookie_item {
 	enum fsmonitor_cookie_item_result result;
 };
 
-static int cookies_cmp(const void *data UNUSED,
-		       const struct hashmap_entry *he1,
+static int cookies_cmp(const void *data UNUSED, const struct hashmap_entry *he1,
 		       const struct hashmap_entry *he2, const void *keydata)
 {
 	const struct fsmonitor_cookie_item *a =
@@ -142,8 +139,8 @@ static int cookies_cmp(const void *data UNUSED,
 	return strcmp(a->name, keydata ? keydata : b->name);
 }
 
-static enum fsmonitor_cookie_item_result with_lock__wait_for_cookie(
-	struct fsmonitor_daemon_state *state)
+static enum fsmonitor_cookie_item_result
+with_lock__wait_for_cookie(struct fsmonitor_daemon_state *state)
 {
 	/* assert current thread holding state->main_lock */
 
@@ -206,8 +203,7 @@ static enum fsmonitor_cookie_item_result with_lock__wait_for_cookie(
 	 * of getting stuck are pretty slim.
 	 */
 	while (cookie->result == FCIR_INIT)
-		pthread_cond_wait(&state->cookies_cond,
-				  &state->main_lock);
+		pthread_cond_wait(&state->cookies_cond, &state->main_lock);
 
 done:
 	hashmap_remove(&state->cookies, &cookie->entry, NULL);
@@ -263,7 +259,8 @@ static void with_lock__abort_all_cookies(struct fsmonitor_daemon_state *state)
 	struct fsmonitor_cookie_item *cookie;
 	int nr_aborted = 0;
 
-	hashmap_for_each_entry(&state->cookies, &iter, cookie, entry) {
+	hashmap_for_each_entry(&state->cookies, &iter, cookie, entry)
+	{
 		trace_printf_key(&trace_fsmonitor, "cookie-abort: '%s'",
 				 cookie->name);
 		cookie->result = FCIR_ABORT;
@@ -385,12 +382,10 @@ static struct fsmonitor_token_data *fsmonitor_new_token_data(void)
 		gmtime_r(&secs, &tm);
 
 		strbuf_addf(&token->token_id,
-			    "%"PRIu64".%d.%4d%02d%02dT%02d%02d%02d.%06ldZ",
-			    flush_count++,
-			    getpid(),
-			    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-			    tm.tm_hour, tm.tm_min, tm.tm_sec,
-			    (long)tv.tv_usec);
+			    "%" PRIu64 ".%d.%4d%02d%02dT%02d%02d%02d.%06ldZ",
+			    flush_count++, getpid(), tm.tm_year + 1900,
+			    tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min,
+			    tm.tm_sec, (long)tv.tv_usec);
 	} else {
 		strbuf_addf(&token->token_id, "test_%08x", test_env_value++);
 	}
@@ -454,8 +449,7 @@ void fsmonitor_batch__free_list(struct fsmonitor_batch *batch)
 	}
 }
 
-void fsmonitor_batch__add_path(struct fsmonitor_batch *batch,
-			       const char *path)
+void fsmonitor_batch__add_path(struct fsmonitor_batch *batch, const char *path)
 {
 	const char *interned_path = strintern(path);
 
@@ -471,8 +465,7 @@ static void fsmonitor_batch__combine(struct fsmonitor_batch *batch_dest,
 	size_t k;
 
 	ALLOC_GROW(batch_dest->interned_paths,
-		   batch_dest->nr + batch_src->nr + 1,
-		   batch_dest->alloc);
+		   batch_dest->nr + batch_src->nr + 1, batch_dest->alloc);
 
 	for (k = 0; k < batch_src->nr; k++)
 		batch_dest->interned_paths[batch_dest->nr++] =
@@ -508,9 +501,9 @@ static void fsmonitor_batch__combine(struct fsmonitor_batch *batch_dest,
  */
 #define MY_TIME_DELAY_SECONDS (5 * 60) /* seconds */
 
-static struct fsmonitor_batch *with_lock__truncate_old_batches(
-	struct fsmonitor_daemon_state *state,
-	const struct fsmonitor_batch *batch_marker)
+static struct fsmonitor_batch *
+with_lock__truncate_old_batches(struct fsmonitor_daemon_state *state,
+				const struct fsmonitor_batch *batch_marker)
 {
 	/* assert current thread holding state->main_lock */
 
@@ -520,7 +513,8 @@ static struct fsmonitor_batch *with_lock__truncate_old_batches(
 	if (!batch_marker)
 		return NULL;
 
-	trace_printf_key(&trace_fsmonitor, "Truncate: mark (%"PRIu64",%"PRIu64")",
+	trace_printf_key(&trace_fsmonitor,
+			 "Truncate: mark (%" PRIu64 ",%" PRIu64 ")",
 			 batch_marker->batch_seq_nr,
 			 (uint64_t)batch_marker->pinned_time);
 
@@ -609,15 +603,15 @@ void fsmonitor_force_resync(struct fsmonitor_daemon_state *state)
 /*
  * Format an opaque token string to send to the client.
  */
-static void with_lock__format_response_token(
-	struct strbuf *response_token,
-	const struct strbuf *response_token_id,
-	const struct fsmonitor_batch *batch)
+static void
+with_lock__format_response_token(struct strbuf *response_token,
+				 const struct strbuf *response_token_id,
+				 const struct fsmonitor_batch *batch)
 {
 	/* assert current thread holding state->main_lock */
 
 	strbuf_reset(response_token);
-	strbuf_addf(response_token, "builtin:%s:%"PRIu64,
+	strbuf_addf(response_token, "builtin:%s:%" PRIu64,
 		    response_token_id->buf, batch->batch_seq_nr);
 }
 
@@ -653,8 +647,7 @@ static int fsmonitor_parse_client_token(const char *buf_token,
 KHASH_INIT(str, const char *, int, 0, kh_str_hash_func, kh_str_hash_equal)
 
 static int do_handle_client(struct fsmonitor_daemon_state *state,
-			    const char *command,
-			    ipc_server_reply_cb *reply,
+			    const char *command, ipc_server_reply_cb *reply,
 			    struct ipc_server_reply_data *reply_data)
 {
 	struct fsmonitor_token_data *token_data = NULL;
@@ -713,11 +706,11 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 		char *p_end;
 
 		strtoumax(command, &p_end, 10);
-		trace_printf_key(&trace_fsmonitor,
-				 ((*p_end) ?
-				  "fsmonitor: invalid command line '%s'" :
-				  "fsmonitor: unsupported V1 protocol '%s'"),
-				 command);
+		trace_printf_key(
+			&trace_fsmonitor,
+			((*p_end) ? "fsmonitor: invalid command line '%s'" :
+				    "fsmonitor: unsupported V1 protocol '%s'"),
+			command);
 		do_trivial = 1;
 		do_cookie = 1;
 
@@ -725,9 +718,10 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 		/* We have "builtin:*" */
 		if (fsmonitor_parse_client_token(command, &requested_token_id,
 						 &requested_oldest_seq_nr)) {
-			trace_printf_key(&trace_fsmonitor,
-					 "fsmonitor: invalid V2 protocol token '%s'",
-					 command);
+			trace_printf_key(
+				&trace_fsmonitor,
+				"fsmonitor: invalid V2 protocol token '%s'",
+				command);
 			do_trivial = 1;
 			do_cookie = 1;
 
@@ -789,8 +783,8 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 	 * head batch so that future requests from a client will be relative
 	 * to it.
 	 */
-	with_lock__format_response_token(&response_token,
-					 &token_data->token_id, batch_head);
+	with_lock__format_response_token(&response_token, &token_data->token_id,
+					 batch_head);
 
 	reply(reply_data, response_token.buf, response_token.len + 1);
 	total_response_len += response_token.len + 1;
@@ -881,7 +875,7 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 				kh_put_str(shown, s, &hash_ret);
 
 				trace_printf_key(&trace_fsmonitor,
-						 "send[%"PRIuMAX"]: %s",
+						 "send[%" PRIuMAX "]: %s",
 						 count, s);
 
 				/* Each path gets written with a trailing NUL */
@@ -936,8 +930,8 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 			 * end-point sequence number.  See if the tail
 			 * end of the list is obsolete.
 			 */
-			remainder = with_lock__truncate_old_batches(state,
-								    batch);
+			remainder =
+				with_lock__truncate_old_batches(state, batch);
 		}
 	}
 
@@ -946,9 +940,12 @@ static int do_handle_client(struct fsmonitor_daemon_state *state,
 	if (remainder)
 		fsmonitor_batch__free_list(remainder);
 
-	trace2_data_intmax("fsmonitor", the_repository, "response/length", total_response_len);
-	trace2_data_intmax("fsmonitor", the_repository, "response/count/files", count);
-	trace2_data_intmax("fsmonitor", the_repository, "response/count/duplicates", duplicates);
+	trace2_data_intmax("fsmonitor", the_repository, "response/length",
+			   total_response_len);
+	trace2_data_intmax("fsmonitor", the_repository, "response/count/files",
+			   count);
+	trace2_data_intmax("fsmonitor", the_repository,
+			   "response/count/duplicates", duplicates);
 
 cleanup:
 	strbuf_release(&response_token);
@@ -960,8 +957,7 @@ cleanup:
 
 static ipc_server_application_cb handle_client;
 
-static int handle_client(void *data,
-			 const char *command, size_t command_len,
+static int handle_client(void *data, const char *command, size_t command_len,
 			 ipc_server_reply_cb *reply,
 			 struct ipc_server_reply_data *reply_data)
 {
@@ -988,12 +984,12 @@ static int handle_client(void *data,
 	return result;
 }
 
-#define FSMONITOR_DIR           "fsmonitor--daemon"
-#define FSMONITOR_COOKIE_DIR    "cookies"
+#define FSMONITOR_DIR "fsmonitor--daemon"
+#define FSMONITOR_COOKIE_DIR "cookies"
 #define FSMONITOR_COOKIE_PREFIX (FSMONITOR_DIR "/" FSMONITOR_COOKIE_DIR "/")
 
-enum fsmonitor_path_type fsmonitor_classify_path_workdir_relative(
-	const char *rel)
+enum fsmonitor_path_type
+fsmonitor_classify_path_workdir_relative(const char *rel)
 {
 	if (fspathncmp(rel, ".git", 4))
 		return IS_WORKDIR_PATH;
@@ -1012,8 +1008,8 @@ enum fsmonitor_path_type fsmonitor_classify_path_workdir_relative(
 	return IS_INSIDE_DOT_GIT;
 }
 
-enum fsmonitor_path_type fsmonitor_classify_path_gitdir_relative(
-	const char *rel)
+enum fsmonitor_path_type
+fsmonitor_classify_path_gitdir_relative(const char *rel)
 {
 	if (!fspathncmp(rel, FSMONITOR_COOKIE_PREFIX,
 			strlen(FSMONITOR_COOKIE_PREFIX)))
@@ -1022,9 +1018,9 @@ enum fsmonitor_path_type fsmonitor_classify_path_gitdir_relative(
 	return IS_INSIDE_GITDIR;
 }
 
-static enum fsmonitor_path_type try_classify_workdir_abs_path(
-	struct fsmonitor_daemon_state *state,
-	const char *path)
+static enum fsmonitor_path_type
+try_classify_workdir_abs_path(struct fsmonitor_daemon_state *state,
+			      const char *path)
 {
 	const char *rel;
 
@@ -1043,9 +1039,9 @@ static enum fsmonitor_path_type try_classify_workdir_abs_path(
 	return fsmonitor_classify_path_workdir_relative(rel);
 }
 
-enum fsmonitor_path_type fsmonitor_classify_path_absolute(
-	struct fsmonitor_daemon_state *state,
-	const char *path)
+enum fsmonitor_path_type
+fsmonitor_classify_path_absolute(struct fsmonitor_daemon_state *state,
+				 const char *path)
 {
 	const char *rel;
 	enum fsmonitor_path_type t;
@@ -1188,17 +1184,18 @@ static void *fsm_listen__thread_proc(void *_state)
 
 static int fsmonitor_run_daemon_1(struct fsmonitor_daemon_state *state)
 {
-	struct ipc_server_opts ipc_opts = {
-		.nr_threads = fsmonitor__ipc_threads,
+	struct ipc_server_opts ipc_opts = { .nr_threads =
+						    fsmonitor__ipc_threads,
 
-		/*
-		 * We know that there are no other active threads yet,
-		 * so we can let the IPC layer temporarily chdir() if
-		 * it needs to when creating the server side of the
-		 * Unix domain socket.
-		 */
-		.uds_disallow_chdir = 0
-	};
+					    /*
+					     * We know that there are no other
+					     * active threads yet, so we can let
+					     * the IPC layer temporarily chdir()
+					     * if it needs to when creating the
+					     * server side of the Unix domain
+					     * socket.
+					     */
+					    .uds_disallow_chdir = 0 };
 	int health_started = 0;
 	int listener_started = 0;
 	int err = 0;
@@ -1208,12 +1205,10 @@ static int fsmonitor_run_daemon_1(struct fsmonitor_daemon_state *state)
 	 * system event listener thread so that we have the IPC handle
 	 * before we need it.
 	 */
-	if (ipc_server_run_async(&state->ipc_server_data,
-				 state->path_ipc.buf, &ipc_opts,
-				 handle_client, state))
-		return error_errno(
-			_("could not start IPC thread pool on '%s'"),
-			state->path_ipc.buf);
+	if (ipc_server_run_async(&state->ipc_server_data, state->path_ipc.buf,
+				 &ipc_opts, handle_client, state))
+		return error_errno(_("could not start IPC thread pool on '%s'"),
+				   state->path_ipc.buf);
 
 	/*
 	 * Start the fsmonitor listener thread to collect filesystem
@@ -1230,8 +1225,8 @@ static int fsmonitor_run_daemon_1(struct fsmonitor_daemon_state *state)
 	/*
 	 * Start the health thread to watch over our process.
 	 */
-	if (pthread_create(&state->health_thread, NULL,
-			   fsm_health__thread_proc, state)) {
+	if (pthread_create(&state->health_thread, NULL, fsm_health__thread_proc,
+			   state)) {
 		ipc_server_stop_async(state->ipc_server_data);
 		err = error(_("could not start fsmonitor health thread"));
 		goto cleanup;
@@ -1291,12 +1286,14 @@ static int fsmonitor_run_daemon(void)
 
 	/* Prepare to (recursively) watch the <worktree-root> directory. */
 	strbuf_init(&state.path_worktree_watch, 0);
-	strbuf_addstr(&state.path_worktree_watch, absolute_path(get_git_work_tree()));
+	strbuf_addstr(&state.path_worktree_watch,
+		      absolute_path(get_git_work_tree()));
 	state.nr_paths_watching = 1;
 
 	strbuf_init(&state.alias.alias, 0);
 	strbuf_init(&state.alias.points_to, 0);
-	if ((err = fsmonitor__get_alias(state.path_worktree_watch.buf, &state.alias)))
+	if ((err = fsmonitor__get_alias(state.path_worktree_watch.buf,
+					&state.alias)))
 		goto done;
 
 	/*
@@ -1311,7 +1308,8 @@ static int fsmonitor_run_daemon(void)
 	strbuf_addstr(&state.path_gitdir_watch, "/.git");
 	if (!is_directory(state.path_gitdir_watch.buf)) {
 		strbuf_reset(&state.path_gitdir_watch);
-		strbuf_addstr(&state.path_gitdir_watch, absolute_path(get_git_dir()));
+		strbuf_addstr(&state.path_gitdir_watch,
+			      absolute_path(get_git_dir()));
 		state.nr_paths_watching = 2;
 	}
 
@@ -1361,7 +1359,7 @@ static int fsmonitor_run_daemon(void)
 	 */
 	strbuf_init(&state.path_ipc, 0);
 	strbuf_addstr(&state.path_ipc,
-		absolute_path(fsmonitor_ipc__get_path(the_repository)));
+		      absolute_path(fsmonitor_ipc__get_path(the_repository)));
 
 	/*
 	 * Confirm that we can create platform-specific resources for the
@@ -1528,13 +1526,13 @@ int cmd_fsmonitor__daemon(int argc, const char **argv, const char *prefix)
 	int detach_console = 0;
 
 	struct option options[] = {
-		OPT_BOOL(0, "detach", &detach_console, N_("detach from console")),
-		OPT_INTEGER(0, "ipc-threads",
-			    &fsmonitor__ipc_threads,
+		OPT_BOOL(0, "detach", &detach_console,
+			 N_("detach from console")),
+		OPT_INTEGER(0, "ipc-threads", &fsmonitor__ipc_threads,
 			    N_("use <n> ipc worker threads")),
-		OPT_INTEGER(0, "start-timeout",
-			    &fsmonitor__start_timeout_sec,
-			    N_("max seconds to wait for background daemon startup")),
+		OPT_INTEGER(
+			0, "start-timeout", &fsmonitor__start_timeout_sec,
+			N_("max seconds to wait for background daemon startup")),
 
 		OPT_END()
 	};
@@ -1565,8 +1563,7 @@ int cmd_fsmonitor__daemon(int argc, const char **argv, const char *prefix)
 	reason = fsm_settings__get_reason(the_repository);
 	if (reason > FSMONITOR_REASON_OK)
 		die("%s",
-		    fsm_settings__get_incompatible_msg(the_repository,
-						       reason));
+		    fsm_settings__get_incompatible_msg(the_repository, reason));
 
 	if (!strcmp(subcmd, "start"))
 		return !!try_to_start_background_daemon();
@@ -1584,11 +1581,10 @@ int cmd_fsmonitor__daemon(int argc, const char **argv, const char *prefix)
 }
 
 #else
-int cmd_fsmonitor__daemon(int argc, const char **argv, const char *prefix UNUSED)
+int cmd_fsmonitor__daemon(int argc, const char **argv,
+			  const char *prefix UNUSED)
 {
-	struct option options[] = {
-		OPT_END()
-	};
+	struct option options[] = { OPT_END() };
 
 	if (argc == 2 && !strcmp(argv[1], "-h"))
 		usage_with_options(builtin_fsmonitor__daemon_usage, options);

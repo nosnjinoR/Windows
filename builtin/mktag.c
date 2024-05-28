@@ -1,18 +1,15 @@
-#include "builtin.h"
-#include "gettext.h"
-#include "hex.h"
-#include "parse-options.h"
-#include "strbuf.h"
-#include "replace-object.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "fsck.h"
-#include "config.h"
+#include "components/builtin.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/parse-options.h"
+#include "components/strbuf.h"
+#include "components/replace-object.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/fsck.h"
+#include "components/config.h"
 
-static char const * const builtin_mktag_usage[] = {
-	"git mktag",
-	NULL
-};
+static char const *const builtin_mktag_usage[] = { "git mktag", NULL };
 static int option_strict = 1;
 
 static struct fsck_options fsck_options = FSCK_OPTIONS_STRICT;
@@ -27,9 +24,11 @@ static int mktag_fsck_error_func(struct fsck_options *o UNUSED,
 	switch (msg_type) {
 	case FSCK_WARN:
 		if (!option_strict) {
-			fprintf_ln(stderr, _("warning: tag input does not pass fsck: %s"), message);
+			fprintf_ln(
+				stderr,
+				_("warning: tag input does not pass fsck: %s"),
+				message);
 			return 0;
-
 		}
 		/* fallthrough */
 	case FSCK_ERROR:
@@ -38,7 +37,8 @@ static int mktag_fsck_error_func(struct fsck_options *o UNUSED,
 		 * like missing "tagger" lines are "only" warnings
 		 * under fsck, we've always considered them an error.
 		 */
-		fprintf_ln(stderr, _("error: tag input does not pass fsck: %s"), message);
+		fprintf_ln(stderr, _("error: tag input does not pass fsck: %s"),
+			   message);
 		return 1;
 	default:
 		BUG(_("%d (FSCK_IGNORE?) should never trigger this callback"),
@@ -54,15 +54,15 @@ static int verify_object_in_tag(struct object_id *tagged_oid, int *tagged_type)
 	void *buffer;
 	const struct object_id *repl;
 
-	buffer = repo_read_object_file(the_repository, tagged_oid, &type,
-				       &size);
+	buffer =
+		repo_read_object_file(the_repository, tagged_oid, &type, &size);
 	if (!buffer)
 		die(_("could not read tagged object '%s'"),
 		    oid_to_hex(tagged_oid));
 	if (type != *tagged_type)
 		die(_("object '%s' tagged as '%s', but is a '%s' type"),
-		    oid_to_hex(tagged_oid),
-		    type_name(*tagged_type), type_name(type));
+		    oid_to_hex(tagged_oid), type_name(*tagged_type),
+		    type_name(type));
 
 	repl = lookup_replace_object(the_repository, tagged_oid);
 	ret = check_object_signature(the_repository, repl, buffer, size,
@@ -84,8 +84,7 @@ int cmd_mktag(int argc, const char **argv, const char *prefix)
 	int tagged_type;
 	struct object_id result;
 
-	argc = parse_options(argc, argv, prefix,
-			     builtin_mktag_options,
+	argc = parse_options(argc, argv, prefix, builtin_mktag_options,
 			     builtin_mktag_usage, 0);
 
 	if (strbuf_read(&buf, 0, 0) < 0)

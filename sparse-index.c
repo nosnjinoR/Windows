@@ -1,27 +1,26 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "name-hash.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "sparse-index.h"
-#include "tree.h"
-#include "pathspec.h"
-#include "trace2.h"
-#include "cache-tree.h"
-#include "config.h"
-#include "dir.h"
-#include "fsmonitor-ll.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/name-hash.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/sparse-index.h"
+#include "components/tree.h"
+#include "components/pathspec.h"
+#include "components/trace2.h"
+#include "components/cache-tree.h"
+#include "components/config.h"
+#include "components/dir.h"
+#include "components/fsmonitor-ll.h"
 
 struct modify_index_context {
 	struct index_state *write;
 	struct pattern_list *pl;
 };
 
-static struct cache_entry *construct_sparse_dir_entry(
-				struct index_state *istate,
-				const char *sparse_dir,
-				struct cache_tree *tree)
+static struct cache_entry *
+construct_sparse_dir_entry(struct index_state *istate, const char *sparse_dir,
+			   struct cache_tree *tree)
 {
 	struct cache_entry *de;
 
@@ -34,11 +33,9 @@ static struct cache_entry *construct_sparse_dir_entry(
 /*
  * Returns the number of entries "inserted" into the index.
  */
-static int convert_to_sparse_rec(struct index_state *istate,
-				 int num_converted,
-				 int start, int end,
-				 const char *ct_path, size_t ct_pathlen,
-				 struct cache_tree *ct)
+static int convert_to_sparse_rec(struct index_state *istate, int num_converted,
+				 int start, int end, const char *ct_path,
+				 size_t ct_pathlen, struct cache_tree *ct)
 {
 	int i, can_convert = 1;
 	int start_converted = num_converted;
@@ -55,8 +52,7 @@ static int convert_to_sparse_rec(struct index_state *istate,
 	for (i = start; can_convert && i < end; i++) {
 		struct cache_entry *ce = istate->cache[i];
 
-		if (ce_stage(ce) ||
-		    S_ISGITLINK(ce->ce_mode) ||
+		if (ce_stage(ce) || S_ISGITLINK(ce->ce_mode) ||
 		    !(ce->ce_flags & CE_SKIP_WORKTREE))
 			can_convert = 0;
 	}
@@ -69,7 +65,7 @@ static int convert_to_sparse_rec(struct index_state *istate,
 		return 1;
 	}
 
-	for (i = start; i < end; ) {
+	for (i = start; i < end;) {
 		int count, span, pos = -1;
 		const char *base, *slash;
 		struct cache_entry *ce = istate->cache[i];
@@ -94,9 +90,9 @@ static int convert_to_sparse_rec(struct index_state *istate,
 		strbuf_add(&child_path, ce->name, slash - ce->name + 1);
 
 		span = ct->down[pos]->cache_tree->entry_count;
-		count = convert_to_sparse_rec(istate,
-					      num_converted, i, i + span,
-					      child_path.buf, child_path.len,
+		count = convert_to_sparse_rec(istate, num_converted, i,
+					      i + span, child_path.buf,
+					      child_path.len,
 					      ct->down[pos]->cache_tree);
 		num_converted += count;
 		i += span;
@@ -108,8 +104,7 @@ static int convert_to_sparse_rec(struct index_state *istate,
 
 int set_sparse_index_config(struct repository *repo, int enable)
 {
-	int res = repo_config_set_worktree_gently(repo,
-						  "index.sparse",
+	int res = repo_config_set_worktree_gently(repo, "index.sparse",
 						  enable ? "true" : "false");
 	prepare_repo_settings(repo);
 	repo->settings.sparse_index = enable;
@@ -138,7 +133,8 @@ int is_sparse_index_allowed(struct index_state *istate, int flags)
 		/*
 		 * The sparse index is not (yet) integrated with a split index.
 		 */
-		if (istate->split_index || git_env_bool("GIT_TEST_SPLIT_INDEX", 0))
+		if (istate->split_index ||
+		    git_env_bool("GIT_TEST_SPLIT_INDEX", 0))
 			return 0;
 		/*
 		 * The GIT_TEST_SPARSE_INDEX environment variable triggers the
@@ -195,8 +191,9 @@ int convert_to_sparse(struct index_state *istate, int flags)
 		cache_tree_free(&istate->cache_tree);
 
 		/*
-		 * Silently return if there is a problem with the cache tree update,
-		 * which might just be due to a conflict state in some entry.
+		 * Silently return if there is a problem with the cache tree
+		 * update, which might just be due to a conflict state in some
+		 * entry.
 		 *
 		 * This might create new tree objects, so be sure to use
 		 * WRITE_TREE_MISSING_OK.
@@ -208,8 +205,7 @@ int convert_to_sparse(struct index_state *istate, int flags)
 	remove_fsmonitor(istate);
 
 	trace2_region_enter("index", "convert_to_sparse", istate->repo);
-	istate->cache_nr = convert_to_sparse_rec(istate,
-						 0, 0, istate->cache_nr,
+	istate->cache_nr = convert_to_sparse_rec(istate, 0, 0, istate->cache_nr,
 						 "", 0, istate->cache_tree);
 
 	/* Clear and recompute the cache-tree */
@@ -225,7 +221,8 @@ int convert_to_sparse(struct index_state *istate, int flags)
 	return 0;
 }
 
-static void set_index_entry(struct index_state *istate, int nr, struct cache_entry *ce)
+static void set_index_entry(struct index_state *istate, int nr,
+			    struct cache_entry *ce)
 {
 	ALLOC_GROW(istate->cache, nr + 1, istate->cache_alloc);
 
@@ -233,11 +230,11 @@ static void set_index_entry(struct index_state *istate, int nr, struct cache_ent
 	add_name_hash(istate, ce);
 }
 
-static int add_path_to_index(const struct object_id *oid,
-			     struct strbuf *base, const char *path,
-			     unsigned int mode, void *context)
+static int add_path_to_index(const struct object_id *oid, struct strbuf *base,
+			     const char *path, unsigned int mode, void *context)
 {
-	struct modify_index_context *ctx = (struct modify_index_context *)context;
+	struct modify_index_context *ctx =
+		(struct modify_index_context *)context;
 	struct cache_entry *ce;
 	size_t len = base->len;
 
@@ -264,16 +261,15 @@ static int add_path_to_index(const struct object_id *oid,
 		strbuf_addstr(base, path);
 		strbuf_add(base, "/-", 2);
 
-		if (path_matches_pattern_list(base->buf, base->len,
-					      NULL, &dtype,
-					      ctx->pl, ctx->write)) {
+		if (path_matches_pattern_list(base->buf, base->len, NULL,
+					      &dtype, ctx->pl, ctx->write)) {
 			strbuf_setlen(base, baselen);
 			return READ_TREE_RECURSIVE;
 		}
 
 		/*
-		 * The path "{base}{path}/" is a sparse directory. Create the correct
-		 * name for inserting the entry into the index.
+		 * The path "{base}{path}/" is a sparse directory. Create the
+		 * correct name for inserting the entry into the index.
 		 */
 		strbuf_setlen(base, base->len - 1);
 	} else {
@@ -368,10 +364,9 @@ void expand_index(struct index_state *istate, struct pattern_list *pl)
 		}
 
 		/* We now have a sparse directory entry. Should we expand? */
-		if (pl &&
-		    path_matches_pattern_list(ce->name, ce->ce_namelen,
-					      NULL, &dtype,
-					      pl, istate) == NOT_MATCHED) {
+		if (pl && path_matches_pattern_list(ce->name, ce->ce_namelen,
+						    NULL, &dtype, pl,
+						    istate) == NOT_MATCHED) {
 			set_index_entry(full, full->cache_nr++, ce);
 			continue;
 		}
@@ -493,7 +488,7 @@ void clear_skip_worktree_from_present_files(struct index_state *istate)
 	int dir_found = 1;
 
 	int i;
-	int path_count[2] = {0, 0};
+	int path_count[2] = { 0, 0 };
 	int restarted = 0;
 
 	if (!core_apply_sparse_checkout ||
@@ -508,7 +503,8 @@ restart:
 
 		if (ce_skip_worktree(ce)) {
 			path_count[restarted]++;
-			if (path_found(ce->name, &last_dirname, &dir_len, &dir_found)) {
+			if (path_found(ce->name, &last_dirname, &dir_len,
+				       &dir_found)) {
 				if (S_ISSPARSEDIR(ce->ce_mode)) {
 					if (restarted)
 						BUG("ensure-full-index did not fully flatten?");
@@ -522,8 +518,8 @@ restart:
 	}
 
 	if (path_count[0])
-		trace2_data_intmax("index", istate->repo,
-				   "sparse_path_count", path_count[0]);
+		trace2_data_intmax("index", istate->repo, "sparse_path_count",
+				   path_count[0]);
 	if (restarted)
 		trace2_data_intmax("index", istate->repo,
 				   "sparse_path_count_full", path_count[1]);
@@ -537,8 +533,8 @@ restart:
  */
 static int in_expand_to_path = 0;
 
-void expand_to_path(struct index_state *istate,
-		    const char *path, size_t pathlen, int icase)
+void expand_to_path(struct index_state *istate, const char *path,
+		    size_t pathlen, int icase)
 {
 	struct strbuf path_mutable = STRBUF_INIT;
 	size_t substr_len;
@@ -580,8 +576,8 @@ void expand_to_path(struct index_state *istate,
 		temp = *replace;
 		*replace = '\0';
 		substr_len = replace - path_mutable.buf;
-		if (index_file_exists(istate, path_mutable.buf,
-				      substr_len, icase)) {
+		if (index_file_exists(istate, path_mutable.buf, substr_len,
+				      icase)) {
 			/*
 			 * We found a parent directory in the name-hash
 			 * hashtable, because only sparse directory entries

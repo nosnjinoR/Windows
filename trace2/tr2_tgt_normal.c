@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "repository.h"
-#include "run-command.h"
-#include "strbuf.h"
-#include "quote.h"
-#include "version.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/strbuf.h"
+#include "components/quote.h"
+#include "components/version.h"
 #include "trace2/tr2_dst.h"
 #include "trace2/tr2_sysenv.h"
 #include "trace2/tr2_tbuf.h"
@@ -165,7 +165,8 @@ static void fn_command_path_fl(const char *file, int line, const char *pathname)
 	strbuf_release(&buf_payload);
 }
 
-static void fn_command_ancestry_fl(const char *file, int line, const char **parent_names)
+static void fn_command_ancestry_fl(const char *file, int line,
+				   const char **parent_names)
 {
 	const char *parent_name = NULL;
 	struct strbuf buf_payload = STRBUF_INIT;
@@ -244,9 +245,8 @@ static void fn_child_start_fl(const char *file, int line,
 }
 
 static void fn_child_exit_fl(const char *file, int line,
-			     uint64_t us_elapsed_absolute UNUSED,
-			     int cid, int pid,
-			     int code, uint64_t us_elapsed_child)
+			     uint64_t us_elapsed_absolute UNUSED, int cid,
+			     int pid, int code, uint64_t us_elapsed_child)
 {
 	struct strbuf buf_payload = STRBUF_INIT;
 	double elapsed = (double)us_elapsed_child / 1000000.0;
@@ -258,22 +258,23 @@ static void fn_child_exit_fl(const char *file, int line,
 }
 
 static void fn_child_ready_fl(const char *file, int line,
-			      uint64_t us_elapsed_absolute UNUSED,
-			      int cid, int pid,
-			      const char *ready, uint64_t us_elapsed_child)
+			      uint64_t us_elapsed_absolute UNUSED, int cid,
+			      int pid, const char *ready,
+			      uint64_t us_elapsed_child)
 {
 	struct strbuf buf_payload = STRBUF_INIT;
 	double elapsed = (double)us_elapsed_child / 1000000.0;
 
-	strbuf_addf(&buf_payload, "child_ready[%d] pid:%d ready:%s elapsed:%.6f",
-		    cid, pid, ready, elapsed);
+	strbuf_addf(&buf_payload,
+		    "child_ready[%d] pid:%d ready:%s elapsed:%.6f", cid, pid,
+		    ready, elapsed);
 	normal_io_write_fl(file, line, &buf_payload);
 	strbuf_release(&buf_payload);
 }
 
 static void fn_exec_fl(const char *file, int line,
-		       uint64_t us_elapsed_absolute UNUSED,
-		       int exec_id, const char *exe, const char **argv)
+		       uint64_t us_elapsed_absolute UNUSED, int exec_id,
+		       const char *exe, const char **argv)
 {
 	struct strbuf buf_payload = STRBUF_INIT;
 
@@ -288,8 +289,8 @@ static void fn_exec_fl(const char *file, int line,
 }
 
 static void fn_exec_result_fl(const char *file, int line,
-			      uint64_t us_elapsed_absolute UNUSED,
-			      int exec_id, int code)
+			      uint64_t us_elapsed_absolute UNUSED, int exec_id,
+			      int code)
 {
 	struct strbuf buf_payload = STRBUF_INIT;
 
@@ -326,8 +327,7 @@ static void fn_repo_fl(const char *file, int line,
 
 static void fn_printf_va_fl(const char *file, int line,
 			    uint64_t us_elapsed_absolute UNUSED,
-			    const char *fmt,
-			    va_list ap)
+			    const char *fmt, va_list ap)
 {
 	struct strbuf buf_payload = STRBUF_INIT;
 
@@ -337,8 +337,7 @@ static void fn_printf_va_fl(const char *file, int line,
 }
 
 static void fn_timer(const struct tr2_timer_metadata *meta,
-		     const struct tr2_timer *timer,
-		     int is_final_data)
+		     const struct tr2_timer *timer, int is_final_data)
 {
 	const char *event_name = is_final_data ? "timer" : "th_timer";
 	struct strbuf buf_payload = STRBUF_INIT;
@@ -346,27 +345,24 @@ static void fn_timer(const struct tr2_timer_metadata *meta,
 	double t_min = NS_TO_SEC(timer->min_ns);
 	double t_max = NS_TO_SEC(timer->max_ns);
 
-	strbuf_addf(&buf_payload, ("%s %s/%s"
-				   " intervals:%"PRIu64
-				   " total:%8.6f min:%8.6f max:%8.6f"),
+	strbuf_addf(&buf_payload,
+		    ("%s %s/%s"
+		     " intervals:%" PRIu64 " total:%8.6f min:%8.6f max:%8.6f"),
 		    event_name, meta->category, meta->name,
-		    timer->interval_count,
-		    t_total, t_min, t_max);
+		    timer->interval_count, t_total, t_min, t_max);
 
 	normal_io_write_fl(__FILE__, __LINE__, &buf_payload);
 	strbuf_release(&buf_payload);
 }
 
 static void fn_counter(const struct tr2_counter_metadata *meta,
-		       const struct tr2_counter *counter,
-		       int is_final_data)
+		       const struct tr2_counter *counter, int is_final_data)
 {
 	const char *event_name = is_final_data ? "counter" : "th_counter";
 	struct strbuf buf_payload = STRBUF_INIT;
 
-	strbuf_addf(&buf_payload, "%s %s/%s value:%"PRIu64,
-		    event_name, meta->category, meta->name,
-		    counter->value);
+	strbuf_addf(&buf_payload, "%s %s/%s value:%" PRIu64, event_name,
+		    meta->category, meta->name, counter->value);
 
 	normal_io_write_fl(__FILE__, __LINE__, &buf_payload);
 	strbuf_release(&buf_payload);

@@ -1,5 +1,5 @@
-#include "git-compat-util.h"
-#include "simple-ipc.h"
+#include "components/git-compat-util.h"
+#include "components/simple-ipc.h"
 
 #ifndef SUPPORTS_SIMPLE_IPC
 /*
@@ -16,8 +16,8 @@ int ipc_server_run(const char *path, const struct ipc_server_opts *opts,
 	struct ipc_server_data *server_data = NULL;
 	int ret;
 
-	ret = ipc_server_run_async(&server_data, path, opts,
-				   application_cb, application_data);
+	ret = ipc_server_run_async(&server_data, path, opts, application_cb,
+				   application_data);
 	if (ret)
 		return ret;
 

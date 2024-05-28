@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
-#include "fsmonitor-ll.h"
-#include "fsmonitor-path-utils.h"
-#include "gettext.h"
-#include "trace.h"
+#include "components/git-compat-util.h"
+#include "components/fsmonitor-ll.h"
+#include "components/fsmonitor-path-utils.h"
+#include "components/gettext.h"
+#include "components/trace.h"
 
 /*
  * Check remote working directory protocol.
@@ -14,8 +14,8 @@ static int check_remote_protocol(wchar_t *wpath)
 	HANDLE h;
 	FILE_REMOTE_PROTOCOL_INFO proto_info;
 
-	h = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
-			FILE_FLAG_BACKUP_SEMANTICS, NULL);
+	h = CreateFileW(wpath, GENERIC_READ, FILE_SHARE_READ, NULL,
+			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 
 	if (h == INVALID_HANDLE_VALUE) {
 		error(_("[GLE %ld] unable to open for read '%ls'"),
@@ -24,7 +24,7 @@ static int check_remote_protocol(wchar_t *wpath)
 	}
 
 	if (!GetFileInformationByHandleEx(h, FileRemoteProtocolInfo,
-		&proto_info, sizeof(proto_info))) {
+					  &proto_info, sizeof(proto_info))) {
 		error(_("[GLE %ld] unable to get protocol information for '%ls'"),
 		      GetLastError(), wpath);
 		CloseHandle(h);
@@ -34,8 +34,8 @@ static int check_remote_protocol(wchar_t *wpath)
 	CloseHandle(h);
 
 	trace_printf_key(&trace_fsmonitor,
-				"check_remote_protocol('%ls') remote protocol %#8.8lx",
-				wpath, proto_info.Protocol);
+			 "check_remote_protocol('%ls') remote protocol %#8.8lx",
+			 wpath, proto_info.Protocol);
 
 	return 0;
 }
@@ -102,9 +102,8 @@ int fsmonitor__get_fs_info(const char *path, struct fs_info *fs_info)
 	}
 
 	driveType = GetDriveTypeW(wfullpath);
-	trace_printf_key(&trace_fsmonitor,
-			 "DriveType '%s' L'%ls' (%u)",
-			 path, wfullpath, driveType);
+	trace_printf_key(&trace_fsmonitor, "DriveType '%s' L'%ls' (%u)", path,
+			 wfullpath, driveType);
 
 	if (driveType == DRIVE_REMOTE) {
 		fs_info->is_remote = 1;
@@ -114,9 +113,8 @@ int fsmonitor__get_fs_info(const char *path, struct fs_info *fs_info)
 		fs_info->is_remote = 0;
 	}
 
-	trace_printf_key(&trace_fsmonitor,
-				"'%s' is_remote: %d",
-				path, fs_info->is_remote);
+	trace_printf_key(&trace_fsmonitor, "'%s' is_remote: %d", path,
+			 fs_info->is_remote);
 
 	return 0;
 }

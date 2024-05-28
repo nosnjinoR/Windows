@@ -1,19 +1,19 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object.h"
-#include "replace-object.h"
-#include "object-file.h"
-#include "object-store.h"
-#include "blob.h"
-#include "statinfo.h"
-#include "tree.h"
-#include "commit.h"
-#include "tag.h"
-#include "alloc.h"
-#include "packfile.h"
-#include "commit-graph.h"
-#include "loose.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object.h"
+#include "components/replace-object.h"
+#include "components/object-file.h"
+#include "components/object-store.h"
+#include "components/blob.h"
+#include "components/statinfo.h"
+#include "components/tree.h"
+#include "components/commit.h"
+#include "components/tag.h"
+#include "components/alloc.h"
+#include "components/packfile.h"
+#include "components/commit-graph.h"
+#include "components/loose.h"
 
 unsigned int get_max_object_index(void)
 {
@@ -26,11 +26,11 @@ struct object *get_indexed_object(unsigned int idx)
 }
 
 static const char *object_type_strings[] = {
-	NULL,		/* OBJ_NONE = 0 */
-	"commit",	/* OBJ_COMMIT = 1 */
-	"tree",		/* OBJ_TREE = 2 */
-	"blob",		/* OBJ_BLOB = 3 */
-	"tag",		/* OBJ_TAG = 4 */
+	NULL, /* OBJ_NONE = 0 */
+	"commit", /* OBJ_COMMIT = 1 */
+	"tree", /* OBJ_TREE = 2 */
+	"blob", /* OBJ_BLOB = 3 */
+	"tag", /* OBJ_TAG = 4 */
 };
 
 const char *type_name(unsigned int type)
@@ -72,7 +72,8 @@ static unsigned int hash_obj(const struct object_id *oid, unsigned int n)
  * must be a power of 2).  On collisions, simply overflow to the next
  * empty bucket.
  */
-static void insert_obj_hash(struct object *obj, struct object **hash, unsigned int size)
+static void insert_obj_hash(struct object *obj, struct object **hash,
+			    unsigned int size)
 {
 	unsigned int j = hash_obj(&obj->oid, size);
 
@@ -128,7 +129,9 @@ static void grow_object_hash(struct repository *r)
 	 * Note that this size must always be power-of-2 to match hash_obj
 	 * above.
 	 */
-	int new_hash_size = r->parsed_objects->obj_hash_size < 32 ? 32 : 2 * r->parsed_objects->obj_hash_size;
+	int new_hash_size = r->parsed_objects->obj_hash_size < 32 ?
+				    32 :
+				    2 * r->parsed_objects->obj_hash_size;
 	struct object **new_hash;
 
 	CALLOC_ARRAY(new_hash, new_hash_size);
@@ -152,7 +155,8 @@ void *create_object(struct repository *r, const struct object_id *oid, void *o)
 	obj->flags = 0;
 	oidcpy(&obj->oid, oid);
 
-	if (r->parsed_objects->obj_hash_size - 1 <= r->parsed_objects->nr_objs * 2)
+	if (r->parsed_objects->obj_hash_size - 1 <=
+	    r->parsed_objects->nr_objs * 2)
 		grow_object_hash(r);
 
 	insert_obj_hash(obj, r->parsed_objects->obj_hash,
@@ -167,21 +171,21 @@ void *object_as_type(struct object *obj, enum object_type type, int quiet)
 		return obj;
 	else if (obj->type == OBJ_NONE) {
 		if (type == OBJ_COMMIT)
-			init_commit_node((struct commit *) obj);
+			init_commit_node((struct commit *)obj);
 		else
 			obj->type = type;
 		return obj;
-	}
-	else {
+	} else {
 		if (!quiet)
 			error(_("object %s is a %s, not a %s"),
-			      oid_to_hex(&obj->oid),
-			      type_name(obj->type), type_name(type));
+			      oid_to_hex(&obj->oid), type_name(obj->type),
+			      type_name(type));
 		return NULL;
 	}
 }
 
-struct object *lookup_unknown_object(struct repository *r, const struct object_id *oid)
+struct object *lookup_unknown_object(struct repository *r,
+				     const struct object_id *oid)
 {
 	struct object *obj = lookup_object(r, oid);
 	if (!obj)
@@ -190,8 +194,8 @@ struct object *lookup_unknown_object(struct repository *r, const struct object_i
 }
 
 struct object *lookup_object_by_type(struct repository *r,
-			    const struct object_id *oid,
-			    enum object_type type)
+				     const struct object_id *oid,
+				     enum object_type type)
 {
 	switch (type) {
 	case OBJ_COMMIT:
@@ -207,7 +211,10 @@ struct object *lookup_object_by_type(struct repository *r,
 	}
 }
 
-struct object *parse_object_buffer(struct repository *r, const struct object_id *oid, enum object_type type, unsigned long size, void *buffer, int *eaten_p)
+struct object *parse_object_buffer(struct repository *r,
+				   const struct object_id *oid,
+				   enum object_type type, unsigned long size,
+				   void *buffer, int *eaten_p)
 {
 	struct object *obj;
 	*eaten_p = 0;
@@ -247,11 +254,12 @@ struct object *parse_object_buffer(struct repository *r, const struct object_id 
 		struct tag *tag = lookup_tag(r, oid);
 		if (tag) {
 			if (parse_tag_buffer(r, tag, buffer, size))
-			       return NULL;
+				return NULL;
 			obj = &tag->object;
 		}
 	} else {
-		warning(_("object %s has unknown type id %d"), oid_to_hex(oid), type);
+		warning(_("object %s has unknown type id %d"), oid_to_hex(oid),
+			type);
 		obj = NULL;
 	}
 	return obj;
@@ -305,8 +313,7 @@ struct object *parse_object_with_flags(struct repository *r,
 	 * care about checking the hash, we can simply verify that we
 	 * have the on-disk object with the correct type.
 	 */
-	if (skip_hash && discard_tree &&
-	    (!obj || obj->type == OBJ_TREE) &&
+	if (skip_hash && discard_tree && (!obj || obj->type == OBJ_TREE) &&
 	    oid_object_info(r, oid, NULL) == OBJ_TREE) {
 		return &lookup_tree(r, oid)->object;
 	}
@@ -320,8 +327,7 @@ struct object *parse_object_with_flags(struct repository *r,
 			return NULL;
 		}
 
-		obj = parse_object_buffer(r, oid, type, size,
-					  buffer, &eaten);
+		obj = parse_object_buffer(r, oid, type, size, buffer, &eaten);
 		if (!eaten)
 			free(buffer);
 		if (discard_tree && type == OBJ_TREE)
@@ -378,8 +384,8 @@ void object_array_init(struct object_array *array)
 }
 
 void add_object_array_with_path(struct object *obj, const char *name,
-				struct object_array *array,
-				unsigned mode, const char *path)
+				struct object_array *array, unsigned mode,
+				const char *path)
 {
 	unsigned nr = array->nr;
 	unsigned alloc = array->alloc;
@@ -409,7 +415,8 @@ void add_object_array_with_path(struct object *obj, const char *name,
 	array->nr = ++nr;
 }
 
-void add_object_array(struct object *obj, const char *name, struct object_array *array)
+void add_object_array(struct object *obj, const char *name,
+		      struct object_array *array)
 {
 	add_object_array_with_path(obj, name, array, S_IFINVALID, NULL);
 }
@@ -502,8 +509,9 @@ void clear_object_flags(unsigned flags)
 {
 	int i;
 
-	for (i=0; i < the_repository->parsed_objects->obj_hash_size; i++) {
-		struct object *obj = the_repository->parsed_objects->obj_hash[i];
+	for (i = 0; i < the_repository->parsed_objects->obj_hash_size; i++) {
+		struct object *obj =
+			the_repository->parsed_objects->obj_hash[i];
 		if (obj)
 			obj->flags &= ~flags;
 	}
@@ -612,11 +620,11 @@ void parsed_object_pool_clear(struct parsed_object_pool *o)
 			continue;
 
 		if (obj->type == OBJ_TREE)
-			free_tree_buffer((struct tree*)obj);
+			free_tree_buffer((struct tree *)obj);
 		else if (obj->type == OBJ_COMMIT)
-			release_commit_memory(o, (struct commit*)obj);
+			release_commit_memory(o, (struct commit *)obj);
 		else if (obj->type == OBJ_TAG)
-			release_tag_memory((struct tag*)obj);
+			release_tag_memory((struct tag *)obj);
 	}
 
 	FREE_AND_NULL(o->obj_hash);

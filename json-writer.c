@@ -1,10 +1,11 @@
-#include "git-compat-util.h"
-#include "json-writer.h"
+#include "components/git-compat-util.h"
+#include "components/json-writer.h"
 
 void jw_init(struct json_writer *jw)
 {
 	struct json_writer blank = JSON_WRITER_INIT;
-	memcpy(jw, &blank, sizeof(*jw));;
+	memcpy(jw, &blank, sizeof(*jw));
+	;
 }
 
 void jw_release(struct json_writer *jw)
@@ -72,7 +73,8 @@ static void begin(struct json_writer *jw, char ch_open, int pretty)
 static void assert_in_object(const struct json_writer *jw, const char *key)
 {
 	if (!jw->open_stack.len)
-		BUG("json-writer: object: missing jw_object_begin(): '%s'", key);
+		BUG("json-writer: object: missing jw_object_begin(): '%s'",
+		    key);
 	if (jw->open_stack.buf[jw->open_stack.len - 1] != '{')
 		BUG("json-writer: object: not in object: '%s'", key);
 }
@@ -99,8 +101,7 @@ static void maybe_add_comma(struct json_writer *jw)
 		jw->need_comma = 1;
 }
 
-static void fmt_double(struct json_writer *jw, int precision,
-			      double value)
+static void fmt_double(struct json_writer *jw, int precision, double value)
 {
 	if (precision < 0) {
 		strbuf_addf(&jw->json, "%f", value);
@@ -155,7 +156,8 @@ void jw_object_begin(struct json_writer *jw, int pretty)
 	begin(jw, '{', pretty);
 }
 
-void jw_object_string(struct json_writer *jw, const char *key, const char *value)
+void jw_object_string(struct json_writer *jw, const char *key,
+		      const char *value)
 {
 	object_common(jw, key);
 	append_quoted_string(&jw->json, value);
@@ -164,7 +166,7 @@ void jw_object_string(struct json_writer *jw, const char *key, const char *value
 void jw_object_intmax(struct json_writer *jw, const char *key, intmax_t value)
 {
 	object_common(jw, key);
-	strbuf_addf(&jw->json, "%"PRIdMAX, value);
+	strbuf_addf(&jw->json, "%" PRIdMAX, value);
 }
 
 void jw_object_double(struct json_writer *jw, const char *key, int precision,
@@ -200,8 +202,7 @@ void jw_object_null(struct json_writer *jw, const char *key)
 	strbuf_addstr(&jw->json, "null");
 }
 
-static void increase_indent(struct strbuf *sb,
-			    const struct json_writer *jw,
+static void increase_indent(struct strbuf *sb, const struct json_writer *jw,
 			    int indent)
 {
 	int k;
@@ -215,8 +216,7 @@ static void increase_indent(struct strbuf *sb,
 	}
 }
 
-static void kill_indent(struct strbuf *sb,
-			const struct json_writer *jw)
+static void kill_indent(struct strbuf *sb, const struct json_writer *jw)
 {
 	int k;
 	int eat_it = 0;
@@ -310,7 +310,7 @@ void jw_array_string(struct json_writer *jw, const char *value)
 void jw_array_intmax(struct json_writer *jw, intmax_t value)
 {
 	array_common(jw);
-	strbuf_addf(&jw->json, "%"PRIdMAX, value);
+	strbuf_addf(&jw->json, "%" PRIdMAX, value);
 }
 
 void jw_array_double(struct json_writer *jw, int precision, double value)

@@ -1,16 +1,16 @@
-#include "builtin.h"
-#include "abspath.h"
-#include "editor.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "strbuf.h"
-#include "help.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/editor.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/strbuf.h"
+#include "components/help.h"
 #include "compat/compiler.h"
-#include "hook.h"
+#include "components/hook.h"
 #include "hook-list.h"
-#include "diagnose.h"
-#include "object-file.h"
-#include "setup.h"
+#include "components/diagnose.h"
+#include "components/object-file.h"
+#include "components/setup.h"
 
 static void get_system_info(struct strbuf *sys_info)
 {
@@ -24,14 +24,12 @@ static void get_system_info(struct strbuf *sys_info)
 	/* system call for other version info */
 	strbuf_addstr(sys_info, "uname: ");
 	if (uname(&uname_info))
-		strbuf_addf(sys_info, _("uname() failed with error '%s' (%d)\n"),
-			    strerror(errno),
-			    errno);
+		strbuf_addf(sys_info,
+			    _("uname() failed with error '%s' (%d)\n"),
+			    strerror(errno), errno);
 	else
-		strbuf_addf(sys_info, "%s %s %s %s\n",
-			    uname_info.sysname,
-			    uname_info.release,
-			    uname_info.version,
+		strbuf_addf(sys_info, "%s %s %s %s\n", uname_info.sysname,
+			    uname_info.release, uname_info.version,
 			    uname_info.machine);
 
 	strbuf_addstr(sys_info, _("compiler info: "));
@@ -50,7 +48,8 @@ static void get_populated_hooks(struct strbuf *hook_info, int nongit)
 	const char **p;
 
 	if (nongit) {
-		strbuf_addstr(hook_info,
+		strbuf_addstr(
+			hook_info,
 			_("not run from a git repository - no hooks to show\n"));
 		return;
 	}
@@ -63,7 +62,7 @@ static void get_populated_hooks(struct strbuf *hook_info, int nongit)
 	}
 }
 
-static const char * const bugreport_usage[] = {
+static const char *const bugreport_usage[] = {
 	N_("git bugreport [(-o | --output-directory) <path>]\n"
 	   "              [(-s | --suffix) <format> | --no-suffix]\n"
 	   "              [--diagnose[=<mode>]]"),
@@ -73,21 +72,21 @@ static const char * const bugreport_usage[] = {
 static int get_bug_template(struct strbuf *template)
 {
 	const char template_text[] = N_(
-"Thank you for filling out a Git bug report!\n"
-"Please answer the following questions to help us understand your issue.\n"
-"\n"
-"What did you do before the bug happened? (Steps to reproduce your issue)\n"
-"\n"
-"What did you expect to happen? (Expected behavior)\n"
-"\n"
-"What happened instead? (Actual behavior)\n"
-"\n"
-"What's different between what you expected and what actually happened?\n"
-"\n"
-"Anything else you want to add:\n"
-"\n"
-"Please review the rest of the bug report below.\n"
-"You can delete any lines you don't wish to share.\n");
+		"Thank you for filling out a Git bug report!\n"
+		"Please answer the following questions to help us understand your issue.\n"
+		"\n"
+		"What did you do before the bug happened? (Steps to reproduce your issue)\n"
+		"\n"
+		"What did you expect to happen? (Expected behavior)\n"
+		"\n"
+		"What happened instead? (Actual behavior)\n"
+		"\n"
+		"What's different between what you expected and what actually happened?\n"
+		"\n"
+		"Anything else you want to add:\n"
+		"\n"
+		"Please review the rest of the bug report below.\n"
+		"You can delete any lines you don't wish to share.\n");
 
 	strbuf_addstr(template, _(template_text));
 	return 0;
@@ -114,13 +113,16 @@ int cmd_bugreport(int argc, const char **argv, const char *prefix)
 	int ret;
 
 	const struct option bugreport_options[] = {
-		OPT_CALLBACK_F(0, "diagnose", &diagnose, N_("mode"),
-			       N_("create an additional zip archive of detailed diagnostics (default 'stats')"),
-			       PARSE_OPT_OPTARG, option_parse_diagnose),
-		OPT_STRING('o', "output-directory", &option_output, N_("path"),
-			   N_("specify a destination for the bugreport file(s)")),
-		OPT_STRING('s', "suffix", &option_suffix, N_("format"),
-			   N_("specify a strftime format suffix for the filename(s)")),
+		OPT_CALLBACK_F(
+			0, "diagnose", &diagnose, N_("mode"),
+			N_("create an additional zip archive of detailed diagnostics (default 'stats')"),
+			PARSE_OPT_OPTARG, option_parse_diagnose),
+		OPT_STRING(
+			'o', "output-directory", &option_output, N_("path"),
+			N_("specify a destination for the bugreport file(s)")),
+		OPT_STRING(
+			's', "suffix", &option_suffix, N_("format"),
+			N_("specify a strftime format suffix for the filename(s)")),
 		OPT_END()
 	};
 
@@ -133,8 +135,8 @@ int cmd_bugreport(int argc, const char **argv, const char *prefix)
 	}
 
 	/* Prepare the path to put the result */
-	prefixed_filename = prefix_filename(prefix,
-					    option_output ? option_output : "");
+	prefixed_filename =
+		prefix_filename(prefix, option_output ? option_output : "");
 	strbuf_addstr(&report_path, prefixed_filename);
 	strbuf_complete(&report_path, '/');
 	output_path_len = report_path.len;
@@ -142,7 +144,8 @@ int cmd_bugreport(int argc, const char **argv, const char *prefix)
 	strbuf_addstr(&report_path, "git-bugreport");
 	if (option_suffix) {
 		strbuf_addch(&report_path, '-');
-		strbuf_addftime(&report_path, option_suffix, localtime_r(&now, &tm), 0, 0);
+		strbuf_addftime(&report_path, option_suffix,
+				localtime_r(&now, &tm), 0, 0);
 	}
 	strbuf_addstr(&report_path, ".txt");
 
@@ -160,11 +163,13 @@ int cmd_bugreport(int argc, const char **argv, const char *prefix)
 		struct strbuf zip_path = STRBUF_INIT;
 		strbuf_add(&zip_path, report_path.buf, output_path_len);
 		strbuf_addstr(&zip_path, "git-diagnostics-");
-		strbuf_addftime(&zip_path, option_suffix, localtime_r(&now, &tm), 0, 0);
+		strbuf_addftime(&zip_path, option_suffix,
+				localtime_r(&now, &tm), 0, 0);
 		strbuf_addstr(&zip_path, ".zip");
 
 		if (create_diagnostics_archive(&zip_path, diagnose))
-			die_errno(_("unable to create diagnostics archive %s"), zip_path.buf);
+			die_errno(_("unable to create diagnostics archive %s"),
+				  zip_path.buf);
 
 		strbuf_release(&zip_path);
 	}
@@ -190,10 +195,10 @@ int cmd_bugreport(int argc, const char **argv, const char *prefix)
 	 * We want to print the path relative to the user, but we still need the
 	 * path relative to us to give to the editor.
 	 */
-	if (!(prefix && skip_prefix(report_path.buf, prefix, &user_relative_path)))
+	if (!(prefix &&
+	      skip_prefix(report_path.buf, prefix, &user_relative_path)))
 		user_relative_path = report_path.buf;
-	fprintf(stderr, _("Created new report at '%s'.\n"),
-		user_relative_path);
+	fprintf(stderr, _("Created new report at '%s'.\n"), user_relative_path);
 
 	free(prefixed_filename);
 	strbuf_release(&buffer);

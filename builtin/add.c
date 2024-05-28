@@ -4,30 +4,29 @@
  * Copyright (C) 2006 Linus Torvalds
  */
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "advice.h"
-#include "config.h"
-#include "lockfile.h"
-#include "editor.h"
-#include "dir.h"
-#include "gettext.h"
-#include "pathspec.h"
-#include "run-command.h"
-#include "parse-options.h"
-#include "path.h"
-#include "preload-index.h"
-#include "diff.h"
-#include "read-cache.h"
-#include "repository.h"
-#include "revision.h"
-#include "bulk-checkin.h"
-#include "strvec.h"
-#include "submodule.h"
-#include "add-interactive.h"
+#include "components/builtin.h"
+#include "components/advice.h"
+#include "components/config.h"
+#include "components/lockfile.h"
+#include "components/editor.h"
+#include "components/dir.h"
+#include "components/gettext.h"
+#include "components/pathspec.h"
+#include "components/run-command.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/preload-index.h"
+#include "components/diff.h"
+#include "components/read-cache.h"
+#include "components/repository.h"
+#include "components/revision.h"
+#include "components/bulk-checkin.h"
+#include "components/strvec.h"
+#include "components/submodule.h"
+#include "components/add-interactive.h"
 
-static const char * const builtin_add_usage[] = {
-	N_("git add [<options>] [--] <pathspec>..."),
-	NULL
+static const char *const builtin_add_usage[] = {
+	N_("git add [<options>] [--] <pathspec>..."), NULL
 };
 static int patch_interactive, add_interactive, edit_interactive;
 static int take_worktree_changes;
@@ -88,7 +87,8 @@ static int renormalize_tracked_files(const struct pathspec *pathspec, int flags)
 	return retval;
 }
 
-static char *prune_directory(struct dir_struct *dir, struct pathspec *pathspec, int prefix)
+static char *prune_directory(struct dir_struct *dir, struct pathspec *pathspec,
+			     int prefix)
 {
 	char *seen;
 	int i;
@@ -116,7 +116,7 @@ static int refresh(int verbose, const struct pathspec *pathspec)
 	char *skip_worktree_seen = NULL;
 	struct string_list only_match_skip_worktree = STRING_LIST_INIT_NODUP;
 	unsigned int flags = REFRESH_IGNORE_SKIP_WORKTREE |
-		    (verbose ? REFRESH_IN_PORCELAIN : REFRESH_QUIET);
+			     (verbose ? REFRESH_IN_PORCELAIN : REFRESH_QUIET);
 
 	seen = xcalloc(pathspec->nr, 1);
 	refresh_index(&the_index, flags, pathspec, seen,
@@ -125,7 +125,8 @@ static int refresh(int verbose, const struct pathspec *pathspec)
 		if (!seen[i]) {
 			const char *path = pathspec->items[i].original;
 
-			if (matches_skip_worktree(pathspec, i, &skip_worktree_seen) ||
+			if (matches_skip_worktree(pathspec, i,
+						  &skip_worktree_seen) ||
 			    !path_in_sparse_checkout(path, &the_index)) {
 				string_list_append(&only_match_skip_worktree,
 						   pathspec->items[i].original);
@@ -153,13 +154,13 @@ int interactive_add(const char **argv, const char *prefix, int patch)
 	int unused, ret;
 
 	if (!git_config_get_bool("add.interactive.usebuiltin", &unused))
-		warning(_("the add.interactive.useBuiltin setting has been removed!\n"
-			  "See its entry in 'git help config' for details."));
+		warning(_(
+			"the add.interactive.useBuiltin setting has been removed!\n"
+			"See its entry in 'git help config' for details."));
 
 	parse_pathspec(&pathspec, 0,
-		       PATHSPEC_PREFER_FULL |
-		       PATHSPEC_SYMLINK_LEADING_PATH |
-		       PATHSPEC_PREFIX_ORIGIN,
+		       PATHSPEC_PREFER_FULL | PATHSPEC_SYMLINK_LEADING_PATH |
+			       PATHSPEC_PREFIX_ORIGIN,
 		       prefix, argv);
 
 	if (patch)
@@ -205,8 +206,7 @@ static int edit_patch(int argc, const char **argv, const char *prefix)
 		die(_("empty patch. aborted"));
 
 	child.git_cmd = 1;
-	strvec_pushl(&child.args, "apply", "--recount", "--cached", file,
-		     NULL);
+	strvec_pushl(&child.args, "apply", "--recount", "--cached", file, NULL);
 	if (run_command(&child))
 		die(_("could not apply '%s'"), file);
 
@@ -216,8 +216,8 @@ static int edit_patch(int argc, const char **argv, const char *prefix)
 	return 0;
 }
 
-static const char ignore_error[] =
-N_("The following paths are ignored by one of your .gitignore files:\n");
+static const char ignore_error[] = N_(
+	"The following paths are ignored by one of your .gitignore files:\n");
 
 static int verbose, show_only, ignored_too, refresh_only;
 static int ignore_add_errors, intent_to_add, ignore_missing;
@@ -229,7 +229,8 @@ static int addremove_explicit = -1; /* unspecified */
 
 static char *chmod_arg;
 
-static int ignore_removal_cb(const struct option *opt, const char *arg, int unset)
+static int ignore_removal_cb(const struct option *opt, const char *arg,
+			     int unset)
 {
 	BUG_ON_OPT_ARG(arg);
 
@@ -242,22 +243,35 @@ static struct option builtin_add_options[] = {
 	OPT__DRY_RUN(&show_only, N_("dry run")),
 	OPT__VERBOSE(&verbose, N_("be verbose")),
 	OPT_GROUP(""),
-	OPT_BOOL('i', "interactive", &add_interactive, N_("interactive picking")),
-	OPT_BOOL('p', "patch", &patch_interactive, N_("select hunks interactively")),
-	OPT_BOOL('e', "edit", &edit_interactive, N_("edit current diff and apply")),
+	OPT_BOOL('i', "interactive", &add_interactive,
+		 N_("interactive picking")),
+	OPT_BOOL('p', "patch", &patch_interactive,
+		 N_("select hunks interactively")),
+	OPT_BOOL('e', "edit", &edit_interactive,
+		 N_("edit current diff and apply")),
 	OPT__FORCE(&ignored_too, N_("allow adding otherwise ignored files"), 0),
-	OPT_BOOL('u', "update", &take_worktree_changes, N_("update tracked files")),
-	OPT_BOOL(0, "renormalize", &add_renormalize, N_("renormalize EOL of tracked files (implies -u)")),
-	OPT_BOOL('N', "intent-to-add", &intent_to_add, N_("record only the fact that the path will be added later")),
-	OPT_BOOL('A', "all", &addremove_explicit, N_("add changes from all tracked and untracked files")),
-	OPT_CALLBACK_F(0, "ignore-removal", &addremove_explicit,
-	  NULL /* takes no arguments */,
-	  N_("ignore paths removed in the working tree (same as --no-all)"),
-	  PARSE_OPT_NOARG, ignore_removal_cb),
-	OPT_BOOL( 0 , "refresh", &refresh_only, N_("don't add, only refresh the index")),
-	OPT_BOOL( 0 , "ignore-errors", &ignore_add_errors, N_("just skip files which cannot be added because of errors")),
-	OPT_BOOL( 0 , "ignore-missing", &ignore_missing, N_("check if - even missing - files are ignored in dry run")),
-	OPT_BOOL(0, "sparse", &include_sparse, N_("allow updating entries outside of the sparse-checkout cone")),
+	OPT_BOOL('u', "update", &take_worktree_changes,
+		 N_("update tracked files")),
+	OPT_BOOL(0, "renormalize", &add_renormalize,
+		 N_("renormalize EOL of tracked files (implies -u)")),
+	OPT_BOOL('N', "intent-to-add", &intent_to_add,
+		 N_("record only the fact that the path will be added later")),
+	OPT_BOOL('A', "all", &addremove_explicit,
+		 N_("add changes from all tracked and untracked files")),
+	OPT_CALLBACK_F(
+		0, "ignore-removal", &addremove_explicit,
+		NULL /* takes no arguments */,
+		N_("ignore paths removed in the working tree (same as --no-all)"),
+		PARSE_OPT_NOARG, ignore_removal_cb),
+	OPT_BOOL(0, "refresh", &refresh_only,
+		 N_("don't add, only refresh the index")),
+	OPT_BOOL(0, "ignore-errors", &ignore_add_errors,
+		 N_("just skip files which cannot be added because of errors")),
+	OPT_BOOL(0, "ignore-missing", &ignore_missing,
+		 N_("check if - even missing - files are ignored in dry run")),
+	OPT_BOOL(
+		0, "sparse", &include_sparse,
+		N_("allow updating entries outside of the sparse-checkout cone")),
 	OPT_STRING(0, "chmod", &chmod_arg, "(+|-)x",
 		   N_("override the executable bit of the listed files")),
 	OPT_HIDDEN_BOOL(0, "warn-embedded-repo", &warn_on_embedded_repo,
@@ -283,20 +297,19 @@ static int add_config(const char *var, const char *value,
 }
 
 static const char embedded_advice[] = N_(
-"You've added another git repository inside your current repository.\n"
-"Clones of the outer repository will not contain the contents of\n"
-"the embedded repository and will not know how to obtain it.\n"
-"If you meant to add a submodule, use:\n"
-"\n"
-"	git submodule add <url> %s\n"
-"\n"
-"If you added this path by mistake, you can remove it from the\n"
-"index with:\n"
-"\n"
-"	git rm --cached %s\n"
-"\n"
-"See \"git help submodule\" for more information."
-);
+	"You've added another git repository inside your current repository.\n"
+	"Clones of the outer repository will not contain the contents of\n"
+	"the embedded repository and will not know how to obtain it.\n"
+	"If you meant to add a submodule, use:\n"
+	"\n"
+	"	git submodule add <url> %s\n"
+	"\n"
+	"If you added this path by mistake, you can remove it from the\n"
+	"index with:\n"
+	"\n"
+	"	git rm --cached %s\n"
+	"\n"
+	"See \"git help submodule\" for more information.");
 
 static void check_embedded_repo(const char *path)
 {
@@ -314,8 +327,8 @@ static void check_embedded_repo(const char *path)
 
 	warning(_("adding embedded git repository: %s"), name.buf);
 	if (!adviced_on_embedded_repo) {
-		advise_if_enabled(ADVICE_ADD_EMBEDDED_REPO,
-				  embedded_advice, name.buf, name.buf);
+		advise_if_enabled(ADVICE_ADD_EMBEDDED_REPO, embedded_advice,
+				  name.buf, name.buf);
 		adviced_on_embedded_repo = 1;
 	}
 
@@ -338,12 +351,14 @@ static int add_files(struct dir_struct *dir, int flags)
 
 	for (i = 0; i < dir->nr; i++) {
 		if (!include_sparse &&
-		    !path_in_sparse_checkout(dir->entries[i]->name, &the_index)) {
+		    !path_in_sparse_checkout(dir->entries[i]->name,
+					     &the_index)) {
 			string_list_append(&matched_sparse_paths,
 					   dir->entries[i]->name);
 			continue;
 		}
-		if (add_file_to_index(&the_index, dir->entries[i]->name, flags)) {
+		if (add_file_to_index(&the_index, dir->entries[i]->name,
+				      flags)) {
 			if (!ignore_add_errors)
 				die(_("adding files failed"));
 			exit_status = 1;
@@ -377,21 +392,24 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	git_config(add_config, NULL);
 
 	argc = parse_options(argc, argv, prefix, builtin_add_options,
-			  builtin_add_usage, PARSE_OPT_KEEP_ARGV0);
+			     builtin_add_usage, PARSE_OPT_KEEP_ARGV0);
 	if (patch_interactive)
 		add_interactive = 1;
 	if (add_interactive) {
 		if (show_only)
-			die(_("options '%s' and '%s' cannot be used together"), "--dry-run", "--interactive/--patch");
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--dry-run", "--interactive/--patch");
 		if (pathspec_from_file)
-			die(_("options '%s' and '%s' cannot be used together"), "--pathspec-from-file", "--interactive/--patch");
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--pathspec-from-file", "--interactive/--patch");
 		exit(interactive_add(argv + 1, prefix, patch_interactive));
 	}
 
 	if (edit_interactive) {
 		if (pathspec_from_file)
-			die(_("options '%s' and '%s' cannot be used together"), "--pathspec-from-file", "--edit");
-		return(edit_patch(argc, argv, prefix));
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--pathspec-from-file", "--edit");
+		return (edit_patch(argc, argv, prefix));
 	}
 	argc--;
 	argv++;
@@ -402,16 +420,19 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		addremove = 0; /* "-u" was given but not "-A" */
 
 	if (addremove && take_worktree_changes)
-		die(_("options '%s' and '%s' cannot be used together"), "-A", "-u");
+		die(_("options '%s' and '%s' cannot be used together"), "-A",
+		    "-u");
 
 	if (!show_only && ignore_missing)
-		die(_("the option '%s' requires '%s'"), "--ignore-missing", "--dry-run");
+		die(_("the option '%s' requires '%s'"), "--ignore-missing",
+		    "--dry-run");
 
 	if (chmod_arg && ((chmod_arg[0] != '-' && chmod_arg[0] != '+') ||
 			  chmod_arg[1] != 'x' || chmod_arg[2]))
 		die(_("--chmod param '%s' must be either -x or +x"), chmod_arg);
 
-	add_new_files = !take_worktree_changes && !refresh_only && !add_renormalize;
+	add_new_files = !take_worktree_changes && !refresh_only &&
+			!add_renormalize;
 	require_pathspec = !(take_worktree_changes || (0 < addremove_explicit));
 
 	prepare_repo_settings(the_repository);
@@ -424,20 +445,21 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	 * below before enabling new magic.
 	 */
 	parse_pathspec(&pathspec, 0,
-		       PATHSPEC_PREFER_FULL |
-		       PATHSPEC_SYMLINK_LEADING_PATH,
+		       PATHSPEC_PREFER_FULL | PATHSPEC_SYMLINK_LEADING_PATH,
 		       prefix, argv);
 
 	if (pathspec_from_file) {
 		if (pathspec.nr)
-			die(_("'%s' and pathspec arguments cannot be used together"), "--pathspec-from-file");
+			die(_("'%s' and pathspec arguments cannot be used together"),
+			    "--pathspec-from-file");
 
-		parse_pathspec_file(&pathspec, 0,
-				    PATHSPEC_PREFER_FULL |
-				    PATHSPEC_SYMLINK_LEADING_PATH,
-				    prefix, pathspec_from_file, pathspec_file_nul);
+		parse_pathspec_file(
+			&pathspec, 0,
+			PATHSPEC_PREFER_FULL | PATHSPEC_SYMLINK_LEADING_PATH,
+			prefix, pathspec_from_file, pathspec_file_nul);
 	} else if (pathspec_file_nul) {
-		die(_("the option '%s' requires '%s'"), "--pathspec-file-nul", "--pathspec-from-file");
+		die(_("the option '%s' requires '%s'"), "--pathspec-file-nul",
+		    "--pathspec-from-file");
 	}
 
 	if (require_pathspec && pathspec.nr == 0) {
@@ -455,8 +477,9 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		 (show_only ? ADD_CACHE_PRETEND : 0) |
 		 (intent_to_add ? ADD_CACHE_INTENT : 0) |
 		 (ignore_add_errors ? ADD_CACHE_IGNORE_ERRORS : 0) |
-		 (!(addremove || take_worktree_changes)
-		  ? ADD_CACHE_IGNORE_REMOVAL : 0));
+		 (!(addremove || take_worktree_changes) ?
+			  ADD_CACHE_IGNORE_REMOVAL :
+			  0));
 
 	if (repo_read_index_preload(the_repository, &pathspec, 0) < 0)
 		die(_("index file corrupt"));
@@ -491,22 +514,20 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 	if (pathspec.nr) {
 		int i;
 		char *skip_worktree_seen = NULL;
-		struct string_list only_match_skip_worktree = STRING_LIST_INIT_NODUP;
+		struct string_list only_match_skip_worktree =
+			STRING_LIST_INIT_NODUP;
 
 		if (!seen)
-			seen = find_pathspecs_matching_against_index(&pathspec,
-					&the_index, PS_IGNORE_SKIP_WORKTREE);
+			seen = find_pathspecs_matching_against_index(
+				&pathspec, &the_index, PS_IGNORE_SKIP_WORKTREE);
 
 		/*
 		 * file_exists() assumes exact match
 		 */
 		GUARD_PATHSPEC(&pathspec,
-			       PATHSPEC_FROMTOP |
-			       PATHSPEC_LITERAL |
-			       PATHSPEC_GLOB |
-			       PATHSPEC_ICASE |
-			       PATHSPEC_EXCLUDE |
-			       PATHSPEC_ATTR);
+			       PATHSPEC_FROMTOP | PATHSPEC_LITERAL |
+				       PATHSPEC_GLOB | PATHSPEC_ICASE |
+				       PATHSPEC_EXCLUDE | PATHSPEC_ATTR);
 
 		for (i = 0; i < pathspec.nr; i++) {
 			const char *path = pathspec.items[i].match;
@@ -517,7 +538,8 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 				continue;
 
 			if (!include_sparse &&
-			    matches_skip_worktree(&pathspec, i, &skip_worktree_seen)) {
+			    matches_skip_worktree(&pathspec, i,
+						  &skip_worktree_seen)) {
 				string_list_append(&only_match_skip_worktree,
 						   pathspec.items[i].original);
 				continue;
@@ -527,22 +549,25 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 			if (!path[0])
 				continue;
 
-			if ((pathspec.items[i].magic & (PATHSPEC_GLOB | PATHSPEC_ICASE)) ||
+			if ((pathspec.items[i].magic &
+			     (PATHSPEC_GLOB | PATHSPEC_ICASE)) ||
 			    !file_exists(path)) {
 				if (ignore_missing) {
 					int dtype = DT_UNKNOWN;
-					if (is_excluded(&dir, &the_index, path, &dtype))
-						dir_add_ignored(&dir, &the_index,
-								path, pathspec.items[i].len);
+					if (is_excluded(&dir, &the_index, path,
+							&dtype))
+						dir_add_ignored(
+							&dir, &the_index, path,
+							pathspec.items[i].len);
 				} else
 					die(_("pathspec '%s' did not match any files"),
 					    pathspec.items[i].original);
 			}
 		}
 
-
 		if (only_match_skip_worktree.nr) {
-			advise_on_updating_sparse_paths(&only_match_skip_worktree);
+			advise_on_updating_sparse_paths(
+				&only_match_skip_worktree);
 			exit_status = 1;
 		}
 
@@ -569,7 +594,8 @@ int cmd_add(int argc, const char **argv, const char *prefix)
 		exit_status |= add_files(&dir, flags);
 
 	if (chmod_arg && pathspec.nr)
-		exit_status |= chmod_pathspec(&pathspec, chmod_arg[0], show_only);
+		exit_status |=
+			chmod_pathspec(&pathspec, chmod_arg[0], show_only);
 	end_odb_transaction();
 
 finish:

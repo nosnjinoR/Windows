@@ -2,9 +2,9 @@
  * A wrapper around cbtree which stores oids
  * May be used to replace oid-array for prefix (abbreviation) matches
  */
-#include "git-compat-util.h"
-#include "oidtree.h"
-#include "hash.h"
+#include "components/git-compat-util.h"
+#include "components/oidtree.h"
+#include "components/hash.h"
 
 struct oidtree_iter_data {
 	oidtree_iter fn;
@@ -54,7 +54,6 @@ void oidtree_insert(struct oidtree *ot, const struct object_id *oid)
 	cb_insert(&ot->tree, on, sizeof(*oid));
 }
 
-
 int oidtree_contains(struct oidtree *ot, const struct object_id *oid)
 {
 	struct object_id k;
@@ -67,7 +66,7 @@ int oidtree_contains(struct oidtree *ot, const struct object_id *oid)
 
 	/* cb_lookup relies on memcmp on the struct, so order matters: */
 	klen += BUILD_ASSERT_OR_ZERO(offsetof(struct object_id, hash) <
-				offsetof(struct object_id, algo));
+				     offsetof(struct object_id, algo));
 
 	return cb_lookup(&ot->tree, (const uint8_t *)&k, klen) ? 1 : 0;
 }
@@ -92,7 +91,7 @@ static enum cb_next iter(struct cb_node *n, void *arg)
 }
 
 void oidtree_each(struct oidtree *ot, const struct object_id *oid,
-			size_t oidhexsz, oidtree_iter fn, void *arg)
+		  size_t oidhexsz, oidtree_iter fn, void *arg)
 {
 	size_t klen = oidhexsz / 2;
 	struct oidtree_iter_data x = { 0 };

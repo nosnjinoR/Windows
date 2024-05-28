@@ -1,15 +1,15 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "hex.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/hex.h"
 #include "refs/refs-internal.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "object.h"
-#include "string-list.h"
-#include "parse-options.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/object.h"
+#include "components/string-list.h"
+#include "components/parse-options.h"
 
-static const char * const show_ref_usage[] = {
+static const char *const show_ref_usage[] = {
 	N_("git show-ref [--head] [-d | --dereference]\n"
 	   "             [-s | --hash[=<n>]] [--abbrev[=<n>]] [--tags]\n"
 	   "             [--heads] [--] [<pattern>...]"),
@@ -17,8 +17,7 @@ static const char * const show_ref_usage[] = {
 	   "             [-s | --hash[=<n>]] [--abbrev[=<n>]]\n"
 	   "             [--] [<ref>...]"),
 	N_("git show-ref --exclude-existing[=<pattern>]"),
-	N_("git show-ref --exists <ref>"),
-	NULL
+	N_("git show-ref --exists <ref>"), NULL
 };
 
 struct show_one_options {
@@ -28,15 +27,14 @@ struct show_one_options {
 	int deref_tags;
 };
 
-static void show_one(const struct show_one_options *opts,
-		     const char *refname, const struct object_id *oid)
+static void show_one(const struct show_one_options *opts, const char *refname,
+		     const struct object_id *oid)
 {
 	const char *hex;
 	struct object_id peeled;
 
 	if (!repo_has_object_file(the_repository, oid))
-		die("git show-ref: bad ref %s (%s)", refname,
-		    oid_to_hex(oid));
+		die("git show-ref: bad ref %s (%s)", refname, oid_to_hex(oid));
 
 	if (opts->quiet)
 		return;
@@ -51,7 +49,8 @@ static void show_one(const struct show_one_options *opts,
 		return;
 
 	if (!peel_iterated_oid(oid, &peeled)) {
-		hex = repo_find_unique_abbrev(the_repository, &peeled, opts->abbrev);
+		hex = repo_find_unique_abbrev(the_repository, &peeled,
+					      opts->abbrev);
 		printf("%s %s^{}\n", hex, refname);
 	}
 }
@@ -96,8 +95,7 @@ match:
 	return 0;
 }
 
-static int add_existing(const char *refname,
-			const struct object_id *oid UNUSED,
+static int add_existing(const char *refname, const struct object_id *oid UNUSED,
 			int flag UNUSED, void *cbdata)
 {
 	struct string_list *list = (struct string_list *)cbdata;
@@ -123,7 +121,8 @@ struct exclude_existing_options {
  * (4) ignore if refname is a ref that exists in the local repository;
  * (5) otherwise output the line.
  */
-static int cmd_show_ref__exclude_existing(const struct exclude_existing_options *opts)
+static int
+cmd_show_ref__exclude_existing(const struct exclude_existing_options *opts)
 {
 	struct string_list existing_refs = STRING_LIST_INIT_DUP;
 	char buf[1024];
@@ -175,8 +174,7 @@ static int cmd_show_ref__verify(const struct show_one_options *show_one_opts,
 		if ((starts_with(*refs, "refs/") || refname_is_safe(*refs)) &&
 		    !read_ref(*refs, &oid)) {
 			show_one(show_one_opts, *refs, &oid);
-		}
-		else if (!show_one_opts->quiet)
+		} else if (!show_one_opts->quiet)
 			die("'%s' - not a valid ref", *refs);
 		else
 			return 1;
@@ -208,9 +206,11 @@ static int cmd_show_ref__patterns(const struct patterns_options *opts,
 		head_ref(show_ref, &show_ref_data);
 	if (opts->heads_only || opts->tags_only) {
 		if (opts->heads_only)
-			for_each_fullref_in("refs/heads/", show_ref, &show_ref_data);
+			for_each_fullref_in("refs/heads/", show_ref,
+					    &show_ref_data);
 		if (opts->tags_only)
-			for_each_fullref_in("refs/tags/", show_ref, &show_ref_data);
+			for_each_fullref_in("refs/tags/", show_ref,
+					    &show_ref_data);
 	} else {
 		for_each_ref(show_ref, &show_ref_data);
 	}
@@ -281,31 +281,41 @@ static int exclude_existing_callback(const struct option *opt, const char *arg,
 
 int cmd_show_ref(int argc, const char **argv, const char *prefix)
 {
-	struct exclude_existing_options exclude_existing_opts = {0};
-	struct patterns_options patterns_opts = {0};
-	struct show_one_options show_one_opts = {0};
+	struct exclude_existing_options exclude_existing_opts = { 0 };
+	struct patterns_options patterns_opts = { 0 };
+	struct show_one_options show_one_opts = { 0 };
 	int verify = 0, exists = 0;
 	const struct option show_ref_options[] = {
-		OPT_BOOL(0, "tags", &patterns_opts.tags_only, N_("only show tags (can be combined with heads)")),
-		OPT_BOOL(0, "heads", &patterns_opts.heads_only, N_("only show heads (can be combined with tags)")),
-		OPT_BOOL(0, "exists", &exists, N_("check for reference existence without resolving")),
-		OPT_BOOL(0, "verify", &verify, N_("stricter reference checking, "
+		OPT_BOOL(0, "tags", &patterns_opts.tags_only,
+			 N_("only show tags (can be combined with heads)")),
+		OPT_BOOL(0, "heads", &patterns_opts.heads_only,
+			 N_("only show heads (can be combined with tags)")),
+		OPT_BOOL(0, "exists", &exists,
+			 N_("check for reference existence without resolving")),
+		OPT_BOOL(0, "verify", &verify,
+			 N_("stricter reference checking, "
 			    "requires exact ref path")),
-		OPT_HIDDEN_BOOL('h', NULL, &patterns_opts.show_head,
-				N_("show the HEAD reference, even if it would be filtered out")),
-		OPT_BOOL(0, "head", &patterns_opts.show_head,
-		  N_("show the HEAD reference, even if it would be filtered out")),
+		OPT_HIDDEN_BOOL(
+			'h', NULL, &patterns_opts.show_head,
+			N_("show the HEAD reference, even if it would be filtered out")),
+		OPT_BOOL(
+			0, "head", &patterns_opts.show_head,
+			N_("show the HEAD reference, even if it would be filtered out")),
 		OPT_BOOL('d', "dereference", &show_one_opts.deref_tags,
-			    N_("dereference tags into object IDs")),
+			 N_("dereference tags into object IDs")),
 		OPT_CALLBACK_F('s', "hash", &show_one_opts, N_("n"),
 			       N_("only show SHA1 hash using <n> digits"),
 			       PARSE_OPT_OPTARG, &hash_callback),
 		OPT__ABBREV(&show_one_opts.abbrev),
-		OPT__QUIET(&show_one_opts.quiet,
-			   N_("do not print results to stdout (useful with --verify)")),
-		OPT_CALLBACK_F(0, "exclude-existing", &exclude_existing_opts,
-			       N_("pattern"), N_("show refs from stdin that aren't in local repository"),
-			       PARSE_OPT_OPTARG | PARSE_OPT_NONEG, exclude_existing_callback),
+		OPT__QUIET(
+			&show_one_opts.quiet,
+			N_("do not print results to stdout (useful with --verify)")),
+		OPT_CALLBACK_F(
+			0, "exclude-existing", &exclude_existing_opts,
+			N_("pattern"),
+			N_("show refs from stdin that aren't in local repository"),
+			PARSE_OPT_OPTARG | PARSE_OPT_NONEG,
+			exclude_existing_callback),
 		OPT_END()
 	};
 
@@ -314,8 +324,8 @@ int cmd_show_ref(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, show_ref_options,
 			     show_ref_usage, 0);
 
-	die_for_incompatible_opt3(exclude_existing_opts.enabled, "--exclude-existing",
-				  verify, "--verify",
+	die_for_incompatible_opt3(exclude_existing_opts.enabled,
+				  "--exclude-existing", verify, "--verify",
 				  exists, "--exists");
 
 	if (exclude_existing_opts.enabled)
@@ -325,5 +335,6 @@ int cmd_show_ref(int argc, const char **argv, const char *prefix)
 	else if (exists)
 		return cmd_show_ref__exists(argv);
 	else
-		return cmd_show_ref__patterns(&patterns_opts, &show_one_opts, argv);
+		return cmd_show_ref__patterns(&patterns_opts, &show_one_opts,
+					      argv);
 }

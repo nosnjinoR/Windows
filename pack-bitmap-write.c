@@ -1,22 +1,22 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-store-ll.h"
-#include "commit.h"
-#include "diff.h"
-#include "revision.h"
-#include "progress.h"
-#include "pack.h"
-#include "pack-bitmap.h"
-#include "hash-lookup.h"
-#include "pack-objects.h"
-#include "path.h"
-#include "commit-reach.h"
-#include "prio-queue.h"
-#include "trace2.h"
-#include "tree.h"
-#include "tree-walk.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-store-ll.h"
+#include "components/commit.h"
+#include "components/diff.h"
+#include "components/revision.h"
+#include "components/progress.h"
+#include "components/pack.h"
+#include "components/pack-bitmap.h"
+#include "components/hash-lookup.h"
+#include "components/pack-objects.h"
+#include "components/path.h"
+#include "components/commit-reach.h"
+#include "components/prio-queue.h"
+#include "components/trace2.h"
+#include "components/tree.h"
+#include "components/tree-walk.h"
 
 struct bitmapped_commit {
 	struct commit *commit;
@@ -137,7 +137,8 @@ static uint32_t find_object_pos(const struct object_id *oid, int *found)
 		if (found)
 			*found = 0;
 		warning("Failed to write bitmap index. Packfile doesn't have full closure "
-			"(object %s is missing)", oid_to_hex(oid));
+			"(object %s is missing)",
+			oid_to_hex(oid));
 		return 0;
 	}
 
@@ -166,7 +167,8 @@ static void compute_xor_offsets(void)
 				break;
 
 			test_xor = ewah_pool_new();
-			ewah_xor(writer.selected[curr].bitmap, stored->bitmap, test_xor);
+			ewah_xor(writer.selected[curr].bitmap, stored->bitmap,
+				 test_xor);
 
 			if (test_xor->buffer_size < best_bitmap->buffer_size) {
 				if (best_bitmap != stored->bitmap)
@@ -190,8 +192,7 @@ struct bb_commit {
 	struct commit_list *reverse_edges;
 	struct bitmap *commit_mask;
 	struct bitmap *bitmap;
-	unsigned selected:1,
-		 maximal:1;
+	unsigned selected : 1, maximal : 1;
 	unsigned idx; /* within selected array */
 };
 
@@ -280,12 +281,14 @@ static void bitmap_builder_init(struct bitmap_builder *bb,
 
 		if (c_ent->maximal) {
 			num_maximal++;
-			ALLOC_GROW(bb->commits, bb->commits_nr + 1, bb->commits_alloc);
+			ALLOC_GROW(bb->commits, bb->commits_nr + 1,
+				   bb->commits_alloc);
 			bb->commits[bb->commits_nr++] = commit;
 		}
 
 		if (p) {
-			struct bb_commit *p_ent = bb_data_at(&bb->data, p->item);
+			struct bb_commit *p_ent =
+				bb_data_at(&bb->data, p->item);
 			int c_not_p, p_not_c;
 
 			if (!p_ent->commit_mask) {
@@ -293,8 +296,10 @@ static void bitmap_builder_init(struct bitmap_builder *bb,
 				c_not_p = 1;
 				p_not_c = 0;
 			} else {
-				c_not_p = bitmap_is_subset(c_ent->commit_mask, p_ent->commit_mask);
-				p_not_c = bitmap_is_subset(p_ent->commit_mask, c_ent->commit_mask);
+				c_not_p = bitmap_is_subset(c_ent->commit_mask,
+							   p_ent->commit_mask);
+				p_not_c = bitmap_is_subset(p_ent->commit_mask,
+							   c_ent->commit_mask);
 			}
 
 			if (!c_not_p)
@@ -311,18 +316,23 @@ static void bitmap_builder_init(struct bitmap_builder *bb,
 			}
 
 			if (c_ent->maximal) {
-				commit_list_insert(commit, &p_ent->reverse_edges);
+				commit_list_insert(commit,
+						   &p_ent->reverse_edges);
 			} else {
 				struct commit_list *cc = c_ent->reverse_edges;
 
 				for (; cc; cc = cc->next) {
-					if (!commit_list_contains(cc->item, p_ent->reverse_edges))
-						commit_list_insert(cc->item, &p_ent->reverse_edges);
+					if (!commit_list_contains(
+						    cc->item,
+						    p_ent->reverse_edges))
+						commit_list_insert(
+							cc->item,
+							&p_ent->reverse_edges);
 				}
 			}
 		}
 
-next:
+	next:
 		bitmap_free(c_ent->commit_mask);
 		c_ent->commit_mask = NULL;
 	}
@@ -348,8 +358,7 @@ static void bitmap_builder_clear(struct bitmap_builder *bb)
 	bb->commits_nr = bb->commits_alloc = 0;
 }
 
-static int fill_bitmap_tree(struct bitmap *bitmap,
-			    struct tree *tree)
+static int fill_bitmap_tree(struct bitmap *bitmap, struct tree *tree)
 {
 	int found;
 	uint32_t pos;
@@ -375,8 +384,9 @@ static int fill_bitmap_tree(struct bitmap *bitmap,
 	while (tree_entry(&desc, &entry)) {
 		switch (object_type(entry.mode)) {
 		case OBJ_TREE:
-			if (fill_bitmap_tree(bitmap,
-					     lookup_tree(the_repository, &entry.oid)) < 0)
+			if (fill_bitmap_tree(bitmap, lookup_tree(the_repository,
+								 &entry.oid)) <
+			    0)
 				return -1;
 			break;
 		case OBJ_BLOB:
@@ -397,8 +407,7 @@ static int fill_bitmap_tree(struct bitmap *bitmap,
 
 static int reused_bitmaps_nr;
 
-static int fill_bitmap_commit(struct bb_commit *ent,
-			      struct commit *commit,
+static int fill_bitmap_commit(struct bb_commit *ent, struct commit *commit,
 			      struct prio_queue *queue,
 			      struct prio_queue *tree_queue,
 			      struct bitmap_index *old_bitmap,
@@ -416,7 +425,8 @@ static int fill_bitmap_commit(struct bb_commit *ent,
 		struct commit *c = prio_queue_get(queue);
 
 		if (old_bitmap && mapping) {
-			struct ewah_bitmap *old = bitmap_for_commit(old_bitmap, c);
+			struct ewah_bitmap *old =
+				bitmap_for_commit(old_bitmap, c);
 			struct bitmap *remapped = bitmap_new();
 			/*
 			 * If this commit has an old bitmap, then translate that
@@ -455,8 +465,8 @@ static int fill_bitmap_commit(struct bb_commit *ent,
 	}
 
 	while (tree_queue->nr) {
-		if (fill_bitmap_tree(ent->bitmap,
-				     prio_queue_get(tree_queue)) < 0)
+		if (fill_bitmap_tree(ent->bitmap, prio_queue_get(tree_queue)) <
+		    0)
 			return -1;
 	}
 	return 0;
@@ -470,7 +480,8 @@ static void store_selected(struct bb_commit *ent, struct commit *commit)
 
 	stored->bitmap = bitmap_to_ewah(ent->bitmap);
 
-	hash_pos = kh_put_oid_map(writer.bitmaps, commit->object.oid, &hash_ret);
+	hash_pos =
+		kh_put_oid_map(writer.bitmaps, commit->object.oid, &hash_ret);
 	if (hash_ret == 0)
 		die("Duplicate entry when writing index: %s",
 		    oid_to_hex(&commit->object.oid));
@@ -492,7 +503,8 @@ int bitmap_writer_build(struct packing_data *to_pack)
 	writer.to_pack = to_pack;
 
 	if (writer.show_progress)
-		writer.progress = start_progress("Building bitmaps", writer.selected_nr);
+		writer.progress =
+			start_progress("Building bitmaps", writer.selected_nr);
 	trace2_region_enter("pack-bitmap-write", "building_bitmaps_total",
 			    the_repository);
 
@@ -504,7 +516,7 @@ int bitmap_writer_build(struct packing_data *to_pack)
 
 	bitmap_builder_init(&bb, &writer, old_bitmap);
 	for (i = bb.commits_nr; i > 0; i--) {
-		struct commit *commit = bb.commits[i-1];
+		struct commit *commit = bb.commits[i - 1];
 		struct bb_commit *ent = bb_data_at(&bb.data, commit);
 		struct commit *child;
 		int reused = 0;
@@ -647,7 +659,6 @@ void bitmap_writer_select_commits(struct commit **indexed_commits,
 	stop_progress(&writer.progress);
 }
 
-
 static int hashwrite_ewah_helper(void *f, const void *buf, size_t len)
 {
 	/* hashwrite will die on error */
@@ -666,7 +677,7 @@ static inline void dump_bitmap(struct hashfile *f, struct ewah_bitmap *bitmap)
 
 static const struct object_id *oid_access(size_t pos, const void *table)
 {
-	const struct pack_idx_entry * const *index = table;
+	const struct pack_idx_entry *const *index = table;
 	return &index[pos]->oid;
 }
 
@@ -704,8 +715,7 @@ static int table_cmp(const void *_va, const void *_vb, void *_data)
 	return 0;
 }
 
-static void write_lookup_table(struct hashfile *f,
-			       uint32_t *commit_positions,
+static void write_lookup_table(struct hashfile *f, uint32_t *commit_positions,
 			       off_t *offsets)
 {
 	uint32_t i;
@@ -730,7 +740,8 @@ static void write_lookup_table(struct hashfile *f,
 	for (i = 0; i < writer.selected_nr; i++)
 		table_inv[table[i]] = i;
 
-	trace2_region_enter("pack-bitmap-write", "writing_lookup_table", the_repository);
+	trace2_region_enter("pack-bitmap-write", "writing_lookup_table",
+			    the_repository);
 	for (i = 0; i < writer.selected_nr; i++) {
 		struct bitmapped_commit *selected = &writer.selected[table[i]];
 		uint32_t xor_offset = selected->xor_offset;
@@ -739,13 +750,14 @@ static void write_lookup_table(struct hashfile *f,
 		if (xor_offset) {
 			/*
 			 * xor_index stores the index (in the bitmap entries)
-			 * of the corresponding xor bitmap. But we need to convert
-			 * this index into lookup table's index. So, table_inv[xor_index]
-			 * gives us the index position w.r.t. the lookup table.
+			 * of the corresponding xor bitmap. But we need to
+			 * convert this index into lookup table's index. So,
+			 * table_inv[xor_index] gives us the index position
+			 * w.r.t. the lookup table.
 			 *
-			 * If "k = table[i] - xor_offset" then the xor base is the k'th
-			 * bitmap. `table_inv[k]` gives us the position of that bitmap
-			 * in the lookup table.
+			 * If "k = table[i] - xor_offset" then the xor base is
+			 * the k'th bitmap. `table_inv[k]` gives us the position
+			 * of that bitmap in the lookup table.
 			 */
 			uint32_t xor_index = table[i] - xor_offset;
 			xor_row = table_inv[xor_index];
@@ -757,14 +769,14 @@ static void write_lookup_table(struct hashfile *f,
 		hashwrite_be64(f, (uint64_t)offsets[table[i]]);
 		hashwrite_be32(f, xor_row);
 	}
-	trace2_region_leave("pack-bitmap-write", "writing_lookup_table", the_repository);
+	trace2_region_leave("pack-bitmap-write", "writing_lookup_table",
+			    the_repository);
 
 	free(table);
 	free(table_inv);
 }
 
-static void write_hash_cache(struct hashfile *f,
-			     struct pack_idx_entry **index,
+static void write_hash_cache(struct hashfile *f, struct pack_idx_entry **index,
 			     uint32_t index_nr)
 {
 	uint32_t i;
@@ -780,10 +792,8 @@ void bitmap_writer_set_checksum(const unsigned char *sha1)
 	hashcpy(writer.pack_checksum, sha1);
 }
 
-void bitmap_writer_finish(struct pack_idx_entry **index,
-			  uint32_t index_nr,
-			  const char *filename,
-			  uint16_t options)
+void bitmap_writer_finish(struct pack_idx_entry **index, uint32_t index_nr,
+			  const char *filename, uint16_t options)
 {
 	static uint16_t default_version = 1;
 	static uint16_t flags = BITMAP_OPT_FULL_DAG;
@@ -799,13 +809,15 @@ void bitmap_writer_finish(struct pack_idx_entry **index,
 
 	f = hashfd(fd, tmp_file.buf);
 
-	memcpy(header.magic, BITMAP_IDX_SIGNATURE, sizeof(BITMAP_IDX_SIGNATURE));
+	memcpy(header.magic, BITMAP_IDX_SIGNATURE,
+	       sizeof(BITMAP_IDX_SIGNATURE));
 	header.version = htons(default_version);
 	header.options = htons(flags | options);
 	header.entry_count = htonl(writer.selected_nr);
 	hashcpy(header.checksum, writer.pack_checksum);
 
-	hashwrite(f, &header, sizeof(header) - GIT_MAX_RAWSZ + the_hash_algo->rawsz);
+	hashwrite(f, &header,
+		  sizeof(header) - GIT_MAX_RAWSZ + the_hash_algo->rawsz);
 	dump_bitmap(f, writer.commits);
 	dump_bitmap(f, writer.trees);
 	dump_bitmap(f, writer.blobs);
@@ -818,7 +830,8 @@ void bitmap_writer_finish(struct pack_idx_entry **index,
 
 	for (i = 0; i < writer.selected_nr; i++) {
 		struct bitmapped_commit *stored = &writer.selected[i];
-		int commit_pos = oid_pos(&stored->commit->object.oid, index, index_nr, oid_access);
+		int commit_pos = oid_pos(&stored->commit->object.oid, index,
+					 index_nr, oid_access);
 
 		if (commit_pos < 0)
 			BUG(_("trying to write commit not in index"));
@@ -841,7 +854,8 @@ void bitmap_writer_finish(struct pack_idx_entry **index,
 		die_errno("unable to make temporary bitmap file readable");
 
 	if (rename(tmp_file.buf, filename))
-		die_errno("unable to rename temporary bitmap file to '%s'", filename);
+		die_errno("unable to rename temporary bitmap file to '%s'",
+			  filename);
 
 	strbuf_release(&tmp_file);
 	free(commit_positions);

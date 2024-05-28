@@ -5,18 +5,17 @@
  *
  * Based on git-verify-tag
  */
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "object-name.h"
-#include "repository.h"
-#include "commit.h"
-#include "parse-options.h"
-#include "gpg-interface.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/object-name.h"
+#include "components/repository.h"
+#include "components/commit.h"
+#include "components/parse-options.h"
+#include "components/gpg-interface.h"
 
-static const char * const verify_commit_usage[] = {
-		N_("git verify-commit [-v | --verbose] [--raw] <commit>..."),
-		NULL
+static const char *const verify_commit_usage[] = {
+	N_("git verify-commit [-v | --verbose] [--raw] <commit>..."), NULL
 };
 
 static int run_gpg_verify(struct commit *commit, unsigned flags)
@@ -45,8 +44,9 @@ static int verify_commit(const char *name, unsigned flags)
 	if (!obj)
 		return error("%s: unable to read file.", name);
 	if (obj->type != OBJ_COMMIT)
-		return error("%s: cannot verify a non-commit object of type %s.",
-				name, type_name(obj->type));
+		return error(
+			"%s: cannot verify a non-commit object of type %s.",
+			name, type_name(obj->type));
 
 	return run_gpg_verify((struct commit *)obj, flags);
 }
@@ -57,7 +57,8 @@ int cmd_verify_commit(int argc, const char **argv, const char *prefix)
 	unsigned flags = 0;
 	const struct option verify_commit_options[] = {
 		OPT__VERBOSE(&verbose, N_("print commit contents")),
-		OPT_BIT(0, "raw", &flags, N_("print raw gpg status output"), GPG_VERIFY_RAW),
+		OPT_BIT(0, "raw", &flags, N_("print raw gpg status output"),
+			GPG_VERIFY_RAW),
 		OPT_END()
 	};
 

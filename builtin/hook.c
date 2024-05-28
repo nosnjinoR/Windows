@@ -1,22 +1,18 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "hook.h"
-#include "parse-options.h"
-#include "strvec.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/hook.h"
+#include "components/parse-options.h"
+#include "components/strvec.h"
 
 #define BUILTIN_HOOK_RUN_USAGE \
 	N_("git hook run [--ignore-missing] [--to-stdin=<path>] <hook-name> [-- <hook-args>]")
 
-static const char * const builtin_hook_usage[] = {
-	BUILTIN_HOOK_RUN_USAGE,
-	NULL
-};
+static const char *const builtin_hook_usage[] = { BUILTIN_HOOK_RUN_USAGE,
+						  NULL };
 
-static const char * const builtin_hook_run_usage[] = {
-	BUILTIN_HOOK_RUN_USAGE,
-	NULL
-};
+static const char *const builtin_hook_run_usage[] = { BUILTIN_HOOK_RUN_USAGE,
+						      NULL };
 
 static int run(int argc, const char **argv, const char *prefix)
 {
@@ -34,8 +30,7 @@ static int run(int argc, const char **argv, const char *prefix)
 	int ret;
 
 	argc = parse_options(argc, argv, prefix, run_options,
-			     builtin_hook_run_usage,
-			     PARSE_OPT_KEEP_DASHDASH);
+			     builtin_hook_run_usage, PARSE_OPT_KEEP_DASHDASH);
 
 	if (!argc)
 		goto usage;
@@ -49,7 +44,7 @@ static int run(int argc, const char **argv, const char *prefix)
 		goto usage;
 
 	/* Add our arguments, start after -- */
-	for (i = 2 ; i < argc; i++)
+	for (i = 2; i < argc; i++)
 		strvec_push(&opt.args, argv[i]);
 
 	/* Need to take into account core.hooksPath */

@@ -1,7 +1,7 @@
-#include "git-compat-util.h"
-#include "lockfile.h"
-#include "unix-socket.h"
-#include "unix-stream-server.h"
+#include "components/git-compat-util.h"
+#include "components/lockfile.h"
+#include "components/unix-socket.h"
+#include "components/unix-stream-server.h"
 
 #define DEFAULT_LOCK_TIMEOUT (100)
 
@@ -30,10 +30,8 @@ static int is_another_server_alive(const char *path,
 	return 0;
 }
 
-int unix_ss_create(const char *path,
-		   const struct unix_stream_listen_opts *opts,
-		   long timeout_ms,
-		   struct unix_ss_socket **new_server_socket)
+int unix_ss_create(const char *path, const struct unix_stream_listen_opts *opts,
+		   long timeout_ms, struct unix_ss_socket **new_server_socket)
 {
 	struct lock_file lock = LOCK_INIT;
 	int fd_socket;
@@ -79,7 +77,8 @@ int unix_ss_create(const char *path,
 	*new_server_socket = server_socket;
 
 	/*
-	 * Always rollback (just delete) "<path>.lock" because we already created
+	 * Always rollback (just delete) "<path>.lock" because we already
+	 * created
 	 * "<path>" as a socket and do not want to commit_lock to do the atomic
 	 * rename trick.
 	 */

@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "config.h"
-#include "hex.h"
-#include "object-store-ll.h"
-#include "strbuf.h"
-#include "xdiff-interface.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/config.h"
+#include "components/hex.h"
+#include "components/object-store-ll.h"
+#include "components/strbuf.h"
+#include "components/xdiff-interface.h"
 #include "xdiff/xtypes.h"
 #include "xdiff/xdiffi.h"
 #include "xdiff/xutils.h"
@@ -16,19 +16,17 @@ struct xdiff_emit_state {
 	struct strbuf remainder;
 };
 
-static int xdiff_out_hunk(void *priv_,
-			  long old_begin, long old_nr,
-			  long new_begin, long new_nr,
-			  const char *func, long funclen)
+static int xdiff_out_hunk(void *priv_, long old_begin, long old_nr,
+			  long new_begin, long new_nr, const char *func,
+			  long funclen)
 {
 	struct xdiff_emit_state *priv = priv_;
 
 	if (priv->remainder.len)
 		BUG("xdiff emitted hunk in the middle of a line");
 
-	priv->hunk_fn(priv->consume_callback_data,
-		      old_begin, old_nr, new_begin, new_nr,
-		      func, funclen);
+	priv->hunk_fn(priv->consume_callback_data, old_begin, old_nr, new_begin,
+		      new_nr, func, funclen);
 	return 0;
 }
 
@@ -62,7 +60,7 @@ static int xdiff_outf(void *priv_, mmbuffer_t *mb, int nbuf)
 	for (i = 0; i < nbuf; i++) {
 		if (stop)
 			return 1;
-		if (mb[i].ptr[mb[i].size-1] != '\n') {
+		if (mb[i].ptr[mb[i].size - 1] != '\n') {
 			/* Incomplete line */
 			strbuf_add(&priv->remainder, mb[i].ptr, mb[i].size);
 			continue;
@@ -74,13 +72,15 @@ static int xdiff_outf(void *priv_, mmbuffer_t *mb, int nbuf)
 			continue;
 		}
 		strbuf_add(&priv->remainder, mb[i].ptr, mb[i].size);
-		stop = consume_one(priv, priv->remainder.buf, priv->remainder.len);
+		stop = consume_one(priv, priv->remainder.buf,
+				   priv->remainder.len);
 		strbuf_reset(&priv->remainder);
 	}
 	if (stop)
 		return -1;
 	if (priv->remainder.len) {
-		stop = consume_one(priv, priv->remainder.buf, priv->remainder.len);
+		stop = consume_one(priv, priv->remainder.buf,
+				   priv->remainder.len);
 		strbuf_reset(&priv->remainder);
 	}
 	if (stop)
@@ -113,7 +113,8 @@ static void trim_common_tail(mmfile_t *a, mmfile_t *b)
 	b->size -= trimmed - recovered;
 }
 
-int xdi_diff(mmfile_t *mf1, mmfile_t *mf2, xpparam_t const *xpp, xdemitconf_t const *xecfg, xdemitcb_t *xecb)
+int xdi_diff(mmfile_t *mf1, mmfile_t *mf2, xpparam_t const *xpp,
+	     xdemitconf_t const *xecfg, xdemitcb_t *xecb)
 {
 	mmfile_t a = *mf1;
 	mmfile_t b = *mf2;
@@ -127,10 +128,8 @@ int xdi_diff(mmfile_t *mf1, mmfile_t *mf2, xpparam_t const *xpp, xdemitconf_t co
 	return xdl_diff(&a, &b, xpp, xecfg, xecb);
 }
 
-int xdi_diff_outf(mmfile_t *mf1, mmfile_t *mf2,
-		  xdiff_emit_hunk_fn hunk_fn,
-		  xdiff_emit_line_fn line_fn,
-		  void *consume_callback_data,
+int xdi_diff_outf(mmfile_t *mf1, mmfile_t *mf2, xdiff_emit_hunk_fn hunk_fn,
+		  xdiff_emit_line_fn line_fn, void *consume_callback_data,
 		  xpparam_t const *xpp, xdemitconf_t const *xecfg)
 {
 	int ret;
@@ -203,11 +202,11 @@ struct ff_regs {
 	struct ff_reg {
 		regex_t re;
 		int negate;
-	} *array;
+	} * array;
 };
 
-static long ff_regexp(const char *line, long len,
-		char *buffer, long buffer_size, void *priv)
+static long ff_regexp(const char *line, long len, char *buffer,
+		      long buffer_size, void *priv)
 {
 	struct ff_regs *regs = priv;
 	regmatch_t pmatch[2];
@@ -215,8 +214,8 @@ static long ff_regexp(const char *line, long len,
 	int result;
 
 	/* Exclude terminating newline (and cr) from matching */
-	if (len > 0 && line[len-1] == '\n') {
-		if (len > 1 && line[len-2] == '\r')
+	if (len > 0 && line[len - 1] == '\n') {
+		if (len > 1 && line[len - 2] == '\r')
 			len -= 2;
 		else
 			len--;
@@ -273,7 +272,8 @@ void xdiff_set_find_func(xdemitconf_t *xecfg, const char *value, int cflags)
 		else
 			expression = value;
 		if (regcomp(&reg->re, expression, cflags))
-			die("Invalid regexp to look for hunk header: %s", expression);
+			die("Invalid regexp to look for hunk header: %s",
+			    expression);
 		free(buffer);
 		value = ep ? ep + 1 : NULL;
 	}
@@ -299,8 +299,8 @@ unsigned long xdiff_hash_string(const char *s, size_t len, long flags)
 	return xdl_hash_record(&s, s + len, flags);
 }
 
-int xdiff_compare_lines(const char *l1, long s1,
-			const char *l2, long s2, long flags)
+int xdiff_compare_lines(const char *l1, long s1, const char *l2, long s2,
+			long flags)
 {
 	return xdl_recmatch(l1, s1, l2, s2, flags);
 }

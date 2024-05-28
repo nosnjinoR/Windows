@@ -1,26 +1,27 @@
-#include "git-compat-util.h"
-#include "color.h"
-#include "config.h"
-#include "editor.h"
-#include "gettext.h"
-#include "sideband.h"
-#include "help.h"
-#include "pkt-line.h"
-#include "write-or-die.h"
+#include "components/git-compat-util.h"
+#include "components/color.h"
+#include "components/config.h"
+#include "components/editor.h"
+#include "components/gettext.h"
+#include "components/sideband.h"
+#include "components/help.h"
+#include "components/pkt-line.h"
+#include "components/write-or-die.h"
 
 struct keyword_entry {
 	/*
-	 * We use keyword as config key so it should be a single alphanumeric word.
+	 * We use keyword as config key so it should be a single alphanumeric
+	 * word.
 	 */
 	const char *keyword;
 	char color[COLOR_MAXLEN];
 };
 
 static struct keyword_entry keywords[] = {
-	{ "hint",	GIT_COLOR_YELLOW },
-	{ "warning",	GIT_COLOR_BOLD_YELLOW },
-	{ "success",	GIT_COLOR_BOLD_GREEN },
-	{ "error",	GIT_COLOR_BOLD_RED },
+	{ "hint", GIT_COLOR_YELLOW },
+	{ "warning", GIT_COLOR_BOLD_YELLOW },
+	{ "success", GIT_COLOR_BOLD_GREEN },
+	{ "error", GIT_COLOR_BOLD_RED },
 };
 
 /* Returns a color setting (GIT_COLOR_NEVER, etc). */
@@ -39,7 +40,8 @@ static int use_sideband_colors(void)
 	if (!git_config_get_string(key, &value)) {
 		use_sideband_colors_cached = git_config_colorbool(key, value);
 	} else if (!git_config_get_string("color.ui", &value)) {
-		use_sideband_colors_cached = git_config_colorbool("color.ui", value);
+		use_sideband_colors_cached =
+			git_config_colorbool("color.ui", value);
 	} else {
 		use_sideband_colors_cached = GIT_COLOR_AUTO;
 	}
@@ -56,7 +58,8 @@ static int use_sideband_colors(void)
 	return use_sideband_colors_cached;
 }
 
-void list_config_color_sideband_slots(struct string_list *list, const char *prefix)
+void list_config_color_sideband_slots(struct string_list *list,
+				      const char *prefix)
 {
 	int i;
 
@@ -115,16 +118,13 @@ static void maybe_colorize_sideband(struct strbuf *dest, const char *src, int n)
 	strbuf_add(dest, src, n);
 }
 
-
 #define DISPLAY_PREFIX "remote: "
 
 #define ANSI_SUFFIX "\033[K"
 #define DUMB_SUFFIX "        "
 
-int demultiplex_sideband(const char *me, int status,
-			 char *buf, int len,
-			 int die_on_error,
-			 struct strbuf *scratch,
+int demultiplex_sideband(const char *me, int status, char *buf, int len,
+			 int die_on_error, struct strbuf *scratch,
 			 enum sideband_type *sideband_type)
 {
 	static const char *suffix;
@@ -139,9 +139,10 @@ int demultiplex_sideband(const char *me, int status,
 	}
 
 	if (status == PACKET_READ_EOF) {
-		strbuf_addf(scratch,
-			    "%s%s: unexpected disconnect while reading sideband packet",
-			    scratch->len ? "\n" : "", me);
+		strbuf_addf(
+			scratch,
+			"%s%s: unexpected disconnect while reading sideband packet",
+			scratch->len ? "\n" : "", me);
 		*sideband_type = SIDEBAND_PROTOCOL_ERROR;
 		goto cleanup;
 	}
@@ -151,9 +152,10 @@ int demultiplex_sideband(const char *me, int status,
 
 	if (len == 0) {
 		if (status == PACKET_READ_NORMAL) {
-			strbuf_addf(scratch,
-				    "%s%s: protocol error: missing sideband designator",
-				    scratch->len ? "\n" : "", me);
+			strbuf_addf(
+				scratch,
+				"%s%s: protocol error: missing sideband designator",
+				scratch->len ? "\n" : "", me);
 			*sideband_type = SIDEBAND_PROTOCOL_ERROR;
 		} else {
 			/* covers flush, delim, etc */
@@ -192,10 +194,10 @@ int demultiplex_sideband(const char *me, int status,
 			/*
 			 * For message accross packet boundary, there would have
 			 * a nonempty "scratch" buffer from last call of this
-			 * function, and there may have a leading CR/LF in "buf".
-			 * For this case we should add a clear-to-eol suffix to
-			 * clean leftover letters we previously have written on
-			 * the same line.
+			 * function, and there may have a leading CR/LF in
+			 * "buf". For this case we should add a clear-to-eol
+			 * suffix to clean leftover letters we previously have
+			 * written on the same line.
 			 */
 			if (scratch->len && !linelen)
 				strbuf_addstr(scratch, suffix);
@@ -227,8 +229,8 @@ int demultiplex_sideband(const char *me, int status,
 		}
 
 		if (*b) {
-			strbuf_addstr(scratch, scratch->len ?
-				    "" : DISPLAY_PREFIX);
+			strbuf_addstr(scratch,
+				      scratch->len ? "" : DISPLAY_PREFIX);
 			maybe_colorize_sideband(scratch, b, strlen(b));
 		}
 		return 0;
@@ -257,7 +259,8 @@ cleanup:
  * fd is connected to the remote side; send the sideband data
  * over multiplexed packet stream.
  */
-void send_sideband(int fd, int band, const char *data, ssize_t sz, int packet_max)
+void send_sideband(int fd, int band, const char *data, ssize_t sz,
+		   int packet_max)
 {
 	const char *p = data;
 

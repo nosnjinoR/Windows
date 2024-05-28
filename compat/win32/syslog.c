@@ -1,4 +1,4 @@
-#include "../../git-compat-util.h"
+#include "components/git-compat-util.h"
 
 static HANDLE ms_eventlog;
 
@@ -78,6 +78,6 @@ void syslog(int priority, const char *fmt, ...)
 	}
 
 	ReportEventA(ms_eventlog, logtype, 0, 0, NULL, 1, 0,
-	    (const char **)&str, NULL);
+		     (const char **)&str, NULL);
 	free(str);
 }

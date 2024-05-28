@@ -1,11 +1,11 @@
 /*
  * Copyright (C) 2005 Junio C Hamano
  */
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "diff.h"
-#include "diffcore.h"
-#include "wildmatch.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/diff.h"
+#include "components/diffcore.h"
+#include "components/wildmatch.h"
 
 static char **order;
 static int order_cnt;
@@ -25,7 +25,7 @@ static void prepare_order(const char *orderfile)
 	if (sz < 0)
 		die_errno(_("failed to read orderfile '%s'"), orderfile);
 	map = strbuf_detach(&sb, NULL);
-	endp = (char *) map + sz;
+	endp = (char *)map + sz;
 
 	for (pass = 0; pass < 2; pass++) {
 		cnt = 0;

@@ -3,17 +3,17 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "builtin.h"
-#include "abspath.h"
-#include "environment.h"
-#include "gettext.h"
-#include "object-file.h"
-#include "parse-options.h"
-#include "path.h"
-#include "refs.h"
-#include "repository.h"
-#include "setup.h"
-#include "strbuf.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/object-file.h"
+#include "components/parse-options.h"
+#include "components/path.h"
+#include "components/refs.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/strbuf.h"
 
 static int guess_repository_type(const char *git_dir)
 {
@@ -51,7 +51,7 @@ static int guess_repository_type(const char *git_dir)
 static int shared_callback(const struct option *opt, const char *arg, int unset)
 {
 	BUG_ON_OPT_NEG(unset);
-	*((int *) opt->value) = (arg) ? git_config_perm("arg", arg) : PERM_GROUP;
+	*((int *)opt->value) = (arg) ? git_config_perm("arg", arg) : PERM_GROUP;
 	return 0;
 }
 
@@ -84,14 +84,15 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 	unsigned int ref_storage_format = REF_STORAGE_FORMAT_UNKNOWN;
 	int init_shared_repository = -1;
 	const struct option init_db_options[] = {
-		OPT_STRING(0, "template", &template_dir, N_("template-directory"),
-				N_("directory from which templates will be used")),
+		OPT_STRING(0, "template", &template_dir,
+			   N_("template-directory"),
+			   N_("directory from which templates will be used")),
 		OPT_SET_INT(0, "bare", &is_bare_repository_cfg,
-				N_("create a bare repository"), 1),
+			    N_("create a bare repository"), 1),
 		{ OPTION_CALLBACK, 0, "shared", &init_shared_repository,
-			N_("permissions"),
-			N_("specify that the git repository is to be shared amongst several users"),
-			PARSE_OPT_OPTARG | PARSE_OPT_NONEG, shared_callback, 0},
+		  N_("permissions"),
+		  N_("specify that the git repository is to be shared amongst several users"),
+		  PARSE_OPT_OPTARG | PARSE_OPT_NONEG, shared_callback, 0 },
 		OPT_BIT('q', "quiet", &flags, N_("be quiet"), INIT_DB_QUIET),
 		OPT_STRING(0, "separate-git-dir", &real_git_dir, N_("gitdir"),
 			   N_("separate git dir from working tree")),
@@ -104,10 +105,12 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 		OPT_END()
 	};
 
-	argc = parse_options(argc, argv, prefix, init_db_options, init_db_usage, 0);
+	argc = parse_options(argc, argv, prefix, init_db_options, init_db_usage,
+			     0);
 
 	if (real_git_dir && is_bare_repository_cfg == 1)
-		die(_("options '%s' and '%s' cannot be used together"), "--separate-git-dir", "--bare");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--separate-git-dir", "--bare");
 
 	if (real_git_dir && !is_absolute_path(real_git_dir))
 		real_git_dir = real_pathdup(real_git_dir, 1);
@@ -124,13 +127,15 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 			if (!mkdir_tried) {
 				int saved;
 				/*
-				 * At this point we haven't read any configuration,
-				 * and we know shared_repository should always be 0;
-				 * but just in case we play safe.
+				 * At this point we haven't read any
+				 * configuration, and we know shared_repository
+				 * should always be 0; but just in case we play
+				 * safe.
 				 */
 				saved = get_shared_repository();
 				set_shared_repository(0);
-				switch (safe_create_leading_directories_const(argv[0])) {
+				switch (safe_create_leading_directories_const(
+					argv[0])) {
 				case SCLD_OK:
 				case SCLD_PERMS:
 					break;
@@ -138,12 +143,14 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 					errno = EEXIST;
 					/* fallthru */
 				default:
-					die_errno(_("cannot mkdir %s"), argv[0]);
+					die_errno(_("cannot mkdir %s"),
+						  argv[0]);
 					break;
 				}
 				set_shared_repository(saved);
 				if (mkdir(argv[0], 0777) < 0)
-					die_errno(_("cannot mkdir %s"), argv[0]);
+					die_errno(_("cannot mkdir %s"),
+						  argv[0]);
 				mkdir_tried = 1;
 				goto retry;
 			}
@@ -181,9 +188,8 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 	work_tree = xstrdup_or_null(getenv(GIT_WORK_TREE_ENVIRONMENT));
 	if ((!git_dir || is_bare_repository_cfg == 1) && work_tree)
 		die(_("%s (or --work-tree=<directory>) not allowed without "
-			  "specifying %s (or --git-dir=<directory>)"),
-		    GIT_WORK_TREE_ENVIRONMENT,
-		    GIT_DIR_ENVIRONMENT);
+		      "specifying %s (or --git-dir=<directory>)"),
+		    GIT_WORK_TREE_ENVIRONMENT, GIT_DIR_ENVIRONMENT);
 
 	/*
 	 * Set up the default .git directory contents
@@ -232,10 +238,9 @@ int cmd_init_db(int argc, const char **argv, const char *prefix)
 		else
 			set_git_work_tree(git_work_tree_cfg);
 		if (access(get_git_work_tree(), X_OK))
-			die_errno (_("Cannot access work tree '%s'"),
-				   get_git_work_tree());
-	}
-	else {
+			die_errno(_("Cannot access work tree '%s'"),
+				  get_git_work_tree());
+	} else {
 		if (real_git_dir)
 			die(_("--separate-git-dir incompatible with bare repository"));
 		if (work_tree)

@@ -12,25 +12,25 @@
  * Copyright (C) 2016 Johannes Schindelin
  */
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "abspath.h"
-#include "config.h"
-#include "copy.h"
-#include "run-command.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hex.h"
-#include "parse-options.h"
-#include "read-cache-ll.h"
-#include "sparse-index.h"
-#include "strvec.h"
-#include "strbuf.h"
-#include "lockfile.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "dir.h"
-#include "entry.h"
-#include "setup.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/config.h"
+#include "components/copy.h"
+#include "components/run-command.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/parse-options.h"
+#include "components/read-cache-ll.h"
+#include "components/sparse-index.h"
+#include "components/strvec.h"
+#include "components/strbuf.h"
+#include "components/lockfile.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/dir.h"
+#include "components/entry.h"
+#include "components/setup.h"
 
 static int trust_exit_code;
 
@@ -116,8 +116,8 @@ static int use_wt_file(const char *workdir, const char *name,
 		struct object_id wt_oid;
 		int fd = open(buf.buf, O_RDONLY);
 
-		if (fd >= 0 &&
-		    !index_fd(&the_index, &wt_oid, fd, &st, OBJ_BLOB, name, 0)) {
+		if (fd >= 0 && !index_fd(&the_index, &wt_oid, fd, &st, OBJ_BLOB,
+					 name, 0)) {
 			if (is_null_oid(oid)) {
 				oidcpy(oid, &wt_oid);
 				use = 1;
@@ -217,9 +217,8 @@ static void changed_files(struct hashmap *result, const char *index_path,
 	const char *git_dir = absolute_path(get_git_dir());
 	FILE *fp;
 
-	strvec_pushl(&update_index.args,
-		     "--git-dir", git_dir, "--work-tree", workdir,
-		     "update-index", "--really-refresh", "-q",
+	strvec_pushl(&update_index.args, "--git-dir", git_dir, "--work-tree",
+		     workdir, "update-index", "--really-refresh", "-q",
 		     "--unmerged", NULL);
 	update_index.no_stdin = 1;
 	update_index.no_stdout = 1;
@@ -232,9 +231,8 @@ static void changed_files(struct hashmap *result, const char *index_path,
 	/* Ignore any errors of update-index */
 	run_command(&update_index);
 
-	strvec_pushl(&diff_files.args,
-		     "--git-dir", git_dir, "--work-tree", workdir,
-		     "diff-files", "--name-only", "-z", NULL);
+	strvec_pushl(&diff_files.args, "--git-dir", git_dir, "--work-tree",
+		     workdir, "diff-files", "--name-only", "-z", NULL);
 	diff_files.no_stdin = 1;
 	diff_files.git_cmd = 1;
 	diff_files.use_shell = 0;
@@ -260,12 +258,13 @@ static void changed_files(struct hashmap *result, const char *index_path,
 static int ensure_leading_directories(char *path)
 {
 	switch (safe_create_leading_directories(path)) {
-		case SCLD_OK:
-		case SCLD_EXISTS:
-			return 0;
-		default:
-			return error(_("could not create leading directories "
-				       "of '%s'"), path);
+	case SCLD_OK:
+	case SCLD_EXISTS:
+		return 0;
+	default:
+		return error(_("could not create leading directories "
+			       "of '%s'"),
+			     path);
 	}
 }
 
@@ -303,18 +302,17 @@ static char *get_symlink(const struct object_id *oid, const char *path)
 	} else {
 		enum object_type type;
 		unsigned long size;
-		data = repo_read_object_file(the_repository, oid, &type,
-					     &size);
+		data = repo_read_object_file(the_repository, oid, &type, &size);
 		if (!data)
 			die(_("could not read object %s for symlink %s"),
-				oid_to_hex(oid), path);
+			    oid_to_hex(oid), path);
 	}
 
 	return data;
 }
 
-static int checkout_path(unsigned mode, struct object_id *oid,
-			 const char *path, const struct checkout *state)
+static int checkout_path(unsigned mode, struct object_id *oid, const char *path,
+			 const struct checkout *state)
 {
 	struct cache_entry *ce;
 	int ret;
@@ -327,7 +325,7 @@ static int checkout_path(unsigned mode, struct object_id *oid,
 }
 
 static void write_file_in_directory(struct strbuf *dir, size_t dir_len,
-			const char *path, const char *content)
+				    const char *path, const char *content)
 {
 	add_path(dir, dir_len, path);
 	ensure_leading_directories(dir->buf);
@@ -341,14 +339,16 @@ static void write_file_in_directory(struct strbuf *dir, size_t dir_len,
  * as text files, resulting in behavior that is analogous to to what "git diff"
  * displays for symlink and submodule diffs.
  */
-static void write_standin_files(struct pair_entry *entry,
-			struct strbuf *ldir, size_t ldir_len,
-			struct strbuf *rdir, size_t rdir_len)
+static void write_standin_files(struct pair_entry *entry, struct strbuf *ldir,
+				size_t ldir_len, struct strbuf *rdir,
+				size_t rdir_len)
 {
 	if (*entry->left)
-		write_file_in_directory(ldir, ldir_len, entry->path, entry->left);
+		write_file_in_directory(ldir, ldir_len, entry->path,
+					entry->left);
 	if (*entry->right)
-		write_file_in_directory(rdir, rdir_len, entry->path, entry->right);
+		write_file_in_directory(rdir, rdir_len, entry->path,
+					entry->right);
 }
 
 static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
@@ -364,8 +364,8 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 	const char *workdir, *tmp;
 	int ret = 0, i;
 	FILE *fp = NULL;
-	struct hashmap working_tree_dups = HASHMAP_INIT(working_tree_entry_cmp,
-							NULL);
+	struct hashmap working_tree_dups =
+		HASHMAP_INIT(working_tree_entry_cmp, NULL);
 	struct hashmap submodules = HASHMAP_INIT(pair_cmp, NULL);
 	struct hashmap symlinks2 = HASHMAP_INIT(pair_cmp, NULL);
 	struct hashmap_iter iter;
@@ -507,9 +507,8 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 				 * treatment since they are not part of the
 				 * index.
 				 */
-				struct cache_entry *ce2 =
-					make_cache_entry(&wtindex, rmode, &roid,
-							 dst_path, 0, 0);
+				struct cache_entry *ce2 = make_cache_entry(
+					&wtindex, rmode, &roid, dst_path, 0, 0);
 
 				add_index_entry(&wtindex, ce2,
 						ADD_CACHE_JUST_APPEND);
@@ -523,8 +522,12 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 				}
 				add_path(&wtdir, wtdir_len, dst_path);
 				if (symlinks) {
-					if (create_symlink(lstate.istate, wtdir.buf, rdir.buf)) {
-						ret = error_errno("could not symlink '%s' to '%s'", wtdir.buf, rdir.buf);
+					if (create_symlink(lstate.istate,
+							   wtdir.buf,
+							   rdir.buf)) {
+						ret = error_errno(
+							"could not symlink '%s' to '%s'",
+							wtdir.buf, rdir.buf);
 						goto finish;
 					}
 				} else {
@@ -533,7 +536,9 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 						st.st_mode = 0644;
 					if (copy_file(rdir.buf, wtdir.buf,
 						      st.st_mode)) {
-						ret = error("could not copy '%s' to '%s'", wtdir.buf, rdir.buf);
+						ret = error(
+							"could not copy '%s' to '%s'",
+							wtdir.buf, rdir.buf);
 						goto finish;
 					}
 				}
@@ -557,7 +562,8 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 	 * change in the recorded SHA1 for the submodule.
 	 */
 	hashmap_for_each_entry(&submodules, &iter, entry,
-				entry /* member name */) {
+			       entry /* member name */)
+	{
 		write_standin_files(entry, &ldir, ldir_len, &rdir, rdir_len);
 	}
 
@@ -567,8 +573,8 @@ static int run_dir_diff(const char *extcmd, int symlinks, const char *prefix,
 	 * This loop replicates that behavior.
 	 */
 	hashmap_for_each_entry(&symlinks2, &iter, entry,
-				entry /* member name */) {
-
+			       entry /* member name */)
+	{
 		write_standin_files(entry, &ldir, ldir_len, &rdir, rdir_len);
 	}
 
@@ -674,10 +680,9 @@ finish:
 static int run_file_diff(int prompt, const char *prefix,
 			 struct child_process *child)
 {
-	const char *env[] = {
-		"GIT_PAGER=", "GIT_EXTERNAL_DIFF=git-difftool--helper", NULL,
-		NULL
-	};
+	const char *env[] = { "GIT_PAGER=",
+			      "GIT_EXTERNAL_DIFF=git-difftool--helper", NULL,
+			      NULL };
 
 	if (prompt > 0)
 		env[2] = "GIT_DIFFTOOL_PROMPT=true";
@@ -702,10 +707,10 @@ int cmd_difftool(int argc, const char **argv, const char *prefix)
 		OPT_BOOL('d', "dir-diff", &dir_diff,
 			 N_("perform a full-directory diff")),
 		OPT_SET_INT_F('y', "no-prompt", &prompt,
-			N_("do not prompt before launching a diff tool"),
-			0, PARSE_OPT_NONEG),
-		OPT_SET_INT_F(0, "prompt", &prompt, NULL,
-			1, PARSE_OPT_NONEG | PARSE_OPT_HIDDEN),
+			      N_("do not prompt before launching a diff tool"),
+			      0, PARSE_OPT_NONEG),
+		OPT_SET_INT_F(0, "prompt", &prompt, NULL, 1,
+			      PARSE_OPT_NONEG | PARSE_OPT_HIDDEN),
 		OPT_BOOL(0, "symlinks", &symlinks,
 			 N_("use symlinks in dir-diff mode")),
 		OPT_STRING('t', "tool", &difftool_cmd, N_("tool"),
@@ -727,8 +732,9 @@ int cmd_difftool(int argc, const char **argv, const char *prefix)
 	symlinks = has_symlinks;
 
 	argc = parse_options(argc, argv, prefix, builtin_difftool_options,
-			     builtin_difftool_usage, PARSE_OPT_KEEP_UNKNOWN_OPT |
-			     PARSE_OPT_KEEP_DASHDASH);
+			     builtin_difftool_usage,
+			     PARSE_OPT_KEEP_UNKNOWN_OPT |
+				     PARSE_OPT_KEEP_DASHDASH);
 
 	if (tool_help)
 		return print_tool_help();
@@ -736,21 +742,22 @@ int cmd_difftool(int argc, const char **argv, const char *prefix)
 	if (!no_index && !startup_info->have_repository)
 		die(_("difftool requires worktree or --no-index"));
 
-	if (!no_index){
+	if (!no_index) {
 		setup_work_tree();
 		setenv(GIT_DIR_ENVIRONMENT, absolute_path(get_git_dir()), 1);
-		setenv(GIT_WORK_TREE_ENVIRONMENT, absolute_path(get_git_work_tree()), 1);
+		setenv(GIT_WORK_TREE_ENVIRONMENT,
+		       absolute_path(get_git_work_tree()), 1);
 	} else if (dir_diff)
-		die(_("options '%s' and '%s' cannot be used together"), "--dir-diff", "--no-index");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--dir-diff", "--no-index");
 
-	die_for_incompatible_opt3(use_gui_tool == 1, "--gui",
-				  !!difftool_cmd, "--tool",
-				  !!extcmd, "--extcmd");
+	die_for_incompatible_opt3(use_gui_tool == 1, "--gui", !!difftool_cmd,
+				  "--tool", !!extcmd, "--extcmd");
 
 	/*
-	 * Explicitly specified GUI option is forwarded to git-mergetool--lib.sh;
-	 * empty or unset means "use the difftool.guiDefault config or default to
-	 * false".
+	 * Explicitly specified GUI option is forwarded to
+	 * git-mergetool--lib.sh; empty or unset means "use the
+	 * difftool.guiDefault config or default to false".
 	 */
 	if (use_gui_tool == 1)
 		setenv("GIT_MERGETOOL_GUI", "true", 1);

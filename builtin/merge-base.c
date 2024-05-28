@@ -1,19 +1,19 @@
-#include "builtin.h"
-#include "config.h"
-#include "commit.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "repository.h"
-#include "commit-reach.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/commit.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/repository.h"
+#include "components/commit-reach.h"
 
 static int show_merge_base(struct commit **rev, int rev_nr, int show_all)
 {
 	struct commit_list *result = NULL, *r;
 
-	if (repo_get_merge_bases_many_dirty(the_repository, rev[0],
-					    rev_nr - 1, rev + 1, &result) < 0) {
+	if (repo_get_merge_bases_many_dirty(the_repository, rev[0], rev_nr - 1,
+					    rev + 1, &result) < 0) {
 		free_commit_list(result);
 		return -1;
 	}
@@ -31,7 +31,7 @@ static int show_merge_base(struct commit **rev, int rev_nr, int show_all)
 	return 0;
 }
 
-static const char * const merge_base_usage[] = {
+static const char *const merge_base_usage[] = {
 	N_("git merge-base [-a | --all] <commit> <commit>..."),
 	N_("git merge-base [-a | --all] --octopus <commit>..."),
 	N_("git merge-base --is-ancestor <commit> <commit>"),
@@ -152,15 +152,18 @@ int cmd_merge_base(int argc, const char **argv, const char *prefix)
 	int ret;
 
 	struct option options[] = {
-		OPT_BOOL('a', "all", &show_all, N_("output all common ancestors")),
+		OPT_BOOL('a', "all", &show_all,
+			 N_("output all common ancestors")),
 		OPT_CMDMODE(0, "octopus", &cmdmode,
 			    N_("find ancestors for a single n-way merge"), 'o'),
 		OPT_CMDMODE(0, "independent", &cmdmode,
 			    N_("list revs not reachable from others"), 'r'),
 		OPT_CMDMODE(0, "is-ancestor", &cmdmode,
 			    N_("is the first one ancestor of the other?"), 'a'),
-		OPT_CMDMODE(0, "fork-point", &cmdmode,
-			    N_("find where <commit> forked from reflog of <ref>"), 'f'),
+		OPT_CMDMODE(
+			0, "fork-point", &cmdmode,
+			N_("find where <commit> forked from reflog of <ref>"),
+			'f'),
 		OPT_END()
 	};
 

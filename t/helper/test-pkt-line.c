@@ -1,9 +1,9 @@
 #include "git-compat-util.h"
 #include "test-tool.h"
-#include "pkt-line.h"
-#include "sideband.h"
-#include "write-or-die.h"
-#include "parse-options.h"
+#include "components/pkt-line.h"
+#include "components/sideband.h"
+#include "components/write-or-die.h"
+#include "components/parse-options.h"
 
 static void pack_line(const char *line)
 {
@@ -44,7 +44,7 @@ static void unpack(void)
 	struct packet_reader reader;
 	packet_reader_init(&reader, 0, NULL, 0,
 			   PACKET_READ_GENTLE_ON_EOF |
-			   PACKET_READ_CHOMP_NEWLINE);
+				   PACKET_READ_CHOMP_NEWLINE);
 
 	while (packet_reader_read(&reader) != PACKET_READ_EOF) {
 		switch (reader.status) {
@@ -76,8 +76,9 @@ static void unpack_sideband(int argc, const char **argv)
 		"test_tool unpack_sideband [options...]", NULL
 	};
 	struct option cmd_options[] = {
-		OPT_BOOL(0, "reader-use-sideband", &reader_use_sideband,
-			 "set use_sideband bit for packet reader (Default: off)"),
+		OPT_BOOL(
+			0, "reader-use-sideband", &reader_use_sideband,
+			"set use_sideband bit for packet reader (Default: off)"),
 		OPT_BOOL(0, "chomp-newline", &chomp_newline,
 			 "chomp newline in packet (Default: on)"),
 		OPT_END()

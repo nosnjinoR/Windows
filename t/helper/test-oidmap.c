@@ -1,11 +1,11 @@
 #include "test-tool.h"
-#include "hex.h"
-#include "object-name.h"
-#include "oidmap.h"
-#include "repository.h"
-#include "setup.h"
-#include "strbuf.h"
-#include "string-list.h"
+#include "components/hex.h"
+#include "components/object-name.h"
+#include "components/oidmap.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/strbuf.h"
+#include "components/string-list.h"
 
 /* key is an oid and value is a name (could be a refname for example) */
 struct test_entry {
@@ -58,7 +58,6 @@ int cmd__oidmap(int argc UNUSED, const char **argv UNUSED)
 		p2 = parts.nr >= 2 ? parts.items[2].string : NULL;
 
 		if (!strcmp("put", cmd) && p1 && p2) {
-
 			if (repo_get_oid(the_repository, p1, &oid)) {
 				printf("Unknown oid: %s\n", p1);
 				continue;
@@ -76,7 +75,6 @@ int cmd__oidmap(int argc UNUSED, const char **argv UNUSED)
 			free(entry);
 
 		} else if (!strcmp("get", cmd) && p1) {
-
 			if (repo_get_oid(the_repository, p1, &oid)) {
 				printf("Unknown oid: %s\n", p1);
 				continue;
@@ -89,7 +87,6 @@ int cmd__oidmap(int argc UNUSED, const char **argv UNUSED)
 			puts(entry ? entry->name : "NULL");
 
 		} else if (!strcmp("remove", cmd) && p1) {
-
 			if (repo_get_oid(the_repository, p1, &oid)) {
 				printf("Unknown oid: %s\n", p1);
 				continue;
@@ -103,16 +100,14 @@ int cmd__oidmap(int argc UNUSED, const char **argv UNUSED)
 			free(entry);
 
 		} else if (!strcmp("iterate", cmd)) {
-
 			struct oidmap_iter iter;
 			oidmap_iter_init(&map, &iter);
 			while ((entry = oidmap_iter_next(&iter)))
-				printf("%s %s\n", oid_to_hex(&entry->entry.oid), entry->name);
+				printf("%s %s\n", oid_to_hex(&entry->entry.oid),
+				       entry->name);
 
 		} else {
-
 			printf("Unknown command %s\n", cmd);
-
 		}
 	}
 

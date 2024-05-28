@@ -1,11 +1,11 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "simple-ipc.h"
-#include "fsmonitor-ipc.h"
-#include "repository.h"
-#include "run-command.h"
-#include "strbuf.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/simple-ipc.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/strbuf.h"
+#include "components/trace2.h"
 
 #ifndef HAVE_FSMONITOR_DAEMON_BACKEND
 
@@ -65,15 +65,14 @@ static int spawn_daemon(void)
 	return run_command(&cmd);
 }
 
-int fsmonitor_ipc__send_query(const char *since_token,
-			      struct strbuf *answer)
+int fsmonitor_ipc__send_query(const char *since_token, struct strbuf *answer)
 {
 	int ret = -1;
 	int tried_to_spawn = 0;
 	enum ipc_active_state state = IPC_STATE__OTHER_ERROR;
 	struct ipc_client_connection *connection = NULL;
-	struct ipc_client_connect_options options
-		= IPC_CLIENT_CONNECT_OPTIONS_INIT;
+	struct ipc_client_connect_options options =
+		IPC_CLIENT_CONNECT_OPTIONS_INIT;
 	const char *tok = since_token ? since_token : "";
 	size_t tok_len = since_token ? strlen(since_token) : 0;
 
@@ -85,16 +84,16 @@ int fsmonitor_ipc__send_query(const char *since_token,
 
 try_again:
 	state = ipc_client_try_connect(fsmonitor_ipc__get_path(the_repository),
-						&options, &connection);
+				       &options, &connection);
 
 	switch (state) {
 	case IPC_STATE__LISTENING:
-		ret = ipc_client_send_command_to_connection(
-			connection, tok, tok_len, answer);
+		ret = ipc_client_send_command_to_connection(connection, tok,
+							    tok_len, answer);
 		ipc_client_close_connection(connection);
 
-		trace2_data_intmax("fsm_client", NULL,
-				   "query/response-length", answer->len);
+		trace2_data_intmax("fsm_client", NULL, "query/response-length",
+				   answer->len);
 		goto done;
 
 	case IPC_STATE__NOT_LISTENING:
@@ -125,8 +124,9 @@ try_again:
 
 	case IPC_STATE__OTHER_ERROR:
 	default:
-		ret = error(_("fsmonitor_ipc__send_query: unspecified error on '%s'"),
-			    fsmonitor_ipc__get_path(the_repository));
+		ret = error(
+			_("fsmonitor_ipc__send_query: unspecified error on '%s'"),
+			fsmonitor_ipc__get_path(the_repository));
 		goto done;
 	}
 
@@ -136,12 +136,11 @@ done:
 	return ret;
 }
 
-int fsmonitor_ipc__send_command(const char *command,
-				struct strbuf *answer)
+int fsmonitor_ipc__send_command(const char *command, struct strbuf *answer)
 {
 	struct ipc_client_connection *connection = NULL;
-	struct ipc_client_connect_options options
-		= IPC_CLIENT_CONNECT_OPTIONS_INIT;
+	struct ipc_client_connect_options options =
+		IPC_CLIENT_CONNECT_OPTIONS_INIT;
 	int ret;
 	enum ipc_active_state state;
 	const char *c = command ? command : "";
@@ -153,7 +152,7 @@ int fsmonitor_ipc__send_command(const char *command,
 	options.wait_if_not_found = 0;
 
 	state = ipc_client_try_connect(fsmonitor_ipc__get_path(the_repository),
-						&options, &connection);
+				       &options, &connection);
 	if (state != IPC_STATE__LISTENING) {
 		die(_("fsmonitor--daemon is not running"));
 		return -1;

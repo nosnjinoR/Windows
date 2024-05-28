@@ -2,22 +2,21 @@
  * Another stupid program, this one parsing the headers of an
  * email to figure out authorship and subject
  */
-#include "builtin.h"
-#include "abspath.h"
-#include "environment.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "mailinfo.h"
-#include "parse-options.h"
+#include "components/builtin.h"
+#include "components/abspath.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/mailinfo.h"
+#include "components/parse-options.h"
 
-static const char * const mailinfo_usage[] = {
+static const char *const mailinfo_usage[] = {
 	/* TRANSLATORS: keep <> in "<" mail ">" info. */
 	N_("git mailinfo [<options>] <msg> <patch> < mail >info"),
 	NULL,
 };
 
-struct metainfo_charset
-{
+struct metainfo_charset {
 	enum {
 		CHARSET_DEFAULT,
 		CHARSET_NO_REENCODE,
@@ -39,7 +38,8 @@ static int parse_opt_explicit_encoding(const struct option *opt,
 	return 0;
 }
 
-static int parse_opt_quoted_cr(const struct option *opt, const char *arg, int unset)
+static int parse_opt_quoted_cr(const struct option *opt, const char *arg,
+			       int unset)
 {
 	BUG_ON_OPT_NEG(unset);
 
@@ -75,7 +75,7 @@ int cmd_mailinfo(int argc, const char **argv, const char *prefix)
 			       N_("action when quoted CR is found"),
 			       PARSE_OPT_NONEG, parse_opt_quoted_cr),
 		OPT_HIDDEN_BOOL(0, "inbody-headers", &mi.use_inbody_headers,
-			 N_("use headers in message's body")),
+				N_("use headers in message's body")),
 		OPT_END()
 	};
 

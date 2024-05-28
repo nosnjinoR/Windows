@@ -1,12 +1,12 @@
 #include "test-tool.h"
-#include "commit-graph.h"
-#include "commit.h"
-#include "environment.h"
-#include "hex.h"
-#include "object.h"
-#include "repository.h"
-#include "setup.h"
-#include "tree.h"
+#include "components/commit-graph.h"
+#include "components/commit.h"
+#include "components/environment.h"
+#include "components/hex.h"
+#include "components/object.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/tree.h"
 
 static void test_parse_commit_in_graph(const char *gitdir, const char *worktree,
 				       const struct object_id *commit_oid)
@@ -29,7 +29,7 @@ static void test_parse_commit_in_graph(const char *gitdir, const char *worktree,
 	if (!parse_commit_in_graph(&r, c))
 		die("Couldn't parse commit");
 
-	printf("%"PRItime, c->date);
+	printf("%" PRItime, c->date);
 	for (parent = c->parents; parent; parent = parent->next)
 		printf(" %s", oid_to_hex(&parent->item->object.oid));
 	printf("\n");

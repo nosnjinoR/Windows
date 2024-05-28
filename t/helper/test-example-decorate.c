@@ -1,15 +1,15 @@
 #include "test-tool.h"
-#include "git-compat-util.h"
-#include "object.h"
-#include "decorate.h"
-#include "repository.h"
+#include "components/git-compat-util.h"
+#include "components/object.h"
+#include "components/decorate.h"
+#include "components/repository.h"
 
 int cmd__example_decorate(int argc UNUSED, const char **argv UNUSED)
 {
 	struct decoration n;
-	struct object_id one_oid = { {1} };
-	struct object_id two_oid = { {2} };
-	struct object_id three_oid = { {3} };
+	struct object_id one_oid = { { 1 } };
+	struct object_id two_oid = { { 2 } };
+	struct object_id three_oid = { { 3 } };
 	struct object *one, *two, *three;
 
 	int decoration_a, decoration_b;

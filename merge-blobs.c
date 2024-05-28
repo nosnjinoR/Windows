@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
-#include "merge-ll.h"
-#include "blob.h"
-#include "merge-blobs.h"
-#include "object-store-ll.h"
+#include "components/git-compat-util.h"
+#include "components/merge-ll.h"
+#include "components/blob.h"
+#include "components/merge-blobs.h"
+#include "components/object-store-ll.h"
 
 static int fill_mmfile_blob(mmfile_t *f, struct blob *obj)
 {
@@ -28,11 +28,8 @@ static void free_mmfile(mmfile_t *f)
 	free(f->ptr);
 }
 
-static void *three_way_filemerge(struct index_state *istate,
-				 const char *path,
-				 mmfile_t *base,
-				 mmfile_t *our,
-				 mmfile_t *their,
+static void *three_way_filemerge(struct index_state *istate, const char *path,
+				 mmfile_t *base, mmfile_t *our, mmfile_t *their,
 				 unsigned long *size)
 {
 	enum ll_merge_result merge_status;
@@ -44,22 +41,21 @@ static void *three_way_filemerge(struct index_state *istate,
 	 * There is no need to worry about a label for the
 	 * common ancestor.
 	 */
-	merge_status = ll_merge(&res, path, base, NULL,
-				our, ".our", their, ".their",
-				istate, NULL);
+	merge_status = ll_merge(&res, path, base, NULL, our, ".our", their,
+				".their", istate, NULL);
 	if (merge_status < 0)
 		return NULL;
 	if (merge_status == LL_MERGE_BINARY_CONFLICT)
-		warning("Cannot merge binary files: %s (%s vs. %s)",
-			path, ".our", ".their");
+		warning("Cannot merge binary files: %s (%s vs. %s)", path,
+			".our", ".their");
 
 	*size = res.size;
 	return res.ptr;
 }
 
 void *merge_blobs(struct index_state *istate, const char *path,
-		  struct blob *base, struct blob *our,
-		  struct blob *their, unsigned long *size)
+		  struct blob *base, struct blob *our, struct blob *their,
+		  unsigned long *size)
 {
 	void *res = NULL;
 	mmfile_t f1, f2, common;

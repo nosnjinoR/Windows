@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "repository.h"
-#include "refs.h"
-#include "strvec.h"
-#include "ls-refs.h"
-#include "pkt-line.h"
-#include "config.h"
-#include "string-list.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/repository.h"
+#include "components/refs.h"
+#include "components/strvec.h"
+#include "components/ls-refs.h"
+#include "components/pkt-line.h"
+#include "components/config.h"
+#include "components/string-list.h"
 
 static enum {
 	UNBORN_IGNORE = 0,
@@ -33,8 +33,8 @@ static enum {
 		} else if (!strcmp(str, "ignore")) {
 			return UNBORN_IGNORE;
 		} else {
-			die(_("invalid value for '%s': '%s'"),
-			    "lsrefs.unborn", str);
+			die(_("invalid value for '%s': '%s'"), "lsrefs.unborn",
+			    str);
 		}
 	}
 }
@@ -75,8 +75,8 @@ struct ls_refs_data {
 	unsigned unborn : 1;
 };
 
-static int send_ref(const char *refname, const struct object_id *oid,
-		    int flag, void *cb_data)
+static int send_ref(const char *refname, const struct object_id *oid, int flag,
+		    void *cb_data)
 {
 	struct ls_refs_data *data = cb_data;
 	const char *refname_nons = strip_namespace(refname);
@@ -95,9 +95,8 @@ static int send_ref(const char *refname, const struct object_id *oid,
 		strbuf_addf(&data->buf, "unborn %s", refname_nons);
 	if (data->symrefs && flag & REF_ISSYMREF) {
 		struct object_id unused;
-		const char *symref_target = resolve_ref_unsafe(refname, 0,
-							       &unused,
-							       &flag);
+		const char *symref_target =
+			resolve_ref_unsafe(refname, 0, &unused, &flag);
 
 		if (!symref_target)
 			die("'%s' is a symref but it is not?", refname);
@@ -109,7 +108,8 @@ static int send_ref(const char *refname, const struct object_id *oid,
 	if (data->peel && oid) {
 		struct object_id peeled;
 		if (!peel_iterated_oid(oid, &peeled))
-			strbuf_addf(&data->buf, " peeled:%s", oid_to_hex(&peeled));
+			strbuf_addf(&data->buf, " peeled:%s",
+				    oid_to_hex(&peeled));
 	}
 
 	strbuf_addch(&data->buf, '\n');
@@ -145,7 +145,8 @@ static int ls_refs_config(const char *var, const char *value,
 	 * config. This may need to eventually be expanded to "receive", but we
 	 * don't yet know how that information will be passed to ls-refs.
 	 */
-	return parse_hide_refs_config(var, value, "uploadpack", &data->hidden_refs);
+	return parse_hide_refs_config(var, value, "uploadpack",
+				      &data->hidden_refs);
 }
 
 int ls_refs(struct repository *r, struct packet_reader *request)
@@ -170,8 +171,7 @@ int ls_refs(struct repository *r, struct packet_reader *request)
 		else if (skip_prefix(arg, "ref-prefix ", &out)) {
 			if (data.prefixes.nr < TOO_MANY_PREFIXES)
 				strvec_push(&data.prefixes, out);
-		}
-		else if (!strcmp("unborn", arg))
+		} else if (!strcmp("unborn", arg))
 			data.unborn = !!unborn_config(r);
 		else
 			die(_("unexpected line: '%s'"), arg);
@@ -191,10 +191,9 @@ int ls_refs(struct repository *r, struct packet_reader *request)
 	send_possibly_unborn_head(&data);
 	if (!data.prefixes.nr)
 		strvec_push(&data.prefixes, "");
-	refs_for_each_fullref_in_prefixes(get_main_ref_store(r),
-					  get_git_namespace(), data.prefixes.v,
-					  hidden_refs_to_excludes(&data.hidden_refs),
-					  send_ref, &data);
+	refs_for_each_fullref_in_prefixes(
+		get_main_ref_store(r), get_git_namespace(), data.prefixes.v,
+		hidden_refs_to_excludes(&data.hidden_refs), send_ref, &data);
 	packet_fflush(stdout);
 	strvec_clear(&data.prefixes);
 	strbuf_release(&data.buf);

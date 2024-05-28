@@ -1,12 +1,13 @@
-#include "builtin.h"
-#include "config.h"
-#include "diff.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "parse-options.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/diff.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/parse-options.h"
 
-static void flush_current_id(int patchlen, struct object_id *id, struct object_id *result)
+static void flush_current_id(int patchlen, struct object_id *id,
+			     struct object_id *result)
 {
 	if (patchlen)
 		printf("%s %s\n", oid_to_hex(result), oid_to_hex(id));
@@ -41,7 +42,7 @@ static int scan_hunk_header(const char *p, int *p_before, int *p_after)
 		*p_before = 1;
 	}
 
-	if (n == 0 || q[n] != ' ' || q[n+1] != '+')
+	if (n == 0 || q[n] != ' ' || q[n + 1] != '+')
 		return 0;
 
 	r = q + n + 2;
@@ -76,12 +77,14 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 		const char *p = line;
 		int len;
 
-		/* Possibly skip over the prefix added by "log" or "format-patch" */
+		/* Possibly skip over the prefix added by "log" or
+		 * "format-patch" */
 		if (!skip_prefix(line, "commit ", &p) &&
 		    !skip_prefix(line, "From ", &p) &&
 		    starts_with(line, "\\ ") && 12 < strlen(line)) {
 			if (verbatim)
-				the_hash_algo->update_fn(&ctx, line, strlen(line));
+				the_hash_algo->update_fn(&ctx, line,
+							 strlen(line));
 			continue;
 		}
 
@@ -116,8 +119,10 @@ static int get_one_patchid(struct object_id *next_oid, struct object_id *result,
 					oid2_end = line + strlen(line) - 1;
 				if (oid1_end != NULL && oid2_end != NULL) {
 					*oid1_end = *oid2_end = '\0';
-					strlcpy(pre_oid_str, p, GIT_MAX_HEXSZ + 1);
-					strlcpy(post_oid_str, oid1_end + 2, GIT_MAX_HEXSZ + 1);
+					strlcpy(pre_oid_str, p,
+						GIT_MAX_HEXSZ + 1);
+					strlcpy(post_oid_str, oid1_end + 2,
+						GIT_MAX_HEXSZ + 1);
 				}
 				continue;
 			} else if (starts_with(line, "--- "))
@@ -180,7 +185,8 @@ static void generate_id_list(int stable, int verbatim)
 
 	oidclr(&oid);
 	while (!feof(stdin)) {
-		patchlen = get_one_patchid(&n, &result, &line_buf, stable, verbatim);
+		patchlen = get_one_patchid(&n, &result, &line_buf, stable,
+					   verbatim);
 		flush_current_id(patchlen, &oid, &result);
 		oidcpy(&oid, &n);
 	}
@@ -216,15 +222,15 @@ static int git_patch_id_config(const char *var, const char *value,
 int cmd_patch_id(int argc, const char **argv, const char *prefix)
 {
 	/* if nothing is set, default to unstable */
-	struct patch_id_opts config = {0, 0};
+	struct patch_id_opts config = { 0, 0 };
 	int opts = 0;
 	struct option builtin_patch_id_options[] = {
 		OPT_CMDMODE(0, "unstable", &opts,
-		    N_("use the unstable patch-id algorithm"), 1),
+			    N_("use the unstable patch-id algorithm"), 1),
 		OPT_CMDMODE(0, "stable", &opts,
-		    N_("use the stable patch-id algorithm"), 2),
+			    N_("use the stable patch-id algorithm"), 2),
 		OPT_CMDMODE(0, "verbatim", &opts,
-			N_("don't strip whitespace from the patch"), 3),
+			    N_("don't strip whitespace from the patch"), 3),
 		OPT_END()
 	};
 

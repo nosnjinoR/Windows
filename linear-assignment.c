@@ -3,8 +3,8 @@
  * algorithm for dense and sparse linear assignment problems</i>. Computing,
  * 38(4), 325-340.
  */
-#include "git-compat-util.h"
-#include "linear-assignment.h"
+#include "components/git-compat-util.h"
+#include "components/linear-assignment.h"
 
 #define COST(column, row) cost[(column) + column_count * (row)]
 
@@ -182,7 +182,7 @@ void compute_assignment(int column_count, int row_count, int *cost,
 			} while (low != up);
 		} while (low == up);
 
-update:
+	update:
 		/* updating of the column pieces */
 		for (k = 0; k < last; k++) {
 			int j1 = col[k];

@@ -37,10 +37,10 @@
  */
 
 #include "test-tool.h"
-#include "pkt-line.h"
-#include "string-list.h"
-#include "strmap.h"
-#include "parse-options.h"
+#include "components/pkt-line.h"
+#include "components/string-list.h"
+#include "components/strmap.h"
+#include "components/parse-options.h"
 
 static FILE *logfile;
 static int always_delay, has_clean_cap, has_smudge_cap;
@@ -63,10 +63,8 @@ static char *rot13(char *str)
 static char *get_value(char *buf, const char *key)
 {
 	const char *orig_buf = buf;
-	if (!buf ||
-	    !skip_prefix((const char *)buf, key, (const char **)&buf) ||
-	    !skip_prefix((const char *)buf, "=", (const char **)&buf) ||
-	    !*buf)
+	if (!buf || !skip_prefix((const char *)buf, key, (const char **)&buf) ||
+	    !skip_prefix((const char *)buf, "=", (const char **)&buf) || !*buf)
 		die("expected key '%s', got '%s'", key, str_or_null(orig_buf));
 	return buf;
 }
@@ -85,7 +83,8 @@ static char *packet_key_val_read(const char *key)
 	return xstrdup(get_value(buf, key));
 }
 
-static inline void assert_remote_capability(struct strset *caps, const char *cap)
+static inline void assert_remote_capability(struct strset *caps,
+					    const char *cap)
 {
 	if (!strset_contains(caps, cap))
 		die("required '%s' capability not available from remote", cap);
@@ -128,7 +127,8 @@ static void free_delay_entries(void)
 	struct hashmap_iter iter;
 	struct strmap_entry *ent;
 
-	strmap_for_each_entry(&delay, &iter, ent) {
+	strmap_for_each_entry(&delay, &iter, ent)
+	{
 		struct delay_entry *delay_entry = ent->value;
 		free(delay_entry->output);
 		free(delay_entry);
@@ -156,7 +156,8 @@ static void reply_list_available_blobs_cmd(void)
 	if (packet_read_line(0, NULL))
 		die("bad list_available_blobs end");
 
-	strmap_for_each_entry(&delay, &iter, ent) {
+	strmap_for_each_entry(&delay, &iter, ent)
+	{
 		struct delay_entry *delay_entry = ent->value;
 		if (!delay_entry->requested)
 			continue;
@@ -175,7 +176,7 @@ static void reply_list_available_blobs_cmd(void)
 
 	/* Print paths in sorted order. */
 	string_list_sort(&paths);
-	for_each_string_list_item(str_item, &paths)
+	for_each_string_list_item (str_item, &paths)
 		fprintf(logfile, " %s", str_item->string);
 	string_list_clear(&paths, 0);
 
@@ -236,12 +237,14 @@ static void command_loop(void)
 		}
 
 		read_packetized_to_strbuf(0, &input, 0);
-		fprintf(logfile, " %"PRIuMAX" [OK] -- ", (uintmax_t)input.len);
+		fprintf(logfile, " %" PRIuMAX " [OK] -- ",
+			(uintmax_t)input.len);
 
 		entry = strmap_get(&delay, pathname);
 		if (entry && entry->output) {
 			output = entry->output;
-		} else if (!strcmp(pathname, "error.r") || !strcmp(pathname, "abort.r")) {
+		} else if (!strcmp(pathname, "error.r") ||
+			   !strcmp(pathname, "abort.r")) {
 			output = "";
 		} else if (!strcmp(command, "clean") && has_clean_cap) {
 			output = rot13(input.buf);
@@ -284,10 +287,11 @@ static void command_loop(void)
 			}
 
 			output_len = strlen(output);
-			fprintf(logfile, "OUT: %"PRIuMAX" ", (uintmax_t)output_len);
+			fprintf(logfile, "OUT: %" PRIuMAX " ",
+				(uintmax_t)output_len);
 
-			if (write_packetized_from_buf_no_flush_count(output,
-				output_len, 1, &nr_packets))
+			if (write_packetized_from_buf_no_flush_count(
+				    output, output_len, 1, &nr_packets))
 				die("failed to write buffer to stdout");
 			packet_flush(1);
 

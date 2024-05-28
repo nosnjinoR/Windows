@@ -1,16 +1,12 @@
 #include "test-tool.h"
-#include "parse.h"
-#include "parse-options.h"
+#include "components/parse.h"
+#include "components/parse-options.h"
 
-static char const * const env__helper_usage[] = {
-	"test-tool env-helper --type=[bool|ulong] <options> <env-var>",
-	NULL
+static char const *const env__helper_usage[] = {
+	"test-tool env-helper --type=[bool|ulong] <options> <env-var>", NULL
 };
 
-enum cmdmode {
-	ENV_HELPER_TYPE_BOOL = 1,
-	ENV_HELPER_TYPE_ULONG
-};
+enum cmdmode { ENV_HELPER_TYPE_BOOL = 1, ENV_HELPER_TYPE_ULONG };
 
 static int option_parse_type(const struct option *opt, const char *arg,
 			     int unset)

@@ -1,10 +1,10 @@
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "hex.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "run-command.h"
-#include "sparse-index.h"
+#include "components/builtin.h"
+#include "components/hex.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/sparse-index.h"
 
 static const char *pgm;
 static int one_shot, quiet;
@@ -29,7 +29,8 @@ static int merge_entry(int pos, const char *path)
 			break;
 		found++;
 		oid_to_hex_r(hexbuf[stage], &ce->oid);
-		xsnprintf(ownbuf[stage], sizeof(ownbuf[stage]), "%o", ce->ce_mode);
+		xsnprintf(ownbuf[stage], sizeof(ownbuf[stage]), "%o",
+			  ce->ce_mode);
 		arguments[stage] = hexbuf[stage];
 		arguments[stage + 4] = ownbuf[stage];
 	} while (++pos < the_index.cache_nr);
@@ -58,7 +59,7 @@ static void merge_one_path(const char *path)
 	 * already merged and there is nothing to do.
 	 */
 	if (pos < 0)
-		merge_entry(-pos-1, path);
+		merge_entry(-pos - 1, path);
 }
 
 static void merge_all(void)
@@ -70,7 +71,7 @@ static void merge_all(void)
 		const struct cache_entry *ce = the_index.cache[i];
 		if (!ce_stage(ce))
 			continue;
-		i += merge_entry(i, ce->name)-1;
+		i += merge_entry(i, ce->name) - 1;
 	}
 }
 

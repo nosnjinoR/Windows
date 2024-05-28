@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "trace2/tr2_tgt.h"
 #include "trace2/tr2_tls.h"
 #include "trace2/tr2_tmr.h"
-#include "trace.h"
+#include "components/trace.h"
 
 #define MY_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MY_MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -161,8 +161,7 @@ void tr2_emit_per_thread_timers(tr2_tgt_evt_timer_t *fn_apply)
 		if (tr2_timer_metadata[tid].want_per_thread_events &&
 		    ctx->timer_block.timer[tid].interval_count)
 			fn_apply(&tr2_timer_metadata[tid],
-				 &ctx->timer_block.timer[tid],
-				 0);
+				 &ctx->timer_block.timer[tid], 0);
 }
 
 void tr2_emit_final_timers(tr2_tgt_evt_timer_t *fn_apply)
@@ -177,6 +176,5 @@ void tr2_emit_final_timers(tr2_tgt_evt_timer_t *fn_apply)
 	for (tid = 0; tid < TRACE2_NUMBER_OF_TIMERS; tid++)
 		if (final_timer_block.timer[tid].interval_count)
 			fn_apply(&tr2_timer_metadata[tid],
-				 &final_timer_block.timer[tid],
-				 1);
+				 &final_timer_block.timer[tid], 1);
 }

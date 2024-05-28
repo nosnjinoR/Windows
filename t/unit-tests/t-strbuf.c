@@ -1,8 +1,8 @@
 #include "test-lib.h"
-#include "strbuf.h"
+#include "components/strbuf.h"
 
 /* wrapper that supplies tests with an empty, initialized strbuf */
-static void setup(void (*f)(struct strbuf*, void*), void *data)
+static void setup(void (*f)(struct strbuf *, void *), void *data)
 {
 	struct strbuf buf = STRBUF_INIT;
 
@@ -13,7 +13,8 @@ static void setup(void (*f)(struct strbuf*, void*), void *data)
 }
 
 /* wrapper that supplies tests with a populated, initialized strbuf */
-static void setup_populated(void (*f)(struct strbuf*, void*), char *init_str, void *data)
+static void setup_populated(void (*f)(struct strbuf *, void *), char *init_str,
+			    void *data)
 {
 	struct strbuf buf = STRBUF_INIT;
 
@@ -99,7 +100,7 @@ static void t_addstr(struct strbuf *buf, void *data)
 	      check_uint(buf->alloc, >=, orig_alloc) &&
 	      check_uint(buf->alloc, >, orig_len + len) &&
 	      check_char(buf->buf[orig_len + len], ==, '\0')))
-	    return;
+		return;
 	check_str(buf->buf + orig_len, text);
 }
 

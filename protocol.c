@@ -1,8 +1,8 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "environment.h"
-#include "protocol.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/protocol.h"
+#include "components/trace2.h"
 
 static enum protocol_version parse_protocol_version(const char *value)
 {
@@ -61,7 +61,7 @@ enum protocol_version determine_protocol_version_server(void)
 		const struct string_list_item *item;
 		string_list_split(&list, git_protocol, ':', -1);
 
-		for_each_string_list_item(item, &list) {
+		for_each_string_list_item (item, &list) {
 			const char *value;
 			enum protocol_version v;
 
@@ -80,7 +80,8 @@ enum protocol_version determine_protocol_version_server(void)
 	return version;
 }
 
-enum protocol_version determine_protocol_version_client(const char *server_response)
+enum protocol_version
+determine_protocol_version_client(const char *server_response)
 {
 	enum protocol_version version = protocol_v0;
 

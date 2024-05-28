@@ -1,25 +1,25 @@
-#include "git-compat-util.h"
-#include "parse-options.h"
-#include "abspath.h"
-#include "parse.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "string-list.h"
-#include "utf8.h"
+#include "components/git-compat-util.h"
+#include "components/parse-options.h"
+#include "components/abspath.h"
+#include "components/parse.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/string-list.h"
+#include "components/utf8.h"
 
 static int disallow_abbreviated_options;
 
 enum opt_parsed {
-	OPT_LONG  = 0,
-	OPT_SHORT = 1<<0,
-	OPT_UNSET = 1<<1,
+	OPT_LONG = 0,
+	OPT_SHORT = 1 << 0,
+	OPT_UNSET = 1 << 1,
 };
 
 static void optbug(const struct option *opt, const char *reason)
 {
 	if (opt->long_name && opt->short_name)
-		bug("switch '%c' (--%s) %s", opt->short_name,
-		    opt->long_name, reason);
+		bug("switch '%c' (--%s) %s", opt->short_name, opt->long_name,
+		    reason);
 	else if (opt->long_name)
 		bug("option '%s' %s", opt->long_name, reason);
 	else
@@ -125,7 +125,8 @@ static enum parse_opt_result do_get_value(struct parse_opt_ctx_t *p,
 		else if (opt->flags & PARSE_OPT_OPTARG && !p->opt)
 			*(const char **)opt->value = (const char *)opt->defval;
 		else
-			return get_arg(p, opt, flags, (const char **)opt->value);
+			return get_arg(p, opt, flags,
+				       (const char **)opt->value);
 		return 0;
 
 	case OPTION_FILENAME:
@@ -141,8 +142,7 @@ static enum parse_opt_result do_get_value(struct parse_opt_ctx_t *p,
 			fix_filename(p->prefix, (char **)opt->value);
 		return err;
 
-	case OPTION_CALLBACK:
-	{
+	case OPTION_CALLBACK: {
 		const char *p_arg = NULL;
 		int p_unset;
 
@@ -277,8 +277,8 @@ static enum parse_opt_result get_value(struct parse_opt_ctx_t *p,
 
 	opt_name = optnamearg(opt, arg, flags);
 	other_opt_name = optnamearg(elem->opt, elem->arg, elem->flags);
-	error(_("options '%s' and '%s' cannot be used together"),
-	      opt_name, other_opt_name);
+	error(_("options '%s' and '%s' cannot be used together"), opt_name,
+	      other_opt_name);
 	free(opt_name);
 	free(other_opt_name);
 	return -1;
@@ -329,8 +329,7 @@ static int has_string(const char *it, const char **array)
 	return 0;
 }
 
-static int is_alias(struct parse_opt_ctx_t *ctx,
-		    const struct option *one_opt,
+static int is_alias(struct parse_opt_ctx_t *ctx, const struct option *one_opt,
 		    const struct option *another_opt)
 {
 	const char **group;
@@ -377,9 +376,9 @@ static void register_abbrev(struct parse_opt_ctx_t *p,
 	abbrev->flags = flags;
 }
 
-static enum parse_opt_result parse_long_opt(
-	struct parse_opt_ctx_t *p, const char *arg,
-	const struct option *options)
+static enum parse_opt_result parse_long_opt(struct parse_opt_ctx_t *p,
+					    const char *arg,
+					    const struct option *options)
 {
 	const char *arg_end = strchrnul(arg, '=');
 	const char *arg_start = arg;
@@ -423,8 +422,8 @@ static enum parse_opt_result parse_long_opt(
 
 		/* abbreviated? */
 		if (!strncmp(long_name, arg_start, arg_end - arg_start))
-			register_abbrev(p, options, flags ^ opt_flags,
-					&abbrev, &ambiguous);
+			register_abbrev(p, options, flags ^ opt_flags, &abbrev,
+					&ambiguous);
 
 		/* negated and abbreviated very much? */
 		if (allow_unset && starts_with("no-", arg))
@@ -439,11 +438,10 @@ static enum parse_opt_result parse_long_opt(
 	if (ambiguous.option) {
 		error(_("ambiguous option: %s "
 			"(could be --%s%s or --%s%s)"),
-			arg,
-			(ambiguous.flags & OPT_UNSET) ?  "no-" : "",
-			ambiguous.option->long_name,
-			(abbrev.flags & OPT_UNSET) ?  "no-" : "",
-			abbrev.option->long_name);
+		      arg, (ambiguous.flags & OPT_UNSET) ? "no-" : "",
+		      ambiguous.option->long_name,
+		      (abbrev.flags & OPT_UNSET) ? "no-" : "",
+		      abbrev.option->long_name);
 		return PARSE_OPT_HELP;
 	}
 	if (abbrev.option) {
@@ -473,7 +471,8 @@ static enum parse_opt_result parse_subcommand(const char *arg,
 	for (; options->type != OPTION_END; options++)
 		if (options->type == OPTION_SUBCOMMAND &&
 		    !strcmp(options->long_name, arg)) {
-			*(parse_opt_subcommand_fn **)options->value = options->subcommand_fn;
+			*(parse_opt_subcommand_fn **)options->value =
+				options->subcommand_fn;
 			return PARSE_OPT_SUBCOMMAND;
 		}
 
@@ -510,7 +509,7 @@ static void parse_options_check(const struct option *opts)
 		if ((opts->flags & PARSE_OPT_LASTARG_DEFAULT) &&
 		    (opts->flags & PARSE_OPT_OPTARG))
 			optbug(opts, "uses incompatible flags "
-			       "LASTARG_DEFAULT and OPTARG");
+				     "LASTARG_DEFAULT and OPTARG");
 		if (opts->short_name) {
 			if (0x7F <= opts->short_name)
 				optbug(opts, "invalid short name");
@@ -520,13 +519,13 @@ static void parse_options_check(const struct option *opts)
 		if (opts->flags & PARSE_OPT_NODASH &&
 		    ((opts->flags & PARSE_OPT_OPTARG) ||
 		     !(opts->flags & PARSE_OPT_NOARG) ||
-		     !(opts->flags & PARSE_OPT_NONEG) ||
-		     opts->long_name))
+		     !(opts->flags & PARSE_OPT_NONEG) || opts->long_name))
 			optbug(opts, "uses feature "
-			       "not supported for dashless options");
+				     "not supported for dashless options");
 		if (opts->type == OPTION_SET_INT && !opts->defval &&
 		    opts->long_name && !(opts->flags & PARSE_OPT_NONEG))
-			optbug(opts, "OPTION_SET_INT 0 should not be negatable");
+			optbug(opts,
+			       "OPTION_SET_INT 0 should not be negatable");
 		switch (opts->type) {
 		case OPTION_COUNTUP:
 		case OPTION_BIT:
@@ -539,35 +538,42 @@ static void parse_options_check(const struct option *opts)
 			break;
 		case OPTION_CALLBACK:
 			if (!opts->callback && !opts->ll_callback)
-				optbug(opts, "OPTION_CALLBACK needs one callback");
+				optbug(opts,
+				       "OPTION_CALLBACK needs one callback");
 			else if (opts->callback && opts->ll_callback)
-				optbug(opts, "OPTION_CALLBACK can't have two callbacks");
+				optbug(opts,
+				       "OPTION_CALLBACK can't have two callbacks");
 			break;
 		case OPTION_LOWLEVEL_CALLBACK:
 			if (!opts->ll_callback)
-				optbug(opts, "OPTION_LOWLEVEL_CALLBACK needs a callback");
+				optbug(opts,
+				       "OPTION_LOWLEVEL_CALLBACK needs a callback");
 			if (opts->callback)
-				optbug(opts, "OPTION_LOWLEVEL_CALLBACK needs no high level callback");
+				optbug(opts,
+				       "OPTION_LOWLEVEL_CALLBACK needs no high level callback");
 			break;
 		case OPTION_ALIAS:
-			optbug(opts, "OPT_ALIAS() should not remain at this point. "
+			optbug(opts,
+			       "OPT_ALIAS() should not remain at this point. "
 			       "Are you using parse_options_step() directly?\n"
 			       "That case is not supported yet.");
 			break;
 		case OPTION_SUBCOMMAND:
 			if (!opts->value || !opts->subcommand_fn)
-				optbug(opts, "OPTION_SUBCOMMAND needs a value and a subcommand function");
+				optbug(opts,
+				       "OPTION_SUBCOMMAND needs a value and a subcommand function");
 			if (!subcommand_value)
 				subcommand_value = opts->value;
 			else if (subcommand_value != opts->value)
-				optbug(opts, "all OPTION_SUBCOMMANDs need the same value");
+				optbug(opts,
+				       "all OPTION_SUBCOMMANDs need the same value");
 			break;
-		default:
-			; /* ok. (usually accepts an argument) */
+		default:; /* ok. (usually accepts an argument) */
 		}
 		if (opts->argh &&
 		    strcspn(opts->argh, " _") != strlen(opts->argh))
-			optbug(opts, "multi-word argh should use dash to separate words");
+			optbug(opts,
+			       "multi-word argh should use dash to separate words");
 	}
 	BUG_if_bug("invalid 'struct option'");
 }
@@ -580,8 +586,8 @@ static int has_subcommands(const struct option *options)
 	return 0;
 }
 
-static void parse_options_start_1(struct parse_opt_ctx_t *ctx,
-				  int argc, const char **argv, const char *prefix,
+static void parse_options_start_1(struct parse_opt_ctx_t *ctx, int argc,
+				  const char **argv, const char *prefix,
 				  const struct option *options,
 				  enum parse_opt_flags flags)
 {
@@ -592,7 +598,7 @@ static void parse_options_start_1(struct parse_opt_ctx_t *ctx,
 		ctx->argv++;
 	}
 	ctx->total = ctx->argc;
-	ctx->out   = argv;
+	ctx->out = argv;
 	ctx->prefix = prefix;
 	ctx->cpidx = ((flags & PARSE_OPT_KEEP_ARGV0) != 0);
 	ctx->flags = flags;
@@ -613,15 +619,14 @@ static void parse_options_start_1(struct parse_opt_ctx_t *ctx,
 	    (flags & PARSE_OPT_STOP_AT_NON_OPTION) &&
 	    !(flags & PARSE_OPT_ONE_SHOT))
 		BUG("STOP_AT_NON_OPTION and KEEP_UNKNOWN don't go together");
-	if ((flags & PARSE_OPT_ONE_SHOT) &&
-	    (flags & PARSE_OPT_KEEP_ARGV0))
+	if ((flags & PARSE_OPT_ONE_SHOT) && (flags & PARSE_OPT_KEEP_ARGV0))
 		BUG("Can't keep argv0 if you don't have it");
 	parse_options_check(options);
 	build_cmdmode_list(ctx, options);
 }
 
-void parse_options_start(struct parse_opt_ctx_t *ctx,
-			 int argc, const char **argv, const char *prefix,
+void parse_options_start(struct parse_opt_ctx_t *ctx, int argc,
+			 const char **argv, const char *prefix,
 			 const struct option *options,
 			 enum parse_opt_flags flags)
 {
@@ -641,7 +646,7 @@ static void show_negated_gitcomp(const struct option *opts, int show_all,
 		if (!opts->long_name)
 			continue;
 		if (!show_all &&
-			(opts->flags & (PARSE_OPT_HIDDEN | PARSE_OPT_NOCOMPLETE)))
+		    (opts->flags & (PARSE_OPT_HIDDEN | PARSE_OPT_NOCOMPLETE)))
 			continue;
 		if (opts->flags & PARSE_OPT_NONEG)
 			continue;
@@ -690,7 +695,8 @@ static int show_gitcomp(const struct option *opts, int show_all)
 		if (!opts->long_name)
 			continue;
 		if (!show_all &&
-			(opts->flags & (PARSE_OPT_HIDDEN | PARSE_OPT_NOCOMPLETE | PARSE_OPT_FROM_ALIAS)))
+		    (opts->flags & (PARSE_OPT_HIDDEN | PARSE_OPT_NOCOMPLETE |
+				    PARSE_OPT_FROM_ALIAS)))
 			continue;
 
 		switch (opts->type) {
@@ -719,8 +725,8 @@ static int show_gitcomp(const struct option *opts, int show_all)
 			suffix = "=";
 		if (starts_with(opts->long_name, "no-"))
 			nr_noopts++;
-		printf("%s%s%s%s", opts == original_opts ? "" : " ",
-		       prefix, opts->long_name, suffix);
+		printf("%s%s%s%s", opts == original_opts ? "" : " ", prefix,
+		       opts->long_name, suffix);
 	}
 	show_negated_gitcomp(original_opts, show_all, -1);
 	show_negated_gitcomp(original_opts, show_all, nr_noopts);
@@ -818,14 +824,13 @@ static void free_preprocessed_options(struct option *options)
 	free(options);
 }
 
-static enum parse_opt_result usage_with_options_internal(struct parse_opt_ctx_t *,
-							 const char * const *,
-							 const struct option *,
-							 int, int);
+static enum parse_opt_result
+usage_with_options_internal(struct parse_opt_ctx_t *, const char *const *,
+			    const struct option *, int, int);
 
 enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 					 const struct option *options,
-					 const char * const usagestr[])
+					 const char *const usagestr[])
 {
 	int internal_help = !(ctx->flags & PARSE_OPT_NO_INTERNAL_HELP);
 
@@ -835,8 +840,7 @@ enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 	for (; ctx->argc; ctx->argc--, ctx->argv++) {
 		const char *arg = ctx->argv[0];
 
-		if (ctx->flags & PARSE_OPT_ONE_SHOT &&
-		    ctx->argc != ctx->total)
+		if (ctx->flags & PARSE_OPT_ONE_SHOT && ctx->argc != ctx->total)
 			break;
 
 		if (*arg != '-' || !arg[1]) {
@@ -886,7 +890,8 @@ enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 		 */
 		if (ctx->total == 1 && !strcmp(arg, "--git-completion-helper"))
 			return show_gitcomp(options, 0);
-		if (ctx->total == 1 && !strcmp(arg, "--git-completion-helper-all"))
+		if (ctx->total == 1 &&
+		    !strcmp(arg, "--git-completion-helper-all"))
 			return show_gitcomp(options, 1);
 
 		if (arg[1] != '-') {
@@ -918,8 +923,9 @@ enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 					if (internal_help && *ctx->opt == 'h')
 						goto show_usage;
 
-					/* fake a short option thing to hide the fact that we may have
-					 * started to parse aggregated stuff
+					/* fake a short option thing to hide the
+					 * fact that we may have started to
+					 * parse aggregated stuff
 					 *
 					 * This is leaky, too bad.
 					 */
@@ -953,7 +959,8 @@ enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 		}
 
 		if (internal_help && !strcmp(arg + 2, "help-all"))
-			return usage_with_options_internal(ctx, usagestr, options, 1, 0);
+			return usage_with_options_internal(ctx, usagestr,
+							   options, 1, 0);
 		if (internal_help && !strcmp(arg + 2, "help"))
 			goto show_usage;
 		switch (parse_long_opt(ctx, arg + 2, options)) {
@@ -971,7 +978,7 @@ enum parse_opt_result parse_options_step(struct parse_opt_ctx_t *ctx,
 			break;
 		}
 		continue;
-unknown:
+	unknown:
 		if (ctx->flags & PARSE_OPT_ONE_SHOT)
 			break;
 		if (ctx->has_subcommands &&
@@ -993,7 +1000,7 @@ unknown:
 	}
 	return PARSE_OPT_DONE;
 
- show_usage:
+show_usage:
 	return usage_with_options_internal(ctx, usagestr, options, 0, 0);
 }
 
@@ -1007,10 +1014,8 @@ int parse_options_end(struct parse_opt_ctx_t *ctx)
 	return ctx->cpidx + ctx->argc;
 }
 
-int parse_options(int argc, const char **argv,
-		  const char *prefix,
-		  const struct option *options,
-		  const char * const usagestr[],
+int parse_options(int argc, const char **argv, const char *prefix,
+		  const struct option *options, const char *const usagestr[],
 		  enum parse_opt_flags flags)
 {
 	struct parse_opt_ctx_t ctx;
@@ -1067,7 +1072,7 @@ static int usage_argh(const struct option *opts, FILE *outfile)
 {
 	const char *s;
 	int literal = (opts->flags & PARSE_OPT_LITERAL_ARGHELP) ||
-		!opts->argh || !!strpbrk(opts->argh, "()<>[]|");
+		      !opts->argh || !!strpbrk(opts->argh, "()<>[]|");
 	if (opts->flags & PARSE_OPT_OPTARG)
 		if (opts->long_name)
 			s = literal ? "[=%s]" : "[=<%s>]";
@@ -1103,10 +1108,10 @@ static const struct option *find_option_by_long_name(const struct option *opts,
 	return NULL;
 }
 
-static enum parse_opt_result usage_with_options_internal(struct parse_opt_ctx_t *ctx,
-							 const char * const *usagestr,
-							 const struct option *opts,
-							 int full, int err)
+static enum parse_opt_result
+usage_with_options_internal(struct parse_opt_ctx_t *ctx,
+			    const char *const *usagestr,
+			    const struct option *opts, int full, int err)
 {
 	const struct option *all_opts = opts;
 	FILE *outfile = err ? stderr : stdout;
@@ -1214,7 +1219,8 @@ static enum parse_opt_result usage_with_options_internal(struct parse_opt_ctx_t 
 			if (opts->flags & PARSE_OPT_NODASH)
 				pos += fprintf(outfile, "%c", opts->short_name);
 			else
-				pos += fprintf(outfile, "-%c", opts->short_name);
+				pos += fprintf(outfile, "-%c",
+					       opts->short_name);
 		}
 		if (opts->long_name && opts->short_name)
 			pos += fprintf(outfile, ", ");
@@ -1269,23 +1275,21 @@ static enum parse_opt_result usage_with_options_internal(struct parse_opt_ctx_t 
 	return PARSE_OPT_HELP;
 }
 
-void NORETURN usage_with_options(const char * const *usagestr,
-			const struct option *opts)
+void NORETURN usage_with_options(const char *const *usagestr,
+				 const struct option *opts)
 {
 	usage_with_options_internal(NULL, usagestr, opts, 0, 1);
 	exit(129);
 }
 
-void NORETURN usage_msg_opt(const char *msg,
-		   const char * const *usagestr,
-		   const struct option *options)
+void NORETURN usage_msg_opt(const char *msg, const char *const *usagestr,
+			    const struct option *options)
 {
 	die_message("%s\n", msg); /* The extra \n is intentional */
 	usage_with_options(usagestr, options);
 }
 
-void NORETURN usage_msg_optf(const char * const fmt,
-			     const char * const *usagestr,
+void NORETURN usage_msg_optf(const char *const fmt, const char *const *usagestr,
 			     const struct option *options, ...)
 {
 	struct strbuf msg = STRBUF_INIT;
@@ -1297,10 +1301,10 @@ void NORETURN usage_msg_optf(const char * const fmt,
 	usage_msg_opt(msg.buf, usagestr, options);
 }
 
-void die_for_incompatible_opt4(int opt1, const char *opt1_name,
-			       int opt2, const char *opt2_name,
-			       int opt3, const char *opt3_name,
-			       int opt4, const char *opt4_name)
+void die_for_incompatible_opt4(int opt1, const char *opt1_name, int opt2,
+			       const char *opt2_name, int opt3,
+			       const char *opt3_name, int opt4,
+			       const char *opt4_name)
 {
 	int count = 0;
 	const char *options[4];

@@ -1,24 +1,23 @@
-#include "builtin.h"
-#include "config.h"
-#include "commit.h"
-#include "diff.h"
-#include "environment.h"
-#include "gettext.h"
-#include "string-list.h"
-#include "repository.h"
-#include "revision.h"
-#include "utf8.h"
-#include "mailmap.h"
-#include "setup.h"
-#include "shortlog.h"
-#include "parse-options.h"
-#include "trailer.h"
-#include "strmap.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/commit.h"
+#include "components/diff.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/string-list.h"
+#include "components/repository.h"
+#include "components/revision.h"
+#include "components/utf8.h"
+#include "components/mailmap.h"
+#include "components/setup.h"
+#include "components/shortlog.h"
+#include "components/parse-options.h"
+#include "components/trailer.h"
+#include "components/strmap.h"
 
-static char const * const shortlog_usage[] = {
+static char const *const shortlog_usage[] = {
 	N_("git shortlog [<options>] [<revision-range>] [[--] <path>...]"),
-	N_("git log --pretty=short | git shortlog [<options>]"),
-	NULL
+	N_("git log --pretty=short | git shortlog [<options>]"), NULL
 };
 
 /*
@@ -53,8 +52,7 @@ static int compare_by_list(const void *a1, const void *a2)
 		return -1;
 }
 
-static void insert_one_record(struct shortlog *log,
-			      const char *ident,
+static void insert_one_record(struct shortlog *log, const char *ident,
 			      const char *oneline)
 {
 	struct string_list_item *item;
@@ -92,8 +90,7 @@ static void insert_one_record(struct shortlog *log,
 	}
 }
 
-static int parse_ident(struct shortlog *log,
-		       struct strbuf *out, const char *in)
+static int parse_ident(struct shortlog *log, struct strbuf *out, const char *in)
 {
 	const char *mailbuf, *namebuf;
 	size_t namelen, maillen;
@@ -135,9 +132,11 @@ static void read_from_stdin(struct shortlog *log)
 		match = committer_match;
 		break;
 	case SHORTLOG_GROUP_TRAILER:
-		die(_("using %s with stdin is not supported"), "--group=trailer");
+		die(_("using %s with stdin is not supported"),
+		    "--group=trailer");
 	case SHORTLOG_GROUP_FORMAT:
-		die(_("using %s with stdin is not supported"), "--group=format");
+		die(_("using %s with stdin is not supported"),
+		    "--group=format");
 	default:
 		BUG("unhandled shortlog group");
 	}
@@ -147,8 +146,7 @@ static void read_from_stdin(struct shortlog *log)
 		if (!skip_prefix(ident.buf, match[0], &v) &&
 		    !skip_prefix(ident.buf, match[1], &v))
 			continue;
-		while (strbuf_getline_lf(&oneline, stdin) != EOF &&
-		       oneline.len)
+		while (strbuf_getline_lf(&oneline, stdin) != EOF && oneline.len)
 			; /* discard headers */
 		while (strbuf_getline_lf(&oneline, stdin) != EOF &&
 		       !oneline.len)
@@ -211,7 +209,8 @@ static void insert_records_from_trailers(struct shortlog *log,
 
 static int shortlog_needs_dedup(const struct shortlog *log)
 {
-	return HAS_MULTI_BITS(log->groups) || log->format.nr > 1 || log->trailers.nr;
+	return HAS_MULTI_BITS(log->groups) || log->format.nr > 1 ||
+	       log->trailers.nr;
 }
 
 static void insert_records_from_format(struct shortlog *log,
@@ -223,11 +222,11 @@ static void insert_records_from_format(struct shortlog *log,
 	struct strbuf buf = STRBUF_INIT;
 	struct string_list_item *item;
 
-	for_each_string_list_item(item, &log->format) {
+	for_each_string_list_item (item, &log->format) {
 		strbuf_reset(&buf);
 
-		repo_format_commit_message(the_repository, commit,
-					   item->string, &buf, ctx);
+		repo_format_commit_message(the_repository, commit, item->string,
+					   &buf, ctx);
 
 		if (!shortlog_needs_dedup(log) || strset_add(dups, buf.buf))
 			insert_one_record(log, buf.buf, oneline);
@@ -240,7 +239,7 @@ void shortlog_add_commit(struct shortlog *log, struct commit *commit)
 {
 	struct strbuf oneline = STRBUF_INIT;
 	struct strset dups = STRSET_INIT;
-	struct pretty_print_context ctx = {0};
+	struct pretty_print_context ctx = { 0 };
 	const char *oneline_str;
 
 	ctx.fmt = CMIT_FMT_USERFORMAT;
@@ -252,8 +251,8 @@ void shortlog_add_commit(struct shortlog *log, struct commit *commit)
 		if (log->user_format)
 			pretty_print_commit(&ctx, commit, &oneline);
 		else
-			repo_format_commit_message(the_repository, commit,
-						   "%s", &oneline, &ctx);
+			repo_format_commit_message(the_repository, commit, "%s",
+						   &oneline, &ctx);
 	}
 	oneline_str = oneline.len ? oneline.buf : "<none>";
 
@@ -314,14 +313,14 @@ static int parse_wrap_args(const struct option *opt, const char *arg, int unset)
 	log->in2 = parse_uint(&arg, '\0', DEFAULT_INDENT2);
 	if (log->wrap < 0 || log->in1 < 0 || log->in2 < 0)
 		return error(wrap_arg_usage);
-	if (log->wrap &&
-	    ((log->in1 && log->wrap <= log->in1) ||
-	     (log->in2 && log->wrap <= log->in2)))
+	if (log->wrap && ((log->in1 && log->wrap <= log->in1) ||
+			  (log->in2 && log->wrap <= log->in2)))
 		return error(wrap_arg_usage);
 	return 0;
 }
 
-static int parse_group_option(const struct option *opt, const char *arg, int unset)
+static int parse_group_option(const struct option *opt, const char *arg,
+			      int unset)
 {
 	struct shortlog *log = opt->value;
 	const char *field;
@@ -349,7 +348,6 @@ static int parse_group_option(const struct option *opt, const char *arg, int uns
 
 	return 0;
 }
-
 
 void shortlog_init(struct shortlog *log)
 {
@@ -388,17 +386,19 @@ int cmd_shortlog(int argc, const char **argv, const char *prefix)
 		OPT_BIT('c', "committer", &log.groups,
 			N_("group by committer rather than author"),
 			SHORTLOG_GROUP_COMMITTER),
-		OPT_BOOL('n', "numbered", &log.sort_by_number,
-			 N_("sort output according to the number of commits per author")),
-		OPT_BOOL('s', "summary", &log.summary,
-			 N_("suppress commit descriptions, only provides commit count")),
+		OPT_BOOL(
+			'n', "numbered", &log.sort_by_number,
+			N_("sort output according to the number of commits per author")),
+		OPT_BOOL(
+			's', "summary", &log.summary,
+			N_("suppress commit descriptions, only provides commit count")),
 		OPT_BOOL('e', "email", &log.email,
 			 N_("show the email address of each author")),
 		OPT_CALLBACK_F('w', NULL, &log, N_("<w>[,<i1>[,<i2>]]"),
-			N_("linewrap output"), PARSE_OPT_OPTARG,
-			&parse_wrap_args),
+			       N_("linewrap output"), PARSE_OPT_OPTARG,
+			       &parse_wrap_args),
 		OPT_CALLBACK(0, "group", &log, N_("field"),
-			N_("group by field"), parse_group_option),
+			     N_("group by field"), parse_group_option),
 		OPT_END(),
 	};
 
@@ -454,10 +454,10 @@ parse_done:
 		add_head_to_pending(&rev);
 	if (rev.pending.nr == 0) {
 		if (isatty(0))
-			fprintf(stderr, _("(reading log message from standard input)\n"));
+			fprintf(stderr,
+				_("(reading log message from standard input)\n"));
 		read_from_stdin(&log);
-	}
-	else
+	} else
 		get_from_rev(&rev, &log);
 
 	release_revisions(&rev);
@@ -482,16 +482,17 @@ void shortlog_output(struct shortlog *log)
 
 	if (log->sort_by_number)
 		STABLE_QSORT(log->list.items, log->list.nr,
-		      log->summary ? compare_by_counter : compare_by_list);
+			     log->summary ? compare_by_counter :
+					    compare_by_list);
 	for (i = 0; i < log->list.nr; i++) {
 		const struct string_list_item *item = &log->list.items[i];
 		if (log->summary) {
-			fprintf(log->file, "%6d\t%s\n",
-				(int)UTIL_TO_INT(item), item->string);
+			fprintf(log->file, "%6d\t%s\n", (int)UTIL_TO_INT(item),
+				item->string);
 		} else {
 			struct string_list *onelines = item->util;
-			fprintf(log->file, "%s (%"PRIuMAX"):\n",
-				item->string, (uintmax_t)onelines->nr);
+			fprintf(log->file, "%s (%" PRIuMAX "):\n", item->string,
+				(uintmax_t)onelines->nr);
 			for (j = onelines->nr; j >= 1; j--) {
 				const char *msg = onelines->items[j - 1].string;
 
@@ -499,8 +500,7 @@ void shortlog_output(struct shortlog *log)
 					strbuf_reset(&sb);
 					add_wrapped_shortlog_msg(&sb, msg, log);
 					fwrite(sb.buf, sb.len, 1, log->file);
-				}
-				else
+				} else
 					fprintf(log->file, "      %s\n", msg);
 			}
 			putc('\n', log->file);

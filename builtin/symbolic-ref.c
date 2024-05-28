@@ -1,18 +1,18 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "refs.h"
-#include "parse-options.h"
-#include "strbuf.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/refs.h"
+#include "components/parse-options.h"
+#include "components/strbuf.h"
 
-static const char * const git_symbolic_ref_usage[] = {
+static const char *const git_symbolic_ref_usage[] = {
 	N_("git symbolic-ref [-m <reason>] <name> <ref>"),
 	N_("git symbolic-ref [-q] [--short] [--no-recurse] <name>"),
-	N_("git symbolic-ref --delete [-q] <name>"),
-	NULL
+	N_("git symbolic-ref --delete [-q] <name>"), NULL
 };
 
-static int check_symref(const char *HEAD, int quiet, int shorten, int recurse, int print)
+static int check_symref(const char *HEAD, int quiet, int shorten, int recurse,
+			int print)
 {
 	int resolve_flags, flag;
 	const char *refname;
@@ -43,12 +43,15 @@ int cmd_symbolic_ref(int argc, const char **argv, const char *prefix)
 	int quiet = 0, delete = 0, shorten = 0, recurse = 1, ret = 0;
 	const char *msg = NULL;
 	struct option options[] = {
-		OPT__QUIET(&quiet,
+		OPT__QUIET(
+			&quiet,
 			N_("suppress error message for non-symbolic (detached) refs")),
 		OPT_BOOL('d', "delete", &delete, N_("delete symbolic ref")),
 		OPT_BOOL(0, "short", &shorten, N_("shorten ref output")),
-		OPT_BOOL(0, "recurse", &recurse, N_("recursively dereference (default)")),
-		OPT_STRING('m', NULL, &msg, N_("reason"), N_("reason of the update")),
+		OPT_BOOL(0, "recurse", &recurse,
+			 N_("recursively dereference (default)")),
+		OPT_STRING('m', NULL, &msg, N_("reason"),
+			   N_("reason of the update")),
 		OPT_END(),
 	};
 
@@ -74,11 +77,11 @@ int cmd_symbolic_ref(int argc, const char **argv, const char *prefix)
 		ret = check_symref(argv[0], quiet, shorten, recurse, 1);
 		break;
 	case 2:
-		if (!strcmp(argv[0], "HEAD") &&
-		    !starts_with(argv[1], "refs/"))
+		if (!strcmp(argv[0], "HEAD") && !starts_with(argv[1], "refs/"))
 			die("Refusing to point HEAD outside of refs/");
 		if (check_refname_format(argv[1], REFNAME_ALLOW_ONELEVEL) < 0)
-			die("Refusing to set '%s' to invalid ref '%s'", argv[0], argv[1]);
+			die("Refusing to set '%s' to invalid ref '%s'", argv[0],
+			    argv[1]);
 		ret = !!create_symref(argv[0], argv[1], msg);
 		break;
 	default:

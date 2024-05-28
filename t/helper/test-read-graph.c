@@ -1,9 +1,9 @@
 #include "test-tool.h"
-#include "commit-graph.h"
-#include "repository.h"
-#include "object-store-ll.h"
-#include "bloom.h"
-#include "setup.h"
+#include "components/commit-graph.h"
+#include "components/repository.h"
+#include "components/object-store-ll.h"
+#include "components/bloom.h"
+#include "components/setup.h"
 
 int cmd__read_graph(int argc UNUSED, const char **argv UNUSED)
 {
@@ -19,12 +19,11 @@ int cmd__read_graph(int argc UNUSED, const char **argv UNUSED)
 	if (!graph)
 		return 1;
 
-	printf("header: %08x %d %d %d %d\n",
-		ntohl(*(uint32_t*)graph->data),
-		*(unsigned char*)(graph->data + 4),
-		*(unsigned char*)(graph->data + 5),
-		*(unsigned char*)(graph->data + 6),
-		*(unsigned char*)(graph->data + 7));
+	printf("header: %08x %d %d %d %d\n", ntohl(*(uint32_t *)graph->data),
+	       *(unsigned char *)(graph->data + 4),
+	       *(unsigned char *)(graph->data + 5),
+	       *(unsigned char *)(graph->data + 6),
+	       *(unsigned char *)(graph->data + 7));
 	printf("num_commits: %u\n", graph->num_commits);
 	printf("chunks:");
 
@@ -48,7 +47,7 @@ int cmd__read_graph(int argc UNUSED, const char **argv UNUSED)
 
 	printf("options:");
 	if (graph->bloom_filter_settings)
-		printf(" bloom(%"PRIu32",%"PRIu32",%"PRIu32")",
+		printf(" bloom(%" PRIu32 ",%" PRIu32 ",%" PRIu32 ")",
 		       graph->bloom_filter_settings->hash_version,
 		       graph->bloom_filter_settings->bits_per_entry,
 		       graph->bloom_filter_settings->num_hashes);

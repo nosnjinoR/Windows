@@ -19,10 +19,10 @@
  */
 #define GIT_TEST_PROGRESS_ONLY
 #include "test-tool.h"
-#include "parse-options.h"
-#include "progress.h"
-#include "strbuf.h"
-#include "string-list.h"
+#include "components/parse-options.h"
+#include "components/progress.h"
+#include "components/strbuf.h"
+#include "components/string-list.h"
 
 int cmd__progress(int argc, const char **argv)
 {
@@ -31,10 +31,7 @@ int cmd__progress(int argc, const char **argv)
 	struct strbuf line = STRBUF_INIT;
 	struct progress *progress = NULL;
 
-	const char *usage[] = {
-		"test-tool progress <stdin",
-		NULL
-	};
+	const char *usage[] = { "test-tool progress <stdin", NULL };
 	struct option options[] = {
 		OPT_END(),
 	};
@@ -47,7 +44,7 @@ int cmd__progress(int argc, const char **argv)
 	while (strbuf_getline(&line, stdin) != EOF) {
 		char *end;
 
-		if (skip_prefix(line.buf, "start ", (const char **) &end)) {
+		if (skip_prefix(line.buf, "start ", (const char **)&end)) {
 			uint64_t total = strtoull(end, &end, 10);
 			const char *title;
 
@@ -60,18 +57,20 @@ int cmd__progress(int argc, const char **argv)
 			if (!*end)
 				title = default_title;
 			else if (*end == ' ')
-				title = string_list_insert(&titles, end + 1)->string;
+				title = string_list_insert(&titles, end + 1)
+						->string;
 			else
 				die("invalid input: '%s'\n", line.buf);
 
 			progress = start_progress(title, total);
-		} else if (skip_prefix(line.buf, "progress ", (const char **) &end)) {
+		} else if (skip_prefix(line.buf, "progress ",
+				       (const char **)&end)) {
 			uint64_t item_count = strtoull(end, &end, 10);
 			if (*end != '\0')
 				die("invalid input: '%s'\n", line.buf);
 			display_progress(progress, item_count);
 		} else if (skip_prefix(line.buf, "throughput ",
-				       (const char **) &end)) {
+				       (const char **)&end)) {
 			uint64_t byte_count, test_ms;
 
 			byte_count = strtoull(end, &end, 10);

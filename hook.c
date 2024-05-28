@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "advice.h"
-#include "gettext.h"
-#include "hook.h"
-#include "path.h"
-#include "run-command.h"
-#include "config.h"
-#include "strbuf.h"
-#include "environment.h"
-#include "setup.h"
-#include "copy.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/advice.h"
+#include "components/gettext.h"
+#include "components/hook.h"
+#include "components/path.h"
+#include "components/run-command.h"
+#include "components/config.h"
+#include "components/strbuf.h"
+#include "components/environment.h"
+#include "components/setup.h"
+#include "components/copy.h"
 
 static int identical_to_template_hook(const char *name, const char *path)
 {
@@ -57,7 +57,8 @@ const char *find_hook(const char *name)
 
 	if (!found_hook) {
 		if (errno == EACCES && advice_enabled(ADVICE_IGNORED_HOOK)) {
-			static struct string_list advise_given = STRING_LIST_INIT_DUP;
+			static struct string_list advise_given =
+				STRING_LIST_INIT_DUP;
 
 			if (!string_list_lookup(&advise_given, name)) {
 				string_list_insert(&advise_given, name);
@@ -86,10 +87,8 @@ int hook_exists(const char *name)
 	return !!find_hook(name);
 }
 
-static int pick_next_hook(struct child_process *cp,
-			  struct strbuf *out UNUSED,
-			  void *pp_cb,
-			  void **pp_task_cb UNUSED)
+static int pick_next_hook(struct child_process *cp, struct strbuf *out UNUSED,
+			  void *pp_cb, void **pp_task_cb UNUSED)
 {
 	struct hook_cb_data *hook_cb = pp_cb;
 	const char *hook_path = hook_cb->hook_path;
@@ -121,8 +120,7 @@ static int pick_next_hook(struct child_process *cp,
 	return 1;
 }
 
-static int notify_start_failure(struct strbuf *out UNUSED,
-				void *pp_cb,
+static int notify_start_failure(struct strbuf *out UNUSED, void *pp_cb,
 				void *pp_task_cp UNUSED)
 {
 	struct hook_cb_data *hook_cb = pp_cb;
@@ -132,10 +130,8 @@ static int notify_start_failure(struct strbuf *out UNUSED,
 	return 1;
 }
 
-static int notify_hook_finished(int result,
-				struct strbuf *out UNUSED,
-				void *pp_cb,
-				void *pp_task_cb UNUSED)
+static int notify_hook_finished(int result, struct strbuf *out UNUSED,
+				void *pp_cb, void *pp_task_cb UNUSED)
 {
 	struct hook_cb_data *hook_cb = pp_cb;
 	struct run_hooks_opt *opt = hook_cb->options;

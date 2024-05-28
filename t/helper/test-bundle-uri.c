@@ -1,26 +1,25 @@
 #include "test-tool.h"
-#include "parse-options.h"
-#include "bundle-uri.h"
-#include "gettext.h"
-#include "strbuf.h"
-#include "string-list.h"
-#include "transport.h"
-#include "remote.h"
+#include "components/parse-options.h"
+#include "components/bundle-uri.h"
+#include "components/gettext.h"
+#include "components/strbuf.h"
+#include "components/string-list.h"
+#include "components/transport.h"
+#include "components/remote.h"
 
 enum input_mode {
 	KEY_VALUE_PAIRS,
 	CONFIG_FILE,
 };
 
-static int cmd__bundle_uri_parse(int argc, const char **argv, enum input_mode mode)
+static int cmd__bundle_uri_parse(int argc, const char **argv,
+				 enum input_mode mode)
 {
 	const char *key_value_usage[] = {
-		"test-tool bundle-uri parse-key-values <input>",
-		NULL
+		"test-tool bundle-uri parse-key-values <input>", NULL
 	};
 	const char *config_usage[] = {
-		"test-tool bundle-uri parse-config <input>",
-		NULL
+		"test-tool bundle-uri parse-config <input>", NULL
 	};
 	const char **usage = key_value_usage;
 	struct option options[] = {
@@ -108,22 +107,21 @@ cleanup:
 
 int cmd__bundle_uri(int argc, const char **argv)
 {
-	const char *usage[] = {
-		"test-tool bundle-uri <subcommand> [<options>]",
-		NULL
-	};
+	const char *usage[] = { "test-tool bundle-uri <subcommand> [<options>]",
+				NULL };
 	struct option options[] = {
 		OPT_END(),
 	};
 
 	argc = parse_options(argc, argv, NULL, options, usage,
 			     PARSE_OPT_STOP_AT_NON_OPTION |
-			     PARSE_OPT_KEEP_ARGV0);
+				     PARSE_OPT_KEEP_ARGV0);
 	if (argc == 1)
 		goto usage;
 
 	if (!strcmp(argv[1], "parse-key-values"))
-		return cmd__bundle_uri_parse(argc - 1, argv + 1, KEY_VALUE_PAIRS);
+		return cmd__bundle_uri_parse(argc - 1, argv + 1,
+					     KEY_VALUE_PAIRS);
 	if (!strcmp(argv[1], "parse-config"))
 		return cmd__bundle_uri_parse(argc - 1, argv + 1, CONFIG_FILE);
 	if (!strcmp(argv[1], "ls-remote"))

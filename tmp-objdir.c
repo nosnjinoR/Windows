@@ -1,16 +1,16 @@
-#include "git-compat-util.h"
-#include "tmp-objdir.h"
-#include "abspath.h"
-#include "chdir-notify.h"
-#include "dir.h"
-#include "environment.h"
-#include "object-file.h"
-#include "path.h"
-#include "string-list.h"
-#include "strbuf.h"
-#include "strvec.h"
-#include "quote.h"
-#include "object-store-ll.h"
+#include "components/git-compat-util.h"
+#include "components/tmp-objdir.h"
+#include "components/abspath.h"
+#include "components/chdir-notify.h"
+#include "components/dir.h"
+#include "components/environment.h"
+#include "components/object-file.h"
+#include "components/path.h"
+#include "components/string-list.h"
+#include "components/strbuf.h"
+#include "components/strvec.h"
+#include "components/quote.h"
+#include "components/object-store-ll.h"
 
 struct tmp_objdir {
 	struct strbuf path;
@@ -130,7 +130,8 @@ struct tmp_objdir *tmp_objdir_create(const char *prefix)
 	 * can recognize any stale objdirs left behind by a crash and delete
 	 * them.
 	 */
-	strbuf_addf(&t->path, "%s/tmp_objdir-%s-XXXXXX", get_object_directory(), prefix);
+	strbuf_addf(&t->path, "%s/tmp_objdir-%s-XXXXXX", get_object_directory(),
+		    prefix);
 
 	if (!mkdtemp(t->path.buf)) {
 		/* free, not destroy, as we never touched the filesystem */
@@ -307,7 +308,7 @@ struct tmp_objdir *tmp_objdir_unapply_primary_odb(void)
 }
 
 void tmp_objdir_reapply_primary_odb(struct tmp_objdir *t, const char *old_cwd,
-		const char *new_cwd)
+				    const char *new_cwd)
 {
 	char *path;
 

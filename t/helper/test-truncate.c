@@ -1,5 +1,5 @@
 #include "test-tool.h"
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 
 /*
  * Truncate a file to the given size.
@@ -19,7 +19,7 @@ int cmd__truncate(int argc, const char **argv)
 
 	fd = xopen(argv[1], O_WRONLY | O_CREAT, 0600);
 
-	if (ftruncate(fd, (off_t) sz) < 0)
+	if (ftruncate(fd, (off_t)sz) < 0)
 		die_errno("failed to truncate file");
 	return 0;
 }

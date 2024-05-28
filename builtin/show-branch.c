@@ -1,29 +1,29 @@
-#include "builtin.h"
-#include "config.h"
-#include "environment.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "pretty.h"
-#include "refs.h"
-#include "color.h"
-#include "strvec.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "repository.h"
-#include "dir.h"
-#include "commit-slab.h"
-#include "date.h"
-#include "wildmatch.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/pretty.h"
+#include "components/refs.h"
+#include "components/color.h"
+#include "components/strvec.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/repository.h"
+#include "components/dir.h"
+#include "components/commit-slab.h"
+#include "components/date.h"
+#include "components/wildmatch.h"
 
-static const char* show_branch_usage[] = {
-    N_("git show-branch [-a | --all] [-r | --remotes] [--topo-order | --date-order]\n"
-       "                [--current] [--color[=<when>] | --no-color] [--sparse]\n"
-       "                [--more=<n> | --list | --independent | --merge-base]\n"
-       "                [--no-name | --sha1-name] [--topics]\n"
-       "                [(<rev> | <glob>)...]"),
-    N_("git show-branch (-g | --reflog)[=<n>[,<base>]] [--list] [<ref>]"),
-    NULL
+static const char *show_branch_usage[] = {
+	N_("git show-branch [-a | --all] [-r | --remotes] [--topo-order | --date-order]\n"
+	   "                [--current] [--color[=<when>] | --no-color] [--sparse]\n"
+	   "                [--more=<n> | --list | --independent | --merge-base]\n"
+	   "                [--no-name | --sha1-name] [--topics]\n"
+	   "                [(<rev> | <glob>)...]"),
+	N_("git show-branch (-g | --reflog)[=<n>[,<base>]] [--list] [<ref>]"),
+	NULL
 };
 
 static int showbranch_use_color = -1;
@@ -35,12 +35,14 @@ static struct strvec default_args = STRVEC_INIT;
  * instead to store a pointer to ref name directly. Then use the same
  * UNINTERESTING definition from revision.h here.
  */
-#define UNINTERESTING	01
+#define UNINTERESTING 01
 
-#define REV_SHIFT	 2
-#define MAX_REVS	(FLAG_BITS - REV_SHIFT) /* should not exceed bits_per_int - REV_SHIFT */
+#define REV_SHIFT 2
+#define MAX_REVS                                                              \
+	(FLAG_BITS - REV_SHIFT) /* should not exceed bits_per_int - REV_SHIFT \
+				 */
 
-#define DEFAULT_REFLOG	4
+#define DEFAULT_REFLOG 4
 
 static const char *get_color_code(int idx)
 {
@@ -80,7 +82,6 @@ static struct commit_name *commit_to_name(struct commit *commit)
 {
 	return *commit_name_slab_at(&name_slab, commit);
 }
-
 
 /* Name the commit as nth generation ancestor of head_name;
  * we count only the first-parent relationship for naming purposes.
@@ -128,18 +129,15 @@ static int name_first_parent_chain(struct commit *c)
 		if (!commit_to_name(p)) {
 			name_parent(c, p);
 			i++;
-		}
-		else
+		} else
 			break;
 		c = p;
 	}
 	return i;
 }
 
-static void name_commits(struct commit_list *list,
-			 struct commit **rev,
-			 char **ref_name,
-			 int num_rev)
+static void name_commits(struct commit_list *list, struct commit **rev,
+			 char **ref_name, int num_rev)
 {
 	struct commit_list *cl;
 	struct commit *c;
@@ -191,18 +189,21 @@ static void name_commits(struct commit_list *list,
 					strbuf_addstr(&newname, n->head_name);
 					break;
 				case 1:
-					strbuf_addf(&newname, "%s^", n->head_name);
+					strbuf_addf(&newname, "%s^",
+						    n->head_name);
 					break;
 				default:
 					strbuf_addf(&newname, "%s~%d",
-						    n->head_name, n->generation);
+						    n->head_name,
+						    n->generation);
 					break;
 				}
 				if (nth == 1)
 					strbuf_addch(&newname, '^');
 				else
 					strbuf_addf(&newname, "^%d", nth);
-				name_commit(p, strbuf_detach(&newname, NULL), 0);
+				name_commit(p, strbuf_detach(&newname, NULL),
+					    0);
 				i++;
 				name_first_parent_chain(p);
 			}
@@ -219,8 +220,7 @@ static int mark_seen(struct commit *commit, struct commit_list **seen_p)
 	return 0;
 }
 
-static void join_revs(struct commit_list **list_p,
-		      struct commit_list **seen_p,
+static void join_revs(struct commit_list **list_p, struct commit_list **seen_p,
 		      int num_rev, int extra)
 {
 	int all_mask = ((1u << (REV_SHIFT + num_rev)) - 1);
@@ -315,10 +315,10 @@ static void show_one_commit(struct commit *commit, int no_name)
 					printf("~%d", name->generation);
 			}
 			printf("] ");
-		}
-		else
+		} else
 			printf("[%s] ",
-			       repo_find_unique_abbrev(the_repository, &commit->object.oid,
+			       repo_find_unique_abbrev(the_repository,
+						       &commit->object.oid,
 						       DEFAULT_ABBREV));
 	}
 	puts(pretty_str);
@@ -334,14 +334,11 @@ static const char *find_digit_prefix(const char *s, int *v)
 	int ver;
 	char ch;
 
-	for (p = s, ver = 0;
-	     '0' <= (ch = *p) && ch <= '9';
-	     p++)
+	for (p = s, ver = 0; '0' <= (ch = *p) && ch <= '9'; p++)
 		ver = ver * 10 + ch - '0';
 	*v = ver;
 	return p;
 }
-
 
 static int version_cmp(const char *a, const char *b)
 {
@@ -374,7 +371,7 @@ static int version_cmp(const char *a, const char *b)
 
 static int compare_ref_name(const void *a_, const void *b_)
 {
-	const char * const*a = a_, * const*b = b_;
+	const char *const *a = a_, *const *b = b_;
 	return version_cmp(*a, *b);
 }
 
@@ -386,8 +383,8 @@ static void sort_ref_range(int bottom, int top)
 static int append_ref(const char *refname, const struct object_id *oid,
 		      int allow_dups)
 {
-	struct commit *commit = lookup_commit_reference_gently(the_repository,
-							       oid, 1);
+	struct commit *commit =
+		lookup_commit_reference_gently(the_repository, oid, 1);
 	int i;
 
 	if (!commit)
@@ -402,7 +399,8 @@ static int append_ref(const char *refname, const struct object_id *oid,
 	if (MAX_REVS <= ref_name_cnt) {
 		warning(Q_("ignoring %s; cannot handle more than %d ref",
 			   "ignoring %s; cannot handle more than %d refs",
-			   MAX_REVS), refname, MAX_REVS);
+			   MAX_REVS),
+			refname, MAX_REVS);
 		return 0;
 	}
 	ref_name[ref_name_cnt++] = xstrdup(refname);
@@ -420,7 +418,8 @@ static int append_head_ref(const char *refname, const struct object_id *oid,
 	/* If both heads/foo and tags/foo exists, get_sha1 would
 	 * get confused.
 	 */
-	if (repo_get_oid(the_repository, refname + ofs, &tmp) || !oideq(&tmp, oid))
+	if (repo_get_oid(the_repository, refname + ofs, &tmp) ||
+	    !oideq(&tmp, oid))
 		ofs = 5;
 	return append_ref(refname + ofs, oid, 0);
 }
@@ -435,7 +434,8 @@ static int append_remote_ref(const char *refname, const struct object_id *oid,
 	/* If both heads/foo and tags/foo exists, get_sha1 would
 	 * get confused.
 	 */
-	if (repo_get_oid(the_repository, refname + ofs, &tmp) || !oideq(&tmp, oid))
+	if (repo_get_oid(the_repository, refname + ofs, &tmp) ||
+	    !oideq(&tmp, oid))
 		ofs = 5;
 	return append_ref(refname + ofs, oid, 0);
 }
@@ -460,7 +460,7 @@ static int append_matching_ref(const char *refname, const struct object_id *oid,
 	 */
 	const char *tail;
 	int slash = count_slashes(refname);
-	for (tail = refname; *tail && match_ref_slash < slash; )
+	for (tail = refname; *tail && match_ref_slash < slash;)
 		if (*tail++ == '/')
 			slash--;
 	if (!*tail)
@@ -519,8 +519,7 @@ static int show_merge_base(struct commit_list *seen, int num_rev)
 	return exit_status;
 }
 
-static int show_independent(struct commit **rev,
-			    int num_rev,
+static int show_independent(struct commit **rev, int num_rev,
 			    unsigned int *rev_mask)
 {
 	int i;
@@ -550,8 +549,7 @@ static void append_one_rev(const char *av)
 		match_ref_pattern = av;
 		match_ref_slash = count_slashes(av);
 		for_each_ref(append_matching_ref, NULL);
-		if (saved_matches == ref_name_cnt &&
-		    ref_name_cnt < MAX_REVS)
+		if (saved_matches == ref_name_cnt && ref_name_cnt < MAX_REVS)
 			error(_("no matching refs with %s"), av);
 		sort_ref_range(saved_matches, ref_name_cnt);
 		return;
@@ -657,10 +655,10 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 		OPT_BOOL('r', "remotes", &all_remotes,
 			 N_("show remote-tracking branches")),
 		OPT__COLOR(&showbranch_use_color,
-			    N_("color '*!+-' corresponding to the branch")),
+			   N_("color '*!+-' corresponding to the branch")),
 		{ OPTION_INTEGER, 0, "more", &extra, N_("n"),
-			    N_("show <n> more commits after the common ancestor"),
-			    PARSE_OPT_OPTARG, NULL, (intptr_t)1 },
+		  N_("show <n> more commits after the common ancestor"),
+		  PARSE_OPT_OPTARG, NULL, (intptr_t)1 },
 		OPT_SET_INT(0, "list", &extra, N_("synonym to more=-1"), -1),
 		OPT_BOOL(0, "no-name", &no_name, N_("suppress naming strings")),
 		OPT_BOOL(0, "current", &with_current_branch,
@@ -670,7 +668,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 		OPT_BOOL(0, "merge-base", &merge_base,
 			 N_("show possible merge bases")),
 		OPT_BOOL(0, "independent", &independent,
-			    N_("show refs unreachable from any other ref")),
+			 N_("show refs unreachable from any other ref")),
 		OPT_SET_INT_F(0, "topo-order", &sort_order,
 			      N_("show commits in topological order"),
 			      REV_SORT_IN_GRAPH_ORDER, PARSE_OPT_NONEG),
@@ -682,11 +680,11 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			      N_("topologically sort, maintaining date order "
 				 "where possible"),
 			      REV_SORT_BY_COMMIT_DATE, PARSE_OPT_NONEG),
-		OPT_CALLBACK_F('g', "reflog", &reflog_base, N_("<n>[,<base>]"),
-			    N_("show <n> most recent ref-log entries starting at "
-			       "base"),
-			    PARSE_OPT_OPTARG | PARSE_OPT_NONEG,
-			    parse_reflog_param),
+		OPT_CALLBACK_F(
+			'g', "reflog", &reflog_base, N_("<n>[,<base>]"),
+			N_("show <n> most recent ref-log entries starting at "
+			   "base"),
+			PARSE_OPT_OPTARG | PARSE_OPT_NONEG, parse_reflog_param),
 		OPT_END()
 	};
 
@@ -719,8 +717,9 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			 *
 			 * Also --all and --remotes do not make sense either.
 			 */
-			die(_("options '%s' and '%s' cannot be used together"), "--reflog",
-				"--all/--remotes/--independent/--merge-base");
+			die(_("options '%s' and '%s' cannot be used together"),
+			    "--reflog",
+			    "--all/--remotes/--independent/--merge-base");
 	}
 
 	if (with_current_branch && reflog)
@@ -740,9 +739,8 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 		if (ac == 0) {
 			static const char *fake_av[2];
 
-			fake_av[0] = resolve_refdup("HEAD",
-						    RESOLVE_REF_READING, &oid,
-						    NULL);
+			fake_av[0] = resolve_refdup("HEAD", RESOLVE_REF_READING,
+						    &oid, NULL);
 			fake_av[1] = NULL;
 			av = fake_av;
 			ac = 1;
@@ -755,9 +753,10 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 		if (MAX_REVS < reflog)
 			die(Q_("only %d entry can be shown at one time.",
 			       "only %d entries can be shown at one time.",
-			       MAX_REVS), MAX_REVS);
-		if (!repo_dwim_ref(the_repository, *av, strlen(*av), &oid,
-				   &ref, 0))
+			       MAX_REVS),
+			    MAX_REVS);
+		if (!repo_dwim_ref(the_repository, *av, strlen(*av), &oid, &ref,
+				   0))
 			die(_("no such ref %s"), *av);
 
 		/* Has the base been specified? */
@@ -782,8 +781,8 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			timestamp_t timestamp;
 			int tz;
 
-			if (read_ref_at(get_main_ref_store(the_repository),
-					ref, flags, 0, base + i, &oid, &logmsg,
+			if (read_ref_at(get_main_ref_store(the_repository), ref,
+					flags, 0, base + i, &oid, &logmsg,
 					&timestamp, &tz, NULL)) {
 				reflog = i;
 				break;
@@ -800,23 +799,22 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 						msg);
 			free(logmsg);
 
-			nth_desc = xstrfmt("%s@{%d}", *av, base+i);
+			nth_desc = xstrfmt("%s@{%d}", *av, base + i);
 			append_ref(nth_desc, &oid, 1);
 			free(nth_desc);
 		}
 		free(ref);
-	}
-	else {
+	} else {
 		while (0 < ac) {
 			append_one_rev(*av);
-			ac--; av++;
+			ac--;
+			av++;
 		}
 		if (all_heads + all_remotes)
 			snarf_refs(all_heads, all_remotes);
 	}
 
-	head = resolve_refdup("HEAD", RESOLVE_REF_READING,
-			      &head_oid, NULL);
+	head = resolve_refdup("HEAD", RESOLVE_REF_READING, &head_oid, NULL);
 
 	if (with_current_branch && head) {
 		int has_head = 0;
@@ -845,14 +843,14 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 
 		if (MAX_REVS <= num_rev)
 			die(Q_("cannot handle more than %d rev.",
-			       "cannot handle more than %d revs.",
-			       MAX_REVS), MAX_REVS);
+			       "cannot handle more than %d revs.", MAX_REVS),
+			    MAX_REVS);
 		if (repo_get_oid(the_repository, ref_name[num_rev], &revkey))
 			die(_("'%s' is not a valid ref."), ref_name[num_rev]);
 		commit = lookup_commit_reference(the_repository, &revkey);
 		if (!commit)
-			die(_("cannot find commit %s (%s)"),
-			    ref_name[num_rev], oid_to_hex(&revkey));
+			die(_("cannot find commit %s (%s)"), ref_name[num_rev],
+			    oid_to_hex(&revkey));
 		repo_parse_commit(the_repository, commit);
 		mark_seen(commit, &seen);
 
@@ -886,13 +884,12 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			int is_head = rev_is_head(head, ref_name[i]) &&
 				      oideq(&head_oid, &rev[i]->object.oid);
 			if (extra < 0)
-				printf("%c [%s] ",
-				       is_head ? '*' : ' ', ref_name[i]);
+				printf("%c [%s] ", is_head ? '*' : ' ',
+				       ref_name[i]);
 			else {
 				for (j = 0; j < i; j++)
 					putchar(' ');
-				printf("%s%c%s [%s] ",
-				       get_color_code(i),
+				printf("%s%c%s [%s] ", get_color_code(i),
 				       is_head ? '*' : '!',
 				       get_color_reset_code(), ref_name[i]);
 			}
@@ -900,8 +897,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 			if (!reflog) {
 				/* header lines never need name */
 				show_one_commit(rev[i], 1);
-			}
-			else
+			} else
 				puts(reflog_msg[i]);
 
 			if (is_head)
@@ -934,10 +930,9 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 		shown_merge_point |= is_merge_point;
 
 		if (1 < num_rev) {
-			int is_merge = !!(commit->parents &&
-					  commit->parents->next);
-			if (topics &&
-			    !is_merge_point &&
+			int is_merge =
+				!!(commit->parents && commit->parents->next);
+			if (topics && !is_merge_point &&
 			    (this_flag & (1u << REV_SHIFT)))
 				continue;
 			if (!sparse && is_merge &&
@@ -956,8 +951,7 @@ int cmd_show_branch(int ac, const char **av, const char *prefix)
 				if (mark == ' ')
 					putchar(mark);
 				else
-					printf("%s%c%s",
-					       get_color_code(i),
+					printf("%s%c%s", get_color_code(i),
 					       mark, get_color_reset_code());
 			}
 			putchar(' ');

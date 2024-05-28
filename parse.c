@@ -1,6 +1,6 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "parse.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/parse.h"
 
 static uintmax_t get_unit_factor(const char *end)
 {
@@ -101,7 +101,8 @@ int git_parse_int(const char *value, int *ret)
 int git_parse_int64(const char *value, int64_t *ret)
 {
 	intmax_t tmp;
-	if (!git_parse_signed(value, &tmp, maximum_signed_value_of_type(int64_t)))
+	if (!git_parse_signed(value, &tmp,
+			      maximum_signed_value_of_type(int64_t)))
 		return 0;
 	*ret = tmp;
 	return 1;
@@ -110,7 +111,8 @@ int git_parse_int64(const char *value, int64_t *ret)
 int git_parse_ulong(const char *value, unsigned long *ret)
 {
 	uintmax_t tmp;
-	if (!git_parse_unsigned(value, &tmp, maximum_unsigned_value_of_type(long)))
+	if (!git_parse_unsigned(value, &tmp,
+				maximum_unsigned_value_of_type(long)))
 		return 0;
 	*ret = tmp;
 	return 1;
@@ -119,7 +121,8 @@ int git_parse_ulong(const char *value, unsigned long *ret)
 int git_parse_ssize_t(const char *value, ssize_t *ret)
 {
 	intmax_t tmp;
-	if (!git_parse_signed(value, &tmp, maximum_signed_value_of_type(ssize_t)))
+	if (!git_parse_signed(value, &tmp,
+			      maximum_signed_value_of_type(ssize_t)))
 		return 0;
 	*ret = tmp;
 	return 1;
@@ -131,13 +134,11 @@ int git_parse_maybe_bool_text(const char *value)
 		return 1;
 	if (!*value)
 		return 0;
-	if (!strcasecmp(value, "true")
-	    || !strcasecmp(value, "yes")
-	    || !strcasecmp(value, "on"))
+	if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") ||
+	    !strcasecmp(value, "on"))
 		return 1;
-	if (!strcasecmp(value, "false")
-	    || !strcasecmp(value, "no")
-	    || !strcasecmp(value, "off"))
+	if (!strcasecmp(value, "false") || !strcasecmp(value, "no") ||
+	    !strcasecmp(value, "off"))
 		return 0;
 	return -1;
 }
@@ -164,8 +165,7 @@ int git_env_bool(const char *k, int def)
 		return def;
 	val = git_parse_maybe_bool(v);
 	if (val < 0)
-		die(_("bad boolean environment value '%s' for '%s'"),
-		    v, k);
+		die(_("bad boolean environment value '%s' for '%s'"), v, k);
 	return val;
 }
 

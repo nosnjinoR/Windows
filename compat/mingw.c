@@ -1,30 +1,30 @@
-#include "../git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "win32.h"
 #include <aclapi.h>
 #include <sddl.h>
 #include <conio.h>
 #include <wchar.h>
 #include <winioctl.h>
-#include "../strbuf.h"
-#include "../run-command.h"
-#include "../abspath.h"
-#include "../alloc.h"
+#include "components/strbuf.h"
+#include "components/run-command.h"
+#include "components/abspath.h"
+#include "components/alloc.h"
 #include "win32/exit-process.h"
 #include "win32/lazyload.h"
-#include "../config.h"
-#include "../environment.h"
-#include "../trace2.h"
-#include "../symlinks.h"
-#include "../wrapper.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/trace2.h"
+#include "components/symlinks.h"
+#include "components/wrapper.h"
 #include "dir.h"
-#include "gettext.h"
+#include "components/gettext.h"
 #define SECURITY_WIN32
 #include <sspi.h>
-#include "../write-or-die.h"
-#include "../repository.h"
+#include "components/write-or-die.h"
+#include "components/repository.h"
 #include "win32/fscache.h"
-#include "../attr.h"
-#include "../string-list.h"
+#include "components/attr.h"
+#include "components/string-list.h"
 #include "win32/wsl.h"
 
 #define HCAST(type, handle) ((type)(intptr_t)handle)
@@ -45,118 +45,339 @@ void open_in_gdb(void)
 int err_win_to_posix(DWORD winerr)
 {
 	int error = ENOSYS;
-	switch(winerr) {
-	case ERROR_ACCESS_DENIED: error = EACCES; break;
-	case ERROR_ACCOUNT_DISABLED: error = EACCES; break;
-	case ERROR_ACCOUNT_RESTRICTION: error = EACCES; break;
-	case ERROR_ALREADY_ASSIGNED: error = EBUSY; break;
-	case ERROR_ALREADY_EXISTS: error = EEXIST; break;
-	case ERROR_ARITHMETIC_OVERFLOW: error = ERANGE; break;
-	case ERROR_BAD_COMMAND: error = EIO; break;
-	case ERROR_BAD_DEVICE: error = ENODEV; break;
-	case ERROR_BAD_DRIVER_LEVEL: error = ENXIO; break;
-	case ERROR_BAD_EXE_FORMAT: error = ENOEXEC; break;
-	case ERROR_BAD_FORMAT: error = ENOEXEC; break;
-	case ERROR_BAD_LENGTH: error = EINVAL; break;
-	case ERROR_BAD_PATHNAME: error = ENOENT; break;
-	case ERROR_BAD_PIPE: error = EPIPE; break;
-	case ERROR_BAD_UNIT: error = ENODEV; break;
-	case ERROR_BAD_USERNAME: error = EINVAL; break;
-	case ERROR_BROKEN_PIPE: error = EPIPE; break;
-	case ERROR_BUFFER_OVERFLOW: error = ENAMETOOLONG; break;
-	case ERROR_BUSY: error = EBUSY; break;
-	case ERROR_BUSY_DRIVE: error = EBUSY; break;
-	case ERROR_CALL_NOT_IMPLEMENTED: error = ENOSYS; break;
-	case ERROR_CANNOT_MAKE: error = EACCES; break;
-	case ERROR_CANTOPEN: error = EIO; break;
-	case ERROR_CANTREAD: error = EIO; break;
-	case ERROR_CANTWRITE: error = EIO; break;
-	case ERROR_CRC: error = EIO; break;
-	case ERROR_CURRENT_DIRECTORY: error = EACCES; break;
-	case ERROR_DEVICE_IN_USE: error = EBUSY; break;
-	case ERROR_DEV_NOT_EXIST: error = ENODEV; break;
-	case ERROR_DIRECTORY: error = EINVAL; break;
-	case ERROR_DIR_NOT_EMPTY: error = ENOTEMPTY; break;
-	case ERROR_DISK_CHANGE: error = EIO; break;
-	case ERROR_DISK_FULL: error = ENOSPC; break;
-	case ERROR_DRIVE_LOCKED: error = EBUSY; break;
-	case ERROR_ENVVAR_NOT_FOUND: error = EINVAL; break;
-	case ERROR_EXE_MARKED_INVALID: error = ENOEXEC; break;
-	case ERROR_FILENAME_EXCED_RANGE: error = ENAMETOOLONG; break;
-	case ERROR_FILE_EXISTS: error = EEXIST; break;
-	case ERROR_FILE_INVALID: error = ENODEV; break;
-	case ERROR_FILE_NOT_FOUND: error = ENOENT; break;
-	case ERROR_GEN_FAILURE: error = EIO; break;
-	case ERROR_HANDLE_DISK_FULL: error = ENOSPC; break;
-	case ERROR_INSUFFICIENT_BUFFER: error = ENOMEM; break;
-	case ERROR_INVALID_ACCESS: error = EACCES; break;
-	case ERROR_INVALID_ADDRESS: error = EFAULT; break;
-	case ERROR_INVALID_BLOCK: error = EFAULT; break;
-	case ERROR_INVALID_DATA: error = EINVAL; break;
-	case ERROR_INVALID_DRIVE: error = ENODEV; break;
-	case ERROR_INVALID_EXE_SIGNATURE: error = ENOEXEC; break;
-	case ERROR_INVALID_FLAGS: error = EINVAL; break;
-	case ERROR_INVALID_FUNCTION: error = ENOSYS; break;
-	case ERROR_INVALID_HANDLE: error = EBADF; break;
-	case ERROR_INVALID_LOGON_HOURS: error = EACCES; break;
-	case ERROR_INVALID_NAME: error = EINVAL; break;
-	case ERROR_INVALID_OWNER: error = EINVAL; break;
-	case ERROR_INVALID_PARAMETER: error = EINVAL; break;
-	case ERROR_INVALID_PASSWORD: error = EPERM; break;
-	case ERROR_INVALID_PRIMARY_GROUP: error = EINVAL; break;
-	case ERROR_INVALID_REPARSE_DATA: error = EINVAL; break;
-	case ERROR_INVALID_SIGNAL_NUMBER: error = EINVAL; break;
-	case ERROR_INVALID_TARGET_HANDLE: error = EIO; break;
-	case ERROR_INVALID_WORKSTATION: error = EACCES; break;
-	case ERROR_IO_DEVICE: error = EIO; break;
-	case ERROR_IO_INCOMPLETE: error = EINTR; break;
-	case ERROR_LOCKED: error = EBUSY; break;
-	case ERROR_LOCK_VIOLATION: error = EACCES; break;
-	case ERROR_LOGON_FAILURE: error = EACCES; break;
-	case ERROR_MAPPED_ALIGNMENT: error = EINVAL; break;
-	case ERROR_META_EXPANSION_TOO_LONG: error = E2BIG; break;
-	case ERROR_MORE_DATA: error = EPIPE; break;
-	case ERROR_NEGATIVE_SEEK: error = ESPIPE; break;
-	case ERROR_NOACCESS: error = EFAULT; break;
-	case ERROR_NONE_MAPPED: error = EINVAL; break;
-	case ERROR_NOT_A_REPARSE_POINT: error = EINVAL; break;
-	case ERROR_NOT_ENOUGH_MEMORY: error = ENOMEM; break;
-	case ERROR_NOT_READY: error = EAGAIN; break;
-	case ERROR_NOT_SAME_DEVICE: error = EXDEV; break;
-	case ERROR_NO_DATA: error = EPIPE; break;
-	case ERROR_NO_MORE_SEARCH_HANDLES: error = EIO; break;
-	case ERROR_NO_PROC_SLOTS: error = EAGAIN; break;
-	case ERROR_NO_SUCH_PRIVILEGE: error = EACCES; break;
-	case ERROR_OPEN_FAILED: error = EIO; break;
-	case ERROR_OPEN_FILES: error = EBUSY; break;
-	case ERROR_OPERATION_ABORTED: error = EINTR; break;
-	case ERROR_OUTOFMEMORY: error = ENOMEM; break;
-	case ERROR_PASSWORD_EXPIRED: error = EACCES; break;
-	case ERROR_PATH_BUSY: error = EBUSY; break;
-	case ERROR_PATH_NOT_FOUND: error = ENOENT; break;
-	case ERROR_PIPE_BUSY: error = EBUSY; break;
-	case ERROR_PIPE_CONNECTED: error = EPIPE; break;
-	case ERROR_PIPE_LISTENING: error = EPIPE; break;
-	case ERROR_PIPE_NOT_CONNECTED: error = EPIPE; break;
-	case ERROR_PRIVILEGE_NOT_HELD: error = EACCES; break;
-	case ERROR_READ_FAULT: error = EIO; break;
-	case ERROR_REPARSE_ATTRIBUTE_CONFLICT: error = EINVAL; break;
-	case ERROR_REPARSE_TAG_INVALID: error = EINVAL; break;
-	case ERROR_REPARSE_TAG_MISMATCH: error = EINVAL; break;
-	case ERROR_SEEK: error = EIO; break;
-	case ERROR_SEEK_ON_DEVICE: error = ESPIPE; break;
-	case ERROR_SHARING_BUFFER_EXCEEDED: error = ENFILE; break;
-	case ERROR_SHARING_VIOLATION: error = EACCES; break;
-	case ERROR_STACK_OVERFLOW: error = ENOMEM; break;
-	case ERROR_SUCCESS: BUG("err_win_to_posix() called without an error!");
-	case ERROR_SWAPERROR: error = ENOENT; break;
-	case ERROR_TOO_MANY_MODULES: error = EMFILE; break;
-	case ERROR_TOO_MANY_OPEN_FILES: error = EMFILE; break;
-	case ERROR_UNRECOGNIZED_MEDIA: error = ENXIO; break;
-	case ERROR_UNRECOGNIZED_VOLUME: error = ENODEV; break;
-	case ERROR_WAIT_NO_CHILDREN: error = ECHILD; break;
-	case ERROR_WRITE_FAULT: error = EIO; break;
-	case ERROR_WRITE_PROTECT: error = EROFS; break;
+	switch (winerr) {
+	case ERROR_ACCESS_DENIED:
+		error = EACCES;
+		break;
+	case ERROR_ACCOUNT_DISABLED:
+		error = EACCES;
+		break;
+	case ERROR_ACCOUNT_RESTRICTION:
+		error = EACCES;
+		break;
+	case ERROR_ALREADY_ASSIGNED:
+		error = EBUSY;
+		break;
+	case ERROR_ALREADY_EXISTS:
+		error = EEXIST;
+		break;
+	case ERROR_ARITHMETIC_OVERFLOW:
+		error = ERANGE;
+		break;
+	case ERROR_BAD_COMMAND:
+		error = EIO;
+		break;
+	case ERROR_BAD_DEVICE:
+		error = ENODEV;
+		break;
+	case ERROR_BAD_DRIVER_LEVEL:
+		error = ENXIO;
+		break;
+	case ERROR_BAD_EXE_FORMAT:
+		error = ENOEXEC;
+		break;
+	case ERROR_BAD_FORMAT:
+		error = ENOEXEC;
+		break;
+	case ERROR_BAD_LENGTH:
+		error = EINVAL;
+		break;
+	case ERROR_BAD_PATHNAME:
+		error = ENOENT;
+		break;
+	case ERROR_BAD_PIPE:
+		error = EPIPE;
+		break;
+	case ERROR_BAD_UNIT:
+		error = ENODEV;
+		break;
+	case ERROR_BAD_USERNAME:
+		error = EINVAL;
+		break;
+	case ERROR_BROKEN_PIPE:
+		error = EPIPE;
+		break;
+	case ERROR_BUFFER_OVERFLOW:
+		error = ENAMETOOLONG;
+		break;
+	case ERROR_BUSY:
+		error = EBUSY;
+		break;
+	case ERROR_BUSY_DRIVE:
+		error = EBUSY;
+		break;
+	case ERROR_CALL_NOT_IMPLEMENTED:
+		error = ENOSYS;
+		break;
+	case ERROR_CANNOT_MAKE:
+		error = EACCES;
+		break;
+	case ERROR_CANTOPEN:
+		error = EIO;
+		break;
+	case ERROR_CANTREAD:
+		error = EIO;
+		break;
+	case ERROR_CANTWRITE:
+		error = EIO;
+		break;
+	case ERROR_CRC:
+		error = EIO;
+		break;
+	case ERROR_CURRENT_DIRECTORY:
+		error = EACCES;
+		break;
+	case ERROR_DEVICE_IN_USE:
+		error = EBUSY;
+		break;
+	case ERROR_DEV_NOT_EXIST:
+		error = ENODEV;
+		break;
+	case ERROR_DIRECTORY:
+		error = EINVAL;
+		break;
+	case ERROR_DIR_NOT_EMPTY:
+		error = ENOTEMPTY;
+		break;
+	case ERROR_DISK_CHANGE:
+		error = EIO;
+		break;
+	case ERROR_DISK_FULL:
+		error = ENOSPC;
+		break;
+	case ERROR_DRIVE_LOCKED:
+		error = EBUSY;
+		break;
+	case ERROR_ENVVAR_NOT_FOUND:
+		error = EINVAL;
+		break;
+	case ERROR_EXE_MARKED_INVALID:
+		error = ENOEXEC;
+		break;
+	case ERROR_FILENAME_EXCED_RANGE:
+		error = ENAMETOOLONG;
+		break;
+	case ERROR_FILE_EXISTS:
+		error = EEXIST;
+		break;
+	case ERROR_FILE_INVALID:
+		error = ENODEV;
+		break;
+	case ERROR_FILE_NOT_FOUND:
+		error = ENOENT;
+		break;
+	case ERROR_GEN_FAILURE:
+		error = EIO;
+		break;
+	case ERROR_HANDLE_DISK_FULL:
+		error = ENOSPC;
+		break;
+	case ERROR_INSUFFICIENT_BUFFER:
+		error = ENOMEM;
+		break;
+	case ERROR_INVALID_ACCESS:
+		error = EACCES;
+		break;
+	case ERROR_INVALID_ADDRESS:
+		error = EFAULT;
+		break;
+	case ERROR_INVALID_BLOCK:
+		error = EFAULT;
+		break;
+	case ERROR_INVALID_DATA:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_DRIVE:
+		error = ENODEV;
+		break;
+	case ERROR_INVALID_EXE_SIGNATURE:
+		error = ENOEXEC;
+		break;
+	case ERROR_INVALID_FLAGS:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_FUNCTION:
+		error = ENOSYS;
+		break;
+	case ERROR_INVALID_HANDLE:
+		error = EBADF;
+		break;
+	case ERROR_INVALID_LOGON_HOURS:
+		error = EACCES;
+		break;
+	case ERROR_INVALID_NAME:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_OWNER:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_PARAMETER:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_PASSWORD:
+		error = EPERM;
+		break;
+	case ERROR_INVALID_PRIMARY_GROUP:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_REPARSE_DATA:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_SIGNAL_NUMBER:
+		error = EINVAL;
+		break;
+	case ERROR_INVALID_TARGET_HANDLE:
+		error = EIO;
+		break;
+	case ERROR_INVALID_WORKSTATION:
+		error = EACCES;
+		break;
+	case ERROR_IO_DEVICE:
+		error = EIO;
+		break;
+	case ERROR_IO_INCOMPLETE:
+		error = EINTR;
+		break;
+	case ERROR_LOCKED:
+		error = EBUSY;
+		break;
+	case ERROR_LOCK_VIOLATION:
+		error = EACCES;
+		break;
+	case ERROR_LOGON_FAILURE:
+		error = EACCES;
+		break;
+	case ERROR_MAPPED_ALIGNMENT:
+		error = EINVAL;
+		break;
+	case ERROR_META_EXPANSION_TOO_LONG:
+		error = E2BIG;
+		break;
+	case ERROR_MORE_DATA:
+		error = EPIPE;
+		break;
+	case ERROR_NEGATIVE_SEEK:
+		error = ESPIPE;
+		break;
+	case ERROR_NOACCESS:
+		error = EFAULT;
+		break;
+	case ERROR_NONE_MAPPED:
+		error = EINVAL;
+		break;
+	case ERROR_NOT_A_REPARSE_POINT:
+		error = EINVAL;
+		break;
+	case ERROR_NOT_ENOUGH_MEMORY:
+		error = ENOMEM;
+		break;
+	case ERROR_NOT_READY:
+		error = EAGAIN;
+		break;
+	case ERROR_NOT_SAME_DEVICE:
+		error = EXDEV;
+		break;
+	case ERROR_NO_DATA:
+		error = EPIPE;
+		break;
+	case ERROR_NO_MORE_SEARCH_HANDLES:
+		error = EIO;
+		break;
+	case ERROR_NO_PROC_SLOTS:
+		error = EAGAIN;
+		break;
+	case ERROR_NO_SUCH_PRIVILEGE:
+		error = EACCES;
+		break;
+	case ERROR_OPEN_FAILED:
+		error = EIO;
+		break;
+	case ERROR_OPEN_FILES:
+		error = EBUSY;
+		break;
+	case ERROR_OPERATION_ABORTED:
+		error = EINTR;
+		break;
+	case ERROR_OUTOFMEMORY:
+		error = ENOMEM;
+		break;
+	case ERROR_PASSWORD_EXPIRED:
+		error = EACCES;
+		break;
+	case ERROR_PATH_BUSY:
+		error = EBUSY;
+		break;
+	case ERROR_PATH_NOT_FOUND:
+		error = ENOENT;
+		break;
+	case ERROR_PIPE_BUSY:
+		error = EBUSY;
+		break;
+	case ERROR_PIPE_CONNECTED:
+		error = EPIPE;
+		break;
+	case ERROR_PIPE_LISTENING:
+		error = EPIPE;
+		break;
+	case ERROR_PIPE_NOT_CONNECTED:
+		error = EPIPE;
+		break;
+	case ERROR_PRIVILEGE_NOT_HELD:
+		error = EACCES;
+		break;
+	case ERROR_READ_FAULT:
+		error = EIO;
+		break;
+	case ERROR_REPARSE_ATTRIBUTE_CONFLICT:
+		error = EINVAL;
+		break;
+	case ERROR_REPARSE_TAG_INVALID:
+		error = EINVAL;
+		break;
+	case ERROR_REPARSE_TAG_MISMATCH:
+		error = EINVAL;
+		break;
+	case ERROR_SEEK:
+		error = EIO;
+		break;
+	case ERROR_SEEK_ON_DEVICE:
+		error = ESPIPE;
+		break;
+	case ERROR_SHARING_BUFFER_EXCEEDED:
+		error = ENFILE;
+		break;
+	case ERROR_SHARING_VIOLATION:
+		error = EACCES;
+		break;
+	case ERROR_STACK_OVERFLOW:
+		error = ENOMEM;
+		break;
+	case ERROR_SUCCESS:
+		BUG("err_win_to_posix() called without an error!");
+	case ERROR_SWAPERROR:
+		error = ENOENT;
+		break;
+	case ERROR_TOO_MANY_MODULES:
+		error = EMFILE;
+		break;
+	case ERROR_TOO_MANY_OPEN_FILES:
+		error = EMFILE;
+		break;
+	case ERROR_UNRECOGNIZED_MEDIA:
+		error = ENXIO;
+		break;
+	case ERROR_UNRECOGNIZED_VOLUME:
+		error = ENODEV;
+		break;
+	case ERROR_WAIT_NO_CHILDREN:
+		error = ECHILD;
+		break;
+	case ERROR_WRITE_FAULT:
+		error = EIO;
+		break;
+	case ERROR_WRITE_PROTECT:
+		error = EROFS;
+		break;
 	}
 	return error;
 }
@@ -181,11 +402,11 @@ static int read_yes_no_answer(void)
 		int got_full_line = 0, c;
 
 		/* remove the newline */
-		if (answer_len >= 2 && answer[answer_len-2] == '\r') {
-			answer[answer_len-2] = '\0';
+		if (answer_len >= 2 && answer[answer_len - 2] == '\r') {
+			answer[answer_len - 2] = '\0';
 			got_full_line = 1;
-		} else if (answer_len >= 1 && answer[answer_len-1] == '\n') {
-			answer[answer_len-1] = '\0';
+		} else if (answer_len >= 1 && answer[answer_len - 1] == '\n') {
+			answer[answer_len - 1] = '\0';
 			got_full_line = 1;
 		}
 		/* flush the buffer in case we did not get the full line */
@@ -248,10 +469,10 @@ static int retry_ask_yes_no(int *tries, const char *format, ...)
 
 	if ((*tries) < ARRAY_SIZE(delay)) {
 		/*
-		 * We assume that some other process had the file open at the wrong
-		 * moment and retry. In order to give the other process a higher
-		 * chance to complete its operation, we give up our time slice now.
-		 * If we have to retry again, we do sleep a bit.
+		 * We assume that some other process had the file open at the
+		 * wrong moment and retry. In order to give the other process a
+		 * higher chance to complete its operation, we give up our time
+		 * slice now. If we have to retry again, we do sleep a bit.
 		 */
 		Sleep(delay[*tries]);
 		(*tries)++;
@@ -390,9 +611,9 @@ process_phantom_symlink(const wchar_t *wtarget, const wchar_t *wlink)
 	const wchar_t *rel;
 
 	/* check that wlink is still a file symlink */
-	if ((GetFileAttributesW(wlink)
-			& (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY))
-			!= FILE_ATTRIBUTE_REPARSE_POINT)
+	if ((GetFileAttributesW(wlink) &
+	     (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY)) !=
+	    FILE_ATTRIBUTE_REPARSE_POINT)
 		return PHANTOM_SYMLINK_DONE;
 
 	/* make it relative, if necessary */
@@ -401,9 +622,9 @@ process_phantom_symlink(const wchar_t *wtarget, const wchar_t *wlink)
 		return PHANTOM_SYMLINK_DONE;
 
 	/* let Windows resolve the link by opening it */
-	hnd = CreateFileW(rel, 0,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+	hnd = CreateFileW(
+		rel, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (hnd == INVALID_HANDLE_VALUE) {
 		errno = err_win_to_posix(GetLastError());
 		return PHANTOM_SYMLINK_RETRY;
@@ -447,7 +668,7 @@ static void process_phantom_symlinks(void)
 	psi = &phantom_symlinks;
 	while ((current = *psi)) {
 		enum phantom_symlink_result result = process_phantom_symlink(
-				current->wtarget, current->wlink);
+			current->wtarget, current->wlink);
 		if (result == PHANTOM_SYMLINK_RETRY) {
 			psi = &current->next;
 		} else {
@@ -501,7 +722,8 @@ static int create_phantom_symlink(wchar_t *wtarget, wchar_t *wlink)
 		break;
 	}
 	case PHANTOM_SYMLINK_DIRECTORY:
-		/* if we created a dir symlink, process other phantom symlinks */
+		/* if we created a dir symlink, process other phantom symlinks
+		 */
 		process_phantom_symlinks();
 		break;
 	default:
@@ -554,13 +776,16 @@ int mingw_unlink(const char *pathname)
 			break;
 		/*
 		 * _wunlink() / DeleteFileW() for directory symlinks fails with
-		 * ERROR_ACCESS_DENIED (EACCES), so try _wrmdir() as well. This is the
-		 * same error we get if a file is in use (already checked above).
+		 * ERROR_ACCESS_DENIED (EACCES), so try _wrmdir() as well. This
+		 * is the same error we get if a file is in use (already checked
+		 * above).
 		 */
 		if (!_wrmdir(wpathname))
 			return 0;
-	} while (retry_ask_yes_no(&tries, "Unlink of file '%s' failed. "
-			"Should I try again?", pathname));
+	} while (retry_ask_yes_no(&tries,
+				  "Unlink of file '%s' failed. "
+				  "Should I try again?",
+				  pathname));
 	return -1;
 }
 
@@ -576,7 +801,7 @@ static int is_dir_empty(const wchar_t *wpath)
 		return GetLastError() == ERROR_NO_MORE_FILES;
 
 	while (!wcscmp(findbuf.cFileName, L".") ||
-			!wcscmp(findbuf.cFileName, L".."))
+	       !wcscmp(findbuf.cFileName, L".."))
 		if (!FindNextFileW(handle, &findbuf)) {
 			DWORD err = GetLastError();
 			FindClose(handle);
@@ -627,8 +852,10 @@ int mingw_rmdir(const char *pathname)
 			errno = ENOTEMPTY;
 			break;
 		}
-	} while (retry_ask_yes_no(&tries, "Deletion of directory '%s' failed. "
-			"Should I try again?", pathname));
+	} while (retry_ask_yes_no(&tries,
+				  "Deletion of directory '%s' failed. "
+				  "Should I try again?",
+				  pathname));
 	return -1;
 }
 
@@ -661,7 +888,7 @@ static inline int needs_hiding(const char *path)
 
 	assert(hide_dotfiles == HIDE_DOTFILES_DOTGITONLY);
 	return !strncasecmp(".git", basename, 4) &&
-		(!basename[4] || is_dir_sep(basename[4]));
+	       (!basename[4] || is_dir_sep(basename[4]));
 }
 
 static int set_hidden_flag(const wchar_t *path, int set)
@@ -706,7 +933,8 @@ int mingw_mkdir(const char *path, int mode)
  * (It is believed that) this is atomic since it is maintained by the
  * kernel unlike the O_APPEND flag which is racily maintained by the CRT.
  *
- * [1] https://docs.microsoft.com/en-us/windows/desktop/fileio/file-access-rights-constants
+ * [1]
+ * https://docs.microsoft.com/en-us/windows/desktop/fileio/file-access-rights-constants
  *
  * This trick does not appear to work for named pipes.  Instead it creates
  * a named pipe client handle that cannot be written to.  Callers should
@@ -728,8 +956,8 @@ static int mingw_open_append(wchar_t const *wfilename, int oflags, ...)
 	 * to append to the file.
 	 */
 	handle = CreateFileW(wfilename, FILE_APPEND_DATA,
-			FILE_SHARE_WRITE | FILE_SHARE_READ,
-			NULL, create, FILE_ATTRIBUTE_NORMAL, NULL);
+			     FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, create,
+			     FILE_ATTRIBUTE_NORMAL, NULL);
 	if (handle == INVALID_HANDLE_VALUE) {
 		DWORD err = GetLastError();
 
@@ -764,16 +992,13 @@ static int mingw_open_append(wchar_t const *wfilename, int oflags, ...)
  */
 static int is_local_named_pipe_path(const char *filename)
 {
-	return (is_dir_sep(filename[0]) &&
-		is_dir_sep(filename[1]) &&
-		filename[2] == '.'  &&
-		is_dir_sep(filename[3]) &&
-		!strncasecmp(filename+4, "pipe", 4) &&
-		is_dir_sep(filename[8]) &&
-		filename[9]);
+	return (is_dir_sep(filename[0]) && is_dir_sep(filename[1]) &&
+		filename[2] == '.' && is_dir_sep(filename[3]) &&
+		!strncasecmp(filename + 4, "pipe", 4) &&
+		is_dir_sep(filename[8]) && filename[9]);
 }
 
-int mingw_open (const char *filename, int oflags, ...)
+int mingw_open(const char *filename, int oflags, ...)
 {
 	static int append_atomically = -1;
 	typedef int (*open_fn_t)(wchar_t const *wfilename, int oflags, ...);
@@ -793,15 +1018,16 @@ int mingw_open (const char *filename, int oflags, ...)
 	}
 
 	/*
-	 * Only set append_atomically to default value(1) when repo is initialized
-	 * and fail to get config value
+	 * Only set append_atomically to default value(1) when repo is
+	 * initialized and fail to get config value
 	 */
-	if (append_atomically < 0 && the_repository && the_repository->commondir &&
-		git_config_get_bool("windows.appendatomically", &append_atomically))
+	if (append_atomically < 0 && the_repository &&
+	    the_repository->commondir &&
+	    git_config_get_bool("windows.appendatomically", &append_atomically))
 		append_atomically = 1;
 
 	if (append_atomically && (oflags & O_APPEND) &&
-		!is_local_named_pipe_path(filename))
+	    !is_local_named_pipe_path(filename))
 		open_fn = mingw_open_append;
 	else
 		open_fn = _wopen;
@@ -813,14 +1039,17 @@ int mingw_open (const char *filename, int oflags, ...)
 
 	fd = open_fn(wfilename, oflags, mode);
 
-	if ((oflags & O_CREAT) && fd >= 0 && are_wsl_compatible_mode_bits_enabled()) {
-		_mode_t wsl_mode = S_IFREG | (mode&0777);
-		set_wsl_mode_bits_by_handle((HANDLE)_get_osfhandle(fd), wsl_mode);
+	if ((oflags & O_CREAT) && fd >= 0 &&
+	    are_wsl_compatible_mode_bits_enabled()) {
+		_mode_t wsl_mode = S_IFREG | (mode & 0777);
+		set_wsl_mode_bits_by_handle((HANDLE)_get_osfhandle(fd),
+					    wsl_mode);
 	}
 
 	if (fd < 0 && (oflags & O_ACCMODE) != O_RDONLY && errno == EACCES) {
 		DWORD attrs = GetFileAttributesW(wfilename);
-		if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
+		if (attrs != INVALID_FILE_ATTRIBUTES &&
+		    (attrs & FILE_ATTRIBUTE_DIRECTORY))
 			errno = EISDIR;
 	}
 	if ((oflags & O_CREAT) && needs_hiding(filename)) {
@@ -867,7 +1096,7 @@ int mingw_fgetc(FILE *stream)
 }
 
 #undef fopen
-FILE *mingw_fopen (const char *filename, const char *otype)
+FILE *mingw_fopen(const char *filename, const char *otype)
 {
 	int hide = needs_hiding(filename);
 	FILE *file;
@@ -896,7 +1125,7 @@ FILE *mingw_fopen (const char *filename, const char *otype)
 	return file;
 }
 
-FILE *mingw_freopen (const char *filename, const char *otype, FILE *stream)
+FILE *mingw_freopen(const char *filename, const char *otype, FILE *stream)
 {
 	int hide = needs_hiding(filename);
 	FILE *file;
@@ -950,27 +1179,31 @@ ssize_t mingw_write(int fd, const void *buf, size_t len)
 {
 	ssize_t result = write(fd, buf, len);
 
-	if (result < 0 && (errno == EINVAL || errno == EBADF || errno == ENOSPC) && buf) {
+	if (result < 0 &&
+	    (errno == EINVAL || errno == EBADF || errno == ENOSPC) && buf) {
 		int orig = errno;
 
 		/* check if fd is a pipe */
-		HANDLE h = (HANDLE) _get_osfhandle(fd);
+		HANDLE h = (HANDLE)_get_osfhandle(fd);
 		if (GetFileType(h) != FILE_TYPE_PIPE) {
 			if (orig == EINVAL) {
 				wchar_t path[MAX_LONG_PATH];
-				DWORD ret = GetFinalPathNameByHandleW(h, path,
-								ARRAY_SIZE(path), 0);
-				UINT drive_type = ret > 0 && ret < ARRAY_SIZE(path) ?
-					GetDriveTypeW(path) : DRIVE_UNKNOWN;
+				DWORD ret = GetFinalPathNameByHandleW(
+					h, path, ARRAY_SIZE(path), 0);
+				UINT drive_type =
+					ret > 0 && ret < ARRAY_SIZE(path) ?
+						GetDriveTypeW(path) :
+						DRIVE_UNKNOWN;
 
 				/*
-				 * The default atomic append causes such an error on
-				 * network file systems, in such a case, it should be
-				 * turned off via config.
+				 * The default atomic append causes such an
+				 * error on network file systems, in such a
+				 * case, it should be turned off via config.
 				 *
 				 * `drive_type` of UNC path: DRIVE_NO_ROOT_DIR
 				 */
-				if (DRIVE_NO_ROOT_DIR == drive_type || DRIVE_REMOTE == drive_type)
+				if (DRIVE_NO_ROOT_DIR == drive_type ||
+				    DRIVE_REMOTE == drive_type)
 					warning("invalid write operation detected; you may try:\n"
 						"\n\tgit config windows.appendAtomically false");
 			}
@@ -1014,14 +1247,16 @@ int mingw_chdir(const char *dirname)
 		return -1;
 
 	if (has_symlinks) {
-		HANDLE hnd = CreateFileW(wdirname, 0,
-				FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-				OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+		HANDLE hnd = CreateFileW(
+			wdirname, 0,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		if (hnd == INVALID_HANDLE_VALUE) {
 			errno = err_win_to_posix(GetLastError());
 			return -1;
 		}
-		if (!GetFinalPathNameByHandleW(hnd, wdirname, ARRAY_SIZE(wdirname), 0)) {
+		if (!GetFinalPathNameByHandleW(hnd, wdirname,
+					       ARRAY_SIZE(wdirname), 0)) {
 			errno = err_win_to_posix(GetLastError());
 			CloseHandle(hnd);
 			return -1;
@@ -1110,11 +1345,15 @@ int mingw_lstat(const char *file_name, struct stat *buf)
 		buf->st_uid = 0;
 		buf->st_nlink = 1;
 		buf->st_mode = file_attr_to_st_mode(fdata.dwFileAttributes,
-				reparse_tag, file_name);
-		buf->st_size = S_ISLNK(buf->st_mode) ? link_len :
-			fdata.nFileSizeLow | (((off_t) fdata.nFileSizeHigh) << 32);
+						    reparse_tag, file_name);
+		buf->st_size =
+			S_ISLNK(buf->st_mode) ?
+				link_len :
+				fdata.nFileSizeLow |
+					(((off_t)fdata.nFileSizeHigh) << 32);
 		buf->st_dev = buf->st_rdev = 0; /* not used by Git */
-		filetime_to_timespec(&(fdata.ftLastAccessTime), &(buf->st_atim));
+		filetime_to_timespec(&(fdata.ftLastAccessTime),
+				     &(buf->st_atim));
 		filetime_to_timespec(&(fdata.ftLastWriteTime), &(buf->st_mtim));
 		filetime_to_timespec(&(fdata.ftCreationTime), &(buf->st_ctim));
 		if (S_ISREG(buf->st_mode) &&
@@ -1168,13 +1407,13 @@ static int get_file_info_by_handle(HANDLE hnd, struct stat *buf)
 	buf->st_nlink = 1;
 	buf->st_mode = file_attr_to_st_mode(fdata.dwFileAttributes, 0, NULL);
 	buf->st_size = fdata.nFileSizeLow |
-		(((off_t)fdata.nFileSizeHigh)<<32);
+		       (((off_t)fdata.nFileSizeHigh) << 32);
 	buf->st_dev = buf->st_rdev = 0; /* not used by Git */
 	filetime_to_timespec(&(fdata.ftLastAccessTime), &(buf->st_atim));
 	filetime_to_timespec(&(fdata.ftLastWriteTime), &(buf->st_mtim));
 	filetime_to_timespec(&(fdata.ftCreationTime), &(buf->st_ctim));
 	if (are_wsl_compatible_mode_bits_enabled())
-	    get_wsl_mode_bits_by_handle(hnd, &buf->st_mode);
+		get_wsl_mode_bits_by_handle(hnd, &buf->st_mode);
 	return 0;
 }
 
@@ -1187,15 +1426,15 @@ int mingw_stat(const char *file_name, struct stat *buf)
 	/* open the file and let Windows resolve the links */
 	if (xutftowcs_long_path(wfile_name, file_name) < 0)
 		return -1;
-	hnd = CreateFileW(wfile_name, 0,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+	hnd = CreateFileW(
+		wfile_name, 0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+		OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (hnd == INVALID_HANDLE_VALUE) {
 		DWORD err = GetLastError();
 
 		if (err == ERROR_ACCESS_DENIED &&
-		    !mingw_lstat(file_name, buf) &&
-		    !S_ISLNK(buf->st_mode))
+		    !mingw_lstat(file_name, buf) && !S_ISLNK(buf->st_mode))
 			/*
 			 * POSIX semantics state to still try to fill
 			 * information, even if permission is denied to create
@@ -1248,7 +1487,7 @@ static inline void time_t_to_filetime(time_t t, FILETIME *ft)
 	ft->dwHighDateTime = winTime >> 32;
 }
 
-int mingw_utime (const char *file_name, const struct utimbuf *times)
+int mingw_utime(const char *file_name, const struct utimbuf *times)
 {
 	FILETIME mft, aft;
 	int rc;
@@ -1267,14 +1506,12 @@ int mingw_utime (const char *file_name, const struct utimbuf *times)
 		SetFileAttributesW(wfilename, attrs & ~FILE_ATTRIBUTE_READONLY);
 	}
 
-	osfilehandle = CreateFileW(wfilename,
-				   FILE_WRITE_ATTRIBUTES,
-				   0 /*FileShare.None*/,
-				   NULL,
-				   OPEN_EXISTING,
+	osfilehandle = CreateFileW(wfilename, FILE_WRITE_ATTRIBUTES,
+				   0 /*FileShare.None*/, NULL, OPEN_EXISTING,
 				   (attrs != INVALID_FILE_ATTRIBUTES &&
-					(attrs & FILE_ATTRIBUTE_DIRECTORY)) ?
-					FILE_FLAG_BACKUP_SEMANTICS : 0,
+				    (attrs & FILE_ATTRIBUTE_DIRECTORY)) ?
+					   FILE_FLAG_BACKUP_SEMANTICS :
+					   0,
 				   NULL);
 	if (osfilehandle == INVALID_HANDLE_VALUE) {
 		errno = err_win_to_posix(GetLastError());
@@ -1309,14 +1546,16 @@ revert_attrs:
 }
 
 #undef strftime
-size_t mingw_strftime(char *s, size_t max,
-		      const char *format, const struct tm *tm)
+size_t mingw_strftime(char *s, size_t max, const char *format,
+		      const struct tm *tm)
 {
-	/* a pointer to the original strftime in case we can't find the UCRT version */
-	static size_t (*fallback)(char *, size_t, const char *, const struct tm *) = strftime;
+	/* a pointer to the original strftime in case we can't find the UCRT
+	 * version */
+	static size_t (*fallback)(char *, size_t, const char *,
+				  const struct tm *) = strftime;
 	size_t ret;
-	DECLARE_PROC_ADDR(ucrtbase.dll, size_t, __cdecl, strftime, char *, size_t,
-		const char *, const struct tm *);
+	DECLARE_PROC_ADDR(ucrtbase.dll, size_t, __cdecl, strftime, char *,
+			  size_t, const char *, const struct tm *);
 
 	if (INIT_PROC_ADDR(strftime))
 		ret = strftime(s, max, format, tm);
@@ -1328,9 +1567,9 @@ size_t mingw_strftime(char *s, size_t max,
 	return ret;
 }
 
-unsigned int sleep (unsigned int seconds)
+unsigned int sleep(unsigned int seconds)
 {
-	Sleep(seconds*1000);
+	Sleep(seconds * 1000);
 	return 0;
 }
 
@@ -1428,8 +1667,8 @@ char *mingw_strbuf_realpath(struct strbuf *resolved, const char *path)
 		return NULL;
 
 	h = CreateFileW(wpath, 0,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-			OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 
 	/*
 	 * strbuf_realpath() allows the last path component to not exist. If
@@ -1445,25 +1684,27 @@ char *mingw_strbuf_realpath(struct strbuf *resolved, const char *path)
 				break; /* found start of last component */
 
 		if (p != wpath && (last_component = find_last_dir_sep(path))) {
-			append = xstrdup(last_component + 1); /* skip directory separator */
+			append = xstrdup(last_component + 1); /* skip directory
+								 separator */
 			/*
-			 * Do not strip the trailing slash at the drive root, otherwise
-			 * the path would be e.g. `C:` (which resolves to the
-			 * _current_ directory on that drive).
+			 * Do not strip the trailing slash at the drive root,
+			 * otherwise the path would be e.g. `C:` (which resolves
+			 * to the _current_ directory on that drive).
 			 */
 			if (p[-1] == L':')
 				p[1] = L'\0';
 			else
 				*p = L'\0';
-			h = CreateFileW(wpath, 0, FILE_SHARE_READ |
-					FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			h = CreateFileW(wpath, 0,
+					FILE_SHARE_READ | FILE_SHARE_WRITE |
+						FILE_SHARE_DELETE,
 					NULL, OPEN_EXISTING,
 					FILE_FLAG_BACKUP_SEMANTICS, NULL);
 		}
 	}
 
 	if (h == INVALID_HANDLE_VALUE) {
-realpath_failed:
+	realpath_failed:
 		FREE_AND_NULL(append);
 		return NULL;
 	}
@@ -1488,7 +1729,6 @@ realpath_failed:
 	}
 
 	return resolved->buf;
-
 }
 
 char *mingw_getcwd(char *pointer, int len)
@@ -1501,16 +1741,19 @@ char *mingw_getcwd(char *pointer, int len)
 		errno = ret ? ENAMETOOLONG : err_win_to_posix(GetLastError());
 		return NULL;
 	}
-	hnd = CreateFileW(cwd, 0,
-			  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-			  OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+	hnd = CreateFileW(
+		cwd, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 	if (hnd != INVALID_HANDLE_VALUE) {
-		ret = GetFinalPathNameByHandleW(hnd, wpointer, ARRAY_SIZE(wpointer), 0);
+		ret = GetFinalPathNameByHandleW(hnd, wpointer,
+						ARRAY_SIZE(wpointer), 0);
 		CloseHandle(hnd);
 		if (!ret || ret >= ARRAY_SIZE(wpointer)) {
-			ret = GetLongPathNameW(cwd, wpointer, ARRAY_SIZE(wpointer));
+			ret = GetLongPathNameW(cwd, wpointer,
+					       ARRAY_SIZE(wpointer));
 			if (!ret || ret >= ARRAY_SIZE(wpointer)) {
-				errno = ret ? ENAMETOOLONG : err_win_to_posix(GetLastError());
+				errno = ret ? ENAMETOOLONG :
+					      err_win_to_posix(GetLastError());
 				return NULL;
 			}
 		}
@@ -1539,9 +1782,11 @@ static const char *quote_arg_msvc(const char *arg)
 	int force_quotes = 0;
 	char *q, *d;
 	const char *p = arg;
-	if (!*p) force_quotes = 1;
+	if (!*p)
+		force_quotes = 1;
 	while (*p) {
-		if (isspace(*p) || *p == '*' || *p == '?' || *p == '{' || *p == '\'')
+		if (isspace(*p) || *p == '*' || *p == '?' || *p == '{' ||
+		    *p == '\'')
 			force_quotes = 1;
 		else if (*p == '"')
 			n++;
@@ -1553,7 +1798,7 @@ static const char *quote_arg_msvc(const char *arg)
 				len++;
 			}
 			if (*p == '"' || !*p)
-				n += count*2 + 1;
+				n += count * 2 + 1;
 			continue;
 		}
 		len++;
@@ -1590,7 +1835,7 @@ static const char *quote_arg_msvc(const char *arg)
 	return q;
 }
 
-#include "quote.h"
+#include "components/quote.h"
 
 static const char *quote_arg_msys2(const char *arg)
 {
@@ -1630,15 +1875,15 @@ static const char *parse_interpreter(const char *cmd)
 
 	/* don't even try a .exe */
 	n = strlen(cmd);
-	if (n >= 4 && !strcasecmp(cmd+n-4, ".exe"))
+	if (n >= 4 && !strcasecmp(cmd + n - 4, ".exe"))
 		return NULL;
 
 	fd = open(cmd, O_RDONLY);
 	if (fd < 0)
 		return NULL;
-	n = read(fd, buf, sizeof(buf)-1);
+	n = read(fd, buf, sizeof(buf) - 1);
 	close(fd);
-	if (n < 4)	/* at least '#!/x' and not error */
+	if (n < 4) /* at least '#!/x' and not error */
 		return NULL;
 
 	if (buf[0] != '#' || buf[1] != '!')
@@ -1649,12 +1894,12 @@ static const char *parse_interpreter(const char *cmd)
 		return NULL;
 
 	*p = '\0';
-	if (!(p = strrchr(buf+2, '/')) && !(p = strrchr(buf+2, '\\')))
+	if (!(p = strrchr(buf + 2, '/')) && !(p = strrchr(buf + 2, '\\')))
 		return NULL;
 	/* strip options */
-	if ((opt = strchr(p+1, ' ')))
+	if ((opt = strchr(p + 1, ' ')))
 		*opt = '\0';
-	return p+1;
+	return p + 1;
 }
 
 /*
@@ -1673,10 +1918,10 @@ static char *lookup_prog(const char *dir, int dirlen, const char *cmd,
 
 	if (!isexe && _waccess(wpath, F_OK) == 0)
 		return xstrdup(path);
-	wpath[wcslen(wpath)-4] = '\0';
+	wpath[wcslen(wpath) - 4] = '\0';
 	if ((!exe_only || isexe) && _waccess(wpath, F_OK) == 0) {
 		if (!(GetFileAttributesW(wpath) & FILE_ATTRIBUTE_DIRECTORY)) {
-			path[strlen(path)-4] = '\0';
+			path[strlen(path) - 4] = '\0';
 			return xstrdup(path);
 		}
 	}
@@ -1738,8 +1983,8 @@ static char *is_busybox_applet(const char *cmd)
 		}
 	}
 
-	return string_list_has_string(&applets, cmd) ?
-		xstrdup(busybox_path) : NULL;
+	return string_list_has_string(&applets, cmd) ? xstrdup(busybox_path) :
+						       NULL;
 }
 
 /*
@@ -1751,7 +1996,7 @@ static char *path_lookup(const char *cmd, int exe_only)
 	const char *path;
 	char *prog = NULL;
 	int len = strlen(cmd);
-	int isexe = len >= 4 && !strcasecmp(cmd+len-4, ".exe");
+	int isexe = len >= 4 && !strcasecmp(cmd + len - 4, ".exe");
 
 	if (strpbrk(cmd, "/\\"))
 		return xstrdup(cmd);
@@ -1831,7 +2076,7 @@ static wchar_t *make_environment_block(char **deltaenv)
 
 	/* If there is no deltaenv to apply, simply return a copy. */
 	if (!deltaenv || !*deltaenv) {
-		for (p = wenv; p && *p; ) {
+		for (p = wenv; p && *p;) {
 			size_t s = wcslen(p) + 1;
 			size += s;
 			p += s;
@@ -1847,7 +2092,7 @@ static wchar_t *make_environment_block(char **deltaenv)
 	 * sort them using the stable git_stable_qsort() and then copy,
 	 * skipping duplicate keys
 	 */
-	for (p = wenv; p && *p; ) {
+	for (p = wenv; p && *p;) {
 		ALLOC_GROW(array, nr + 1, alloc);
 		s = wcslen(p) + 1;
 		array[nr++] = p;
@@ -1874,7 +2119,7 @@ static wchar_t *make_environment_block(char **deltaenv)
 	for (p = result, i = 0; i < nr; i++) {
 		/* Skip any duplicate keys; last one wins */
 		while (i + 1 < nr && !wenvcmp(array + i, array + i + 1))
-		       i++;
+			i++;
 
 		/* Skip "to delete" entry */
 		if (!wcschr(array[i], L'='))
@@ -1929,6 +2174,8 @@ static inline int match_last_path_component(const char *path, size_t *len,
 	if (*len < component_len + 1 ||
 	    !is_dir_sep(path[*len - component_len - 1]) ||
 	    fspathncmp(path + *len - component_len, component, component_len))
+		// strncmp(path + *len - component_len, component,
+		// component_len))
 		return 0;
 	*len -= component_len + 1;
 	/* chomp off repeated dir separators */
@@ -1956,8 +2203,8 @@ static int is_msys2_sh(const char *cmd)
 			size_t len = strlen(p);
 
 			ret = match_last_path_component(p, &len, "sh.exe") &&
-				match_last_path_component(p, &len, "bin") &&
-				match_last_path_component(p, &len, "usr");
+			      match_last_path_component(p, &len, "bin") &&
+			      match_last_path_component(p, &len, "usr");
 			free(p);
 		}
 		return ret;
@@ -1970,14 +2217,16 @@ static int is_msys2_sh(const char *cmd)
 			sh = path_lookup("sh", 0);
 
 		return !fspathcmp(cmd, sh);
+		// return !strncmp(cmd, sh);
 	}
 
 	return 0;
 }
 
-static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaenv,
-			      const char *dir, const char *prepend_cmd,
-			      int fhin, int fhout, int fherr)
+static pid_t mingw_spawnve_fd(const char *cmd, const char **argv,
+			      char **deltaenv, const char *dir,
+			      const char *prepend_cmd, int fhin, int fhout,
+			      int fherr)
 {
 	static int restrict_handle_inheritance = -1;
 	STARTUPINFOEXW si;
@@ -1992,8 +2241,8 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 	BOOL ret;
 	HANDLE cons;
 	const char *(*quote_arg)(const char *arg) =
-		is_msys2_sh(cmd ? cmd : *argv) ?
-		quote_arg_msys2 : quote_arg_msvc;
+		is_msys2_sh(cmd ? cmd : *argv) ? quote_arg_msys2 :
+						 quote_arg_msvc;
 	const char *strace_env;
 
 	/* Make sure to override previous errors, if any */
@@ -2012,9 +2261,8 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 	do_unset_environment_variables();
 
 	/* Determine whether or not we are associated to a console */
-	cons = CreateFileW(L"CONOUT$", GENERIC_WRITE,
-			FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL, NULL);
+	cons = CreateFileW(L"CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, NULL,
+			   OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (cons == INVALID_HANDLE_VALUE) {
 		/* There is no console associated with this process.
 		 * Since the child is a console process, Windows
@@ -2117,22 +2365,19 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 	if (restrict_handle_inheritance && stdhandles_count &&
 	    (InitializeProcThreadAttributeList(NULL, 1, 0, &size) ||
 	     GetLastError() == ERROR_INSUFFICIENT_BUFFER) &&
-	    (attr_list = (LPPROC_THREAD_ATTRIBUTE_LIST)
-			(HeapAlloc(GetProcessHeap(), 0, size))) &&
+	    (attr_list = (LPPROC_THREAD_ATTRIBUTE_LIST)(HeapAlloc(
+		     GetProcessHeap(), 0, size))) &&
 	    InitializeProcThreadAttributeList(attr_list, 1, 0, &size) &&
-	    UpdateProcThreadAttribute(attr_list, 0,
-				      PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-				      stdhandles,
-				      stdhandles_count * sizeof(HANDLE),
-				      NULL, NULL)) {
+	    UpdateProcThreadAttribute(
+		    attr_list, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, stdhandles,
+		    stdhandles_count * sizeof(HANDLE), NULL, NULL)) {
 		si.lpAttributeList = attr_list;
 		flags |= EXTENDED_STARTUPINFO_PRESENT;
 	}
 
 	ret = CreateProcessW(*wcmd ? wcmd : NULL, wargs, NULL, NULL,
-			     stdhandles_count ? TRUE : FALSE,
-			     flags, wenvblk, dir ? wdir : NULL,
-			     &si.StartupInfo, &pi);
+			     stdhandles_count ? TRUE : FALSE, flags, wenvblk,
+			     dir ? wdir : NULL, &si.StartupInfo, &pi);
 
 	/*
 	 * On Windows 2008 R2, it seems that specifying certain types of handles
@@ -2166,13 +2411,14 @@ static pid_t mingw_spawnve_fd(const char *cmd, const char **argv, char **deltaen
 
 			for (i = 0; i < stdhandles_count; i++) {
 				HANDLE h = stdhandles[i];
-				strbuf_addf(&buf, "handle #%d: %p (type %lx, "
-					    "handle info (%d) %lx\n", i, h,
-					    GetFileType(h),
-					    GetHandleInformation(h, &fl),
-					    fl);
+				strbuf_addf(&buf,
+					    "handle #%d: %p (type %lx, "
+					    "handle info (%d) %lx\n",
+					    i, h, GetFileType(h),
+					    GetHandleInformation(h, &fl), fl);
 			}
-			strbuf_addstr(&buf, "\nThis is a bug; please report it "
+			strbuf_addstr(&buf,
+				      "\nThis is a bug; please report it "
 				      "at\nhttps://github.com/git-for-windows/"
 				      "git/issues/new\n\n"
 				      "To suppress this warning, please set "
@@ -2236,8 +2482,7 @@ static pid_t mingw_spawnv(const char *cmd, const char **argv,
 }
 
 pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **deltaenv,
-		     const char *dir,
-		     int fhin, int fhout, int fherr)
+		     const char *dir, int fhin, int fhout, int fherr)
 {
 	pid_t pid;
 	char *prog = path_lookup(cmd, 0);
@@ -2245,8 +2490,7 @@ pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **deltaenv,
 	if (!prog) {
 		errno = ENOENT;
 		pid = -1;
-	}
-	else {
+	} else {
 		const char *interpr = parse_interpreter(prog);
 
 		if (interpr) {
@@ -2256,15 +2500,14 @@ pid_t mingw_spawnvpe(const char *cmd, const char **argv, char **deltaenv,
 			if (!iprog) {
 				errno = ENOENT;
 				pid = -1;
-			}
-			else {
-				pid = mingw_spawnve_fd(iprog, argv, deltaenv, dir, interpr,
-						       fhin, fhout, fherr);
+			} else {
+				pid = mingw_spawnve_fd(iprog, argv, deltaenv,
+						       dir, interpr, fhin,
+						       fhout, fherr);
 				free(iprog);
 			}
 			argv[0] = argv0;
-		}
-		else
+		} else
 			pid = mingw_spawnve_fd(prog, argv, deltaenv, dir, NULL,
 					       fhin, fhout, fherr);
 		free(prog);
@@ -2285,9 +2528,10 @@ static int try_shell_exec(const char *cmd, char *const *argv)
 		int exec_id;
 		int argc = 0;
 		char **argv2;
-		while (argv[argc]) argc++;
+		while (argv[argc])
+			argc++;
 		ALLOC_ARRAY(argv2, argc + 1);
-		argv2[0] = (char *)cmd;	/* full path to the script file */
+		argv2[0] = (char *)cmd; /* full path to the script file */
 		COPY_ARRAY(&argv2[1], &argv[1], argc);
 		exec_id = trace2_exec(prog, (const char **)argv2);
 		pid = mingw_spawnv(prog, (const char **)argv2, interpr);
@@ -2299,7 +2543,7 @@ static int try_shell_exec(const char *cmd, char *const *argv)
 			exit(status);
 		}
 		trace2_exec_result(exec_id, -1);
-		pid = 1;	/* indicate that we tried but failed */
+		pid = 1; /* indicate that we tried but failed */
 		free(prog);
 		free(argv2);
 	}
@@ -2343,11 +2587,11 @@ int mingw_execvp(const char *cmd, char *const *argv)
 int mingw_kill(pid_t pid, int sig)
 {
 	if (pid > 0 && sig == SIGTERM) {
-		HANDLE h = OpenProcess(PROCESS_CREATE_THREAD |
-				       PROCESS_QUERY_INFORMATION |
-				       PROCESS_VM_OPERATION | PROCESS_VM_WRITE |
-				       PROCESS_VM_READ | PROCESS_TERMINATE,
-				       FALSE, pid);
+		HANDLE h = OpenProcess(
+			PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
+				PROCESS_VM_OPERATION | PROCESS_VM_WRITE |
+				PROCESS_VM_READ | PROCESS_TERMINATE,
+			FALSE, pid);
 		int ret;
 
 		if (h)
@@ -2403,7 +2647,8 @@ char *mingw_getenv(const char *name)
 	xutftowcs(w_key, name, len_key);
 	/* GetEnvironmentVariableW() only sets the last error upon failure */
 	SetLastError(ERROR_SUCCESS);
-	len_value = GetEnvironmentVariableW(w_key, w_value, ARRAY_SIZE(w_value));
+	len_value =
+		GetEnvironmentVariableW(w_key, w_value, ARRAY_SIZE(w_value));
 	if (!len_value && GetLastError() == ERROR_ENVVAR_NOT_FOUND) {
 		free(w_key);
 		return NULL;
@@ -2467,50 +2712,83 @@ static void ensure_socket_initialization(void)
 	if (initialized)
 		return;
 
-	if (WSAStartup(MAKEWORD(2,2), &wsa))
+	if (WSAStartup(MAKEWORD(2, 2), &wsa))
 		die("unable to initialize winsock subsystem, error %d",
-			WSAGetLastError());
+		    WSAGetLastError());
 
-	atexit((void(*)(void)) WSACleanup);
+	atexit((void (*)(void))WSACleanup);
 	initialized = 1;
 }
 
 static int winsock_error_to_errno(DWORD err)
 {
 	switch (err) {
-	case WSAEINTR: return EINTR;
-	case WSAEBADF: return EBADF;
-	case WSAEACCES: return EACCES;
-	case WSAEFAULT: return EFAULT;
-	case WSAEINVAL: return EINVAL;
-	case WSAEMFILE: return EMFILE;
-	case WSAEWOULDBLOCK: return EWOULDBLOCK;
-	case WSAEINPROGRESS: return EINPROGRESS;
-	case WSAEALREADY: return EALREADY;
-	case WSAENOTSOCK: return ENOTSOCK;
-	case WSAEDESTADDRREQ: return EDESTADDRREQ;
-	case WSAEMSGSIZE: return EMSGSIZE;
-	case WSAEPROTOTYPE: return EPROTOTYPE;
-	case WSAENOPROTOOPT: return ENOPROTOOPT;
-	case WSAEPROTONOSUPPORT: return EPROTONOSUPPORT;
-	case WSAEOPNOTSUPP: return EOPNOTSUPP;
-	case WSAEAFNOSUPPORT: return EAFNOSUPPORT;
-	case WSAEADDRINUSE: return EADDRINUSE;
-	case WSAEADDRNOTAVAIL: return EADDRNOTAVAIL;
-	case WSAENETDOWN: return ENETDOWN;
-	case WSAENETUNREACH: return ENETUNREACH;
-	case WSAENETRESET: return ENETRESET;
-	case WSAECONNABORTED: return ECONNABORTED;
-	case WSAECONNRESET: return ECONNRESET;
-	case WSAENOBUFS: return ENOBUFS;
-	case WSAEISCONN: return EISCONN;
-	case WSAENOTCONN: return ENOTCONN;
-	case WSAETIMEDOUT: return ETIMEDOUT;
-	case WSAECONNREFUSED: return ECONNREFUSED;
-	case WSAELOOP: return ELOOP;
-	case WSAENAMETOOLONG: return ENAMETOOLONG;
-	case WSAEHOSTUNREACH: return EHOSTUNREACH;
-	case WSAENOTEMPTY: return ENOTEMPTY;
+	case WSAEINTR:
+		return EINTR;
+	case WSAEBADF:
+		return EBADF;
+	case WSAEACCES:
+		return EACCES;
+	case WSAEFAULT:
+		return EFAULT;
+	case WSAEINVAL:
+		return EINVAL;
+	case WSAEMFILE:
+		return EMFILE;
+	case WSAEWOULDBLOCK:
+		return EWOULDBLOCK;
+	case WSAEINPROGRESS:
+		return EINPROGRESS;
+	case WSAEALREADY:
+		return EALREADY;
+	case WSAENOTSOCK:
+		return ENOTSOCK;
+	case WSAEDESTADDRREQ:
+		return EDESTADDRREQ;
+	case WSAEMSGSIZE:
+		return EMSGSIZE;
+	case WSAEPROTOTYPE:
+		return EPROTOTYPE;
+	case WSAENOPROTOOPT:
+		return ENOPROTOOPT;
+	case WSAEPROTONOSUPPORT:
+		return EPROTONOSUPPORT;
+	case WSAEOPNOTSUPP:
+		return EOPNOTSUPP;
+	case WSAEAFNOSUPPORT:
+		return EAFNOSUPPORT;
+	case WSAEADDRINUSE:
+		return EADDRINUSE;
+	case WSAEADDRNOTAVAIL:
+		return EADDRNOTAVAIL;
+	case WSAENETDOWN:
+		return ENETDOWN;
+	case WSAENETUNREACH:
+		return ENETUNREACH;
+	case WSAENETRESET:
+		return ENETRESET;
+	case WSAECONNABORTED:
+		return ECONNABORTED;
+	case WSAECONNRESET:
+		return ECONNRESET;
+	case WSAENOBUFS:
+		return ENOBUFS;
+	case WSAEISCONN:
+		return EISCONN;
+	case WSAENOTCONN:
+		return ENOTCONN;
+	case WSAETIMEDOUT:
+		return ETIMEDOUT;
+	case WSAECONNREFUSED:
+		return ECONNREFUSED;
+	case WSAELOOP:
+		return ELOOP;
+	case WSAENAMETOOLONG:
+		return ENAMETOOLONG;
+	case WSAEHOSTUNREACH:
+		return EHOSTUNREACH;
+	case WSAENOTEMPTY:
+		return ENOTEMPTY;
 	/* No errno equivalent; default to EIO */
 	case WSAESOCKTNOSUPPORT:
 	case WSAEPFNOSUPPORT:
@@ -2570,7 +2848,8 @@ static int winsock_error_to_errno(DWORD err)
 	case WSA_QOS_ESDMODEOBJ:
 	case WSA_QOS_ESHAPERATEOBJ:
 	case WSA_QOS_RESERVED_PETYPE:
-	default: return EIO;
+	default:
+		return EIO;
 	}
 }
 
@@ -2598,7 +2877,10 @@ static inline int winsock_return(int ret)
 	return ret;
 }
 
-#define WINSOCK_RETURN(x) do { return winsock_return(x); } while (0)
+#define WINSOCK_RETURN(x)                 \
+	do {                              \
+		return winsock_return(x); \
+	} while (0)
 
 #undef gethostname
 int mingw_gethostname(char *name, int namelen)
@@ -2650,10 +2932,10 @@ int mingw_socket(int domain, int type, int protocol)
 		return -1;
 	}
 	/* convert into a file descriptor */
-	if ((sockfd = _open_osfhandle(s, O_RDWR|O_BINARY)) < 0) {
+	if ((sockfd = _open_osfhandle(s, O_RDWR | O_BINARY)) < 0) {
 		closesocket(s);
 		return error("unable to make a socket file descriptor: %s",
-			strerror(errno));
+			     strerror(errno));
 	}
 	return sockfd;
 }
@@ -2676,7 +2958,8 @@ int mingw_bind(int sockfd, struct sockaddr *sa, size_t sz)
 int mingw_setsockopt(int sockfd, int lvl, int optname, void *optval, int optlen)
 {
 	SOCKET s = (SOCKET)_get_osfhandle(sockfd);
-	WINSOCK_RETURN(setsockopt(s, lvl, optname, (const char*)optval, optlen));
+	WINSOCK_RETURN(
+		setsockopt(s, lvl, optname, (const char *)optval, optlen));
 }
 
 #undef shutdown
@@ -2707,11 +2990,11 @@ int mingw_accept(int sockfd1, struct sockaddr *sa, socklen_t *sz)
 	}
 
 	/* convert into a file descriptor */
-	if ((sockfd2 = _open_osfhandle(s2, O_RDWR|O_BINARY)) < 0) {
+	if ((sockfd2 = _open_osfhandle(s2, O_RDWR | O_BINARY)) < 0) {
 		int err = errno;
 		closesocket(s2);
 		return error("unable to make a socket file descriptor: %s",
-			strerror(err));
+			     strerror(err));
 	}
 	return sockfd2;
 }
@@ -2735,14 +3018,18 @@ repeat:
 	if (gle == ERROR_ACCESS_DENIED) {
 		if (is_inside_windows_container()) {
 			/* Fall back to copy to destination & remove source */
-			if (CopyFileW(wpold, wpnew, FALSE) && !mingw_unlink(pold))
+			if (CopyFileW(wpold, wpnew, FALSE) &&
+			    !mingw_unlink(pold))
 				return 0;
 			gle = GetLastError();
-		} else if ((attrsold = GetFileAttributesW(wpold)) & FILE_ATTRIBUTE_READONLY) {
+		} else if ((attrsold = GetFileAttributesW(wpold)) &
+			   FILE_ATTRIBUTE_READONLY) {
 			/* if file is read-only, change and retry */
-			SetFileAttributesW(wpold, attrsold & ~FILE_ATTRIBUTE_READONLY);
+			SetFileAttributesW(wpold,
+					   attrsold & ~FILE_ATTRIBUTE_READONLY);
 			if (MoveFileExW(wpold, wpnew,
-					MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED)) {
+					MOVEFILE_REPLACE_EXISTING |
+						MOVEFILE_COPY_ALLOWED)) {
 				SetFileAttributesW(wpnew, attrsold);
 				return 0;
 			}
@@ -2776,8 +3063,10 @@ repeat:
 		    SetFileAttributesW(wpnew, attrs & ~FILE_ATTRIBUTE_READONLY))
 			goto repeat;
 	}
-	if (retry_ask_yes_no(&tries, "Rename from '%s' to '%s' failed. "
-		       "Should I try again?", pold, pnew))
+	if (retry_ask_yes_no(&tries,
+			     "Rename from '%s' to '%s' failed. "
+			     "Should I try again?",
+			     pold, pnew))
 		goto repeat;
 
 	errno = EACCES;
@@ -2797,15 +3086,12 @@ int mingw_getpagesize(void)
 }
 
 /* See https://msdn.microsoft.com/en-us/library/windows/desktop/ms724435.aspx */
-enum EXTENDED_NAME_FORMAT {
-	NameDisplay = 3,
-	NameUserPrincipal = 8
-};
+enum EXTENDED_NAME_FORMAT { NameDisplay = 3, NameUserPrincipal = 8 };
 
 static char *get_extended_user_info(enum EXTENDED_NAME_FORMAT type)
 {
 	DECLARE_PROC_ADDR(secur32.dll, BOOL, SEC_ENTRY, GetUserNameExW,
-		enum EXTENDED_NAME_FORMAT, LPCWSTR, PULONG);
+			  enum EXTENDED_NAME_FORMAT, LPCWSTR, PULONG);
 	static wchar_t wbuffer[1024];
 	DWORD len;
 
@@ -2878,7 +3164,8 @@ static sig_handler_t timer_fn = SIG_DFL, sigint_fn = SIG_DFL;
 
 static unsigned __stdcall ticktack(void *dummy)
 {
-	while (WaitForSingleObject(timer_event, timer_interval) == WAIT_TIMEOUT) {
+	while (WaitForSingleObject(timer_event, timer_interval) ==
+	       WAIT_TIMEOUT) {
 		mingw_raise(SIGALRM);
 		if (one_shot)
 			break;
@@ -2890,20 +3177,21 @@ static int start_timer_thread(void)
 {
 	timer_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (timer_event) {
-		timer_thread = (HANDLE) _beginthreadex(NULL, 0, ticktack, NULL, 0, NULL);
-		if (!timer_thread )
+		timer_thread = (HANDLE)_beginthreadex(NULL, 0, ticktack, NULL,
+						      0, NULL);
+		if (!timer_thread)
 			return errno = ENOMEM,
-				error("cannot start timer thread");
+			       error("cannot start timer thread");
 	} else
 		return errno = ENOMEM,
-			error("cannot allocate resources for timer");
+		       error("cannot allocate resources for timer");
 	return 0;
 }
 
 static void stop_timer_thread(void)
 {
 	if (timer_event)
-		SetEvent(timer_event);	/* tell thread to terminate */
+		SetEvent(timer_event); /* tell thread to terminate */
 	if (timer_thread) {
 		int rc = WaitForSingleObject(timer_thread, 10000);
 		if (rc == WAIT_TIMEOUT)
@@ -2919,7 +3207,8 @@ static void stop_timer_thread(void)
 	timer_thread = NULL;
 }
 
-static inline int is_timeval_eq(const struct timeval *i1, const struct timeval *i2)
+static inline int is_timeval_eq(const struct timeval *i1,
+				const struct timeval *i2)
 {
 	return i1->tv_sec == i2->tv_sec && i1->tv_usec == i2->tv_usec;
 }
@@ -2931,11 +3220,11 @@ int setitimer(int type, struct itimerval *in, struct itimerval *out)
 
 	if (out)
 		return errno = EINVAL,
-			error("setitimer param 3 != NULL not implemented");
+		       error("setitimer param 3 != NULL not implemented");
 	if (!is_timeval_eq(&in->it_interval, &zero) &&
 	    !is_timeval_eq(&in->it_interval, &in->it_value))
 		return errno = EINVAL,
-			error("setitimer: it_interval must be zero or eq it_value");
+		       error("setitimer: it_interval must be zero or eq it_value");
 
 	if (timer_thread)
 		stop_timer_thread();
@@ -2944,7 +3233,8 @@ int setitimer(int type, struct itimerval *in, struct itimerval *out)
 	    is_timeval_eq(&in->it_interval, &zero))
 		return 0;
 
-	timer_interval = in->it_value.tv_sec * 1000 + in->it_value.tv_usec / 1000;
+	timer_interval =
+		in->it_value.tv_sec * 1000 + in->it_value.tv_usec / 1000;
 	one_shot = is_timeval_eq(&in->it_interval, &zero);
 	if (!atexit_done) {
 		atexit(stop_timer_thread);
@@ -2957,10 +3247,10 @@ int sigaction(int sig, struct sigaction *in, struct sigaction *out)
 {
 	if (sig != SIGALRM)
 		return errno = EINVAL,
-			error("sigaction only implemented for SIGALRM");
+		       error("sigaction only implemented for SIGALRM");
 	if (out)
 		return errno = EINVAL,
-			error("sigaction: param 3 != NULL not implemented");
+		       error("sigaction: param 3 != NULL not implemented");
 
 	timer_fn = in->sa_handler;
 	return 0;
@@ -3035,7 +3325,6 @@ int mingw_raise(int sig)
 		return raise(sig);
 
 #endif
-
 	}
 }
 
@@ -3059,7 +3348,8 @@ enum symlink_type {
 	SYMLINK_TYPE_DIRECTORY,
 };
 
-static enum symlink_type check_symlink_attr(struct index_state *index, const char *link)
+static enum symlink_type check_symlink_attr(struct index_state *index,
+					    const char *link)
 {
 	static struct attr_check *check;
 	const char *value;
@@ -3084,7 +3374,8 @@ static enum symlink_type check_symlink_attr(struct index_state *index, const cha
 	return SYMLINK_TYPE_UNSPECIFIED;
 }
 
-int mingw_create_symlink(struct index_state *index, const char *target, const char *link)
+int mingw_create_symlink(struct index_state *index, const char *target,
+			 const char *link)
 {
 	wchar_t wtarget[MAX_LONG_PATH], wlink[MAX_LONG_PATH];
 	int len;
@@ -3095,8 +3386,8 @@ int mingw_create_symlink(struct index_state *index, const char *target, const ch
 		return -1;
 	}
 
-	if ((len = xutftowcs_long_path(wtarget, target)) < 0
-			|| xutftowcs_long_path(wlink, link) < 0)
+	if ((len = xutftowcs_long_path(wtarget, target)) < 0 ||
+	    xutftowcs_long_path(wlink, link) < 0)
 		return -1;
 
 	/* convert target dir separators to backslashes */
@@ -3138,30 +3429,30 @@ int mingw_create_symlink(struct index_state *index, const char *target, const ch
  * it ourselves if we are on MSYS2 (whose winnt.h defines _WINNT_).
  */
 typedef struct _REPARSE_DATA_BUFFER {
-	DWORD  ReparseTag;
-	WORD   ReparseDataLength;
-	WORD   Reserved;
+	DWORD ReparseTag;
+	WORD ReparseDataLength;
+	WORD Reserved;
 #ifndef _MSC_VER
 	_ANONYMOUS_UNION
 #endif
 	union {
 		struct {
-			WORD   SubstituteNameOffset;
-			WORD   SubstituteNameLength;
-			WORD   PrintNameOffset;
-			WORD   PrintNameLength;
-			ULONG  Flags;
+			WORD SubstituteNameOffset;
+			WORD SubstituteNameLength;
+			WORD PrintNameOffset;
+			WORD PrintNameLength;
+			ULONG Flags;
 			WCHAR PathBuffer[1];
 		} SymbolicLinkReparseBuffer;
 		struct {
-			WORD   SubstituteNameOffset;
-			WORD   SubstituteNameLength;
-			WORD   PrintNameOffset;
-			WORD   PrintNameLength;
+			WORD SubstituteNameOffset;
+			WORD SubstituteNameLength;
+			WORD PrintNameOffset;
+			WORD PrintNameLength;
 			WCHAR PathBuffer[1];
 		} MountPointReparseBuffer;
 		struct {
-			BYTE   DataBuffer[1];
+			BYTE DataBuffer[1];
 		} GenericReparseBuffer;
 	} DUMMYUNIONNAME;
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
@@ -3176,16 +3467,18 @@ static int readlink_1(const WCHAR *wpath, BOOL fail_on_unknown_tag,
 	DWORD dummy;
 
 	/* read reparse point data */
-	handle = CreateFileW(wpath, 0,
-			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
-			OPEN_EXISTING,
-			FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT, NULL);
+	handle = CreateFileW(
+		wpath, 0,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+		OPEN_EXISTING,
+		FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+		NULL);
 	if (handle == INVALID_HANDLE_VALUE) {
 		errno = err_win_to_posix(GetLastError());
 		return -1;
 	}
 	if (!DeviceIoControl(handle, FSCTL_GET_REPARSE_POINT, NULL, 0, b,
-			MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &dummy, NULL)) {
+			     MAXIMUM_REPARSE_DATA_BUFFER_SIZE, &dummy, NULL)) {
 		errno = err_win_to_posix(GetLastError());
 		CloseHandle(handle);
 		return -1;
@@ -3195,16 +3488,20 @@ static int readlink_1(const WCHAR *wpath, BOOL fail_on_unknown_tag,
 	/* get target path for symlinks or mount points (aka 'junctions') */
 	switch ((*ptag = b->ReparseTag)) {
 	case IO_REPARSE_TAG_SYMLINK:
-		wbuf = (WCHAR*) (((char*) b->SymbolicLinkReparseBuffer.PathBuffer)
-				+ b->SymbolicLinkReparseBuffer.SubstituteNameOffset);
-		*(WCHAR*) (((char*) wbuf)
-				+ b->SymbolicLinkReparseBuffer.SubstituteNameLength) = 0;
+		wbuf = (WCHAR *)(((char *)b->SymbolicLinkReparseBuffer
+					  .PathBuffer) +
+				 b->SymbolicLinkReparseBuffer
+					 .SubstituteNameOffset);
+		*(WCHAR *)(((char *)wbuf) +
+			   b->SymbolicLinkReparseBuffer.SubstituteNameLength) =
+			0;
 		break;
 	case IO_REPARSE_TAG_MOUNT_POINT:
-		wbuf = (WCHAR*) (((char*) b->MountPointReparseBuffer.PathBuffer)
-				+ b->MountPointReparseBuffer.SubstituteNameOffset);
-		*(WCHAR*) (((char*) wbuf)
-				+ b->MountPointReparseBuffer.SubstituteNameLength) = 0;
+		wbuf = (WCHAR *)(((char *)b->MountPointReparseBuffer.PathBuffer) +
+				 b->MountPointReparseBuffer
+					 .SubstituteNameOffset);
+		*(WCHAR *)(((char *)wbuf) +
+			   b->MountPointReparseBuffer.SubstituteNameLength) = 0;
 		break;
 	default:
 		if (fail_on_unknown_tag) {
@@ -3216,8 +3513,8 @@ static int readlink_1(const WCHAR *wpath, BOOL fail_on_unknown_tag,
 		}
 	}
 
-	if ((*plen =
-	     xwcstoutf(tmpbuf, normalize_ntpath(wbuf), MAX_LONG_PATH)) <  0)
+	if ((*plen = xwcstoutf(tmpbuf, normalize_ntpath(wbuf), MAX_LONG_PATH)) <
+	    0)
 		return -1;
 	return 0;
 }
@@ -3236,11 +3533,12 @@ int readlink(const char *path, char *buf, size_t bufsiz)
 		return -1;
 
 	/*
-	 * Adapt to strange readlink() API: Copy up to bufsiz *bytes*, potentially
-	 * cutting off a UTF-8 sequence. Insufficient bufsize is *not* a failure
-	 * condition. There is no conversion function that produces invalid UTF-8,
-	 * so convert to a (hopefully large enough) temporary buffer, then memcpy
-	 * the requested number of bytes (including '\0' for robustness).
+	 * Adapt to strange readlink() API: Copy up to bufsiz *bytes*,
+	 * potentially cutting off a UTF-8 sequence. Insufficient bufsize is
+	 * *not* a failure condition. There is no conversion function that
+	 * produces invalid UTF-8, so convert to a (hopefully large enough)
+	 * temporary buffer, then memcpy the requested number of bytes
+	 * (including '\0' for robustness).
 	 */
 	memcpy(buf, tmpbuf, min(bufsiz, len + 1));
 	return min(bufsiz, len);
@@ -3248,8 +3546,8 @@ int readlink(const char *path, char *buf, size_t bufsiz)
 
 pid_t waitpid(pid_t pid, int *status, int options)
 {
-	HANDLE h = OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION,
-	    FALSE, pid);
+	HANDLE h = OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION, FALSE,
+			       pid);
 	if (!h) {
 		errno = ECHILD;
 		return -1;
@@ -3319,13 +3617,13 @@ int mingw_is_mount_point(struct strbuf *path)
 	FindClose(handle);
 
 	return (findbuf.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) &&
-		(findbuf.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT);
+	       (findbuf.dwReserved0 == IO_REPARSE_TAG_MOUNT_POINT);
 }
 
 int xutftowcsn(wchar_t *wcs, const char *utfs, size_t wcslen, int utflen)
 {
 	int upos = 0, wpos = 0;
-	const unsigned char *utf = (const unsigned char*) utfs;
+	const unsigned char *utf = (const unsigned char *)utfs;
 	if (!utf || !wcs || wcslen < 1) {
 		errno = EINVAL;
 		return -1;
@@ -3350,28 +3648,31 @@ int xutftowcsn(wchar_t *wcs, const char *utfs, size_t wcslen, int utflen)
 			/* ASCII */
 			wcs[wpos++] = c;
 		} else if (c >= 0xc2 && c < 0xe0 && upos < utflen &&
-				(utf[upos] & 0xc0) == 0x80) {
+			   (utf[upos] & 0xc0) == 0x80) {
 			/* 2-byte utf-8 */
 			c = ((c & 0x1f) << 6);
 			c |= (utf[upos++] & 0x3f);
 			wcs[wpos++] = c;
 		} else if (c >= 0xe0 && c < 0xf0 && upos + 1 < utflen &&
-				!(c == 0xe0 && utf[upos] < 0xa0) && /* over-long encoding */
-				(utf[upos] & 0xc0) == 0x80 &&
-				(utf[upos + 1] & 0xc0) == 0x80) {
+			   !(c == 0xe0 && utf[upos] < 0xa0) && /* over-long
+								  encoding */
+			   (utf[upos] & 0xc0) == 0x80 &&
+			   (utf[upos + 1] & 0xc0) == 0x80) {
 			/* 3-byte utf-8 */
 			c = ((c & 0x0f) << 12);
 			c |= ((utf[upos++] & 0x3f) << 6);
 			c |= (utf[upos++] & 0x3f);
 			wcs[wpos++] = c;
 		} else if (c >= 0xf0 && c < 0xf5 && upos + 2 < utflen &&
-				wpos + 1 < wcslen &&
-				!(c == 0xf0 && utf[upos] < 0x90) && /* over-long encoding */
-				!(c == 0xf4 && utf[upos] >= 0x90) && /* > \u10ffff */
-				(utf[upos] & 0xc0) == 0x80 &&
-				(utf[upos + 1] & 0xc0) == 0x80 &&
-				(utf[upos + 2] & 0xc0) == 0x80) {
-			/* 4-byte utf-8: convert to \ud8xx \udcxx surrogate pair */
+			   wpos + 1 < wcslen &&
+			   !(c == 0xf0 && utf[upos] < 0x90) && /* over-long
+								  encoding */
+			   !(c == 0xf4 && utf[upos] >= 0x90) && /* > \u10ffff */
+			   (utf[upos] & 0xc0) == 0x80 &&
+			   (utf[upos + 1] & 0xc0) == 0x80 &&
+			   (utf[upos + 2] & 0xc0) == 0x80) {
+			/* 4-byte utf-8: convert to \ud8xx \udcxx surrogate pair
+			 */
 			c = ((c & 0x07) << 18);
 			c |= ((utf[upos++] & 0x3f) << 12);
 			c |= ((utf[upos++] & 0x3f) << 6);
@@ -3380,10 +3681,12 @@ int xutftowcsn(wchar_t *wcs, const char *utfs, size_t wcslen, int utflen)
 			wcs[wpos++] = 0xd800 | (c >> 10);
 			wcs[wpos++] = 0xdc00 | (c & 0x3ff);
 		} else if (c >= 0xa0) {
-			/* invalid utf-8 byte, printable unicode char: convert 1:1 */
+			/* invalid utf-8 byte, printable unicode char: convert
+			 * 1:1 */
 			wcs[wpos++] = c;
 		} else {
-			/* invalid utf-8 byte, non-printable unicode: convert to hex */
+			/* invalid utf-8 byte, non-printable unicode: convert to
+			 * hex */
 			static const char *hex = "0123456789abcdef";
 			wcs[wpos++] = hex[c >> 4];
 			if (wpos < wcslen)
@@ -3400,7 +3703,8 @@ int xwcstoutf(char *utf, const wchar_t *wcs, size_t utflen)
 		errno = EINVAL;
 		return -1;
 	}
-	utflen = WideCharToMultiByte(CP_UTF8, 0, wcs, -1, utf, utflen, NULL, NULL);
+	utflen = WideCharToMultiByte(CP_UTF8, 0, wcs, -1, utf, utflen, NULL,
+				     NULL);
 	if (utflen)
 		return utflen - 1;
 	errno = ERANGE;
@@ -3423,26 +3727,27 @@ static size_t append_system_bin_dirs(char *path, size_t size)
 	/* strip trailing `git.exe` */
 	len = slash - prefix;
 
-	/* strip trailing `cmd` or `mingw64\bin` or `mingw32\bin` or `bin` or `libexec\git-core` */
+	/* strip trailing `cmd` or `mingw64\bin` or `mingw32\bin` or `bin` or
+	 * `libexec\git-core` */
 	if (strip_suffix_mem(prefix, &len, "\\mingw64\\libexec\\git-core") ||
 	    strip_suffix_mem(prefix, &len, "\\mingw64\\bin"))
-		off += xsnprintf(path + off, size - off,
-				 "%.*s\\mingw64\\bin;", (int)len, prefix);
-	else if (strip_suffix_mem(prefix, &len, "\\mingw32\\libexec\\git-core") ||
+		off += xsnprintf(path + off, size - off, "%.*s\\mingw64\\bin;",
+				 (int)len, prefix);
+	else if (strip_suffix_mem(prefix, &len,
+				  "\\mingw32\\libexec\\git-core") ||
 		 strip_suffix_mem(prefix, &len, "\\mingw32\\bin"))
-		off += xsnprintf(path + off, size - off,
-				 "%.*s\\mingw32\\bin;", (int)len, prefix);
+		off += xsnprintf(path + off, size - off, "%.*s\\mingw32\\bin;",
+				 (int)len, prefix);
 	else if (strip_suffix_mem(prefix, &len, "\\cmd") ||
 		 strip_suffix_mem(prefix, &len, "\\bin") ||
 		 strip_suffix_mem(prefix, &len, "\\libexec\\git-core"))
-		off += xsnprintf(path + off, size - off,
-				 "%.*s\\mingw%d\\bin;", (int)len, prefix,
-				 (int)(sizeof(void *) * 8));
+		off += xsnprintf(path + off, size - off, "%.*s\\mingw%d\\bin;",
+				 (int)len, prefix, (int)(sizeof(void *) * 8));
 	else
 		return 0;
 
-	off += xsnprintf(path + off, size - off,
-			 "%.*s\\usr\\bin;", (int)len, prefix);
+	off += xsnprintf(path + off, size - off, "%.*s\\usr\\bin;", (int)len,
+			 prefix);
 	return off;
 #endif
 }
@@ -3483,7 +3788,6 @@ static void setup_windows_environment(void)
 		 */
 		convert_slashes(tmp);
 	}
-
 
 	/*
 	 * Make sure TERM is set up correctly to enable auto-color
@@ -3533,8 +3837,8 @@ static void setup_windows_environment(void)
 		char buf[32768];
 		size_t off = 0;
 
-		xsnprintf(buf, sizeof(buf),
-			  "MINGW%d", (int)(sizeof(void *) * 8));
+		xsnprintf(buf, sizeof(buf), "MINGW%d",
+			  (int)(sizeof(void *) * 8));
 		setenv("MSYSTEM", buf, 1);
 
 		if (home)
@@ -3542,8 +3846,8 @@ static void setup_windows_environment(void)
 					 "%s\\bin;", home);
 		off += append_system_bin_dirs(buf + off, sizeof(buf) - off);
 		if (path)
-			off += xsnprintf(buf + off, sizeof(buf) - off,
-					 "%s", path);
+			off += xsnprintf(buf + off, sizeof(buf) - off, "%s",
+					 path);
 		else if (off > 0)
 			buf[off - 1] = '\0';
 		else
@@ -3607,8 +3911,9 @@ static BOOL user_sid_to_user_name(PSID sid, LPSTR *str)
 	 * Alloc needed space of the strings
 	 */
 	ALLOC_ARRAY((*str), (size_t)len_domain + (size_t)len_user);
-	translate_sid_to_user = LookupAccountSidA(NULL, sid,
-	    (*str) + len_domain, &len_user, *str, &len_domain, &pe_use);
+	translate_sid_to_user =
+		LookupAccountSidA(NULL, sid, (*str) + len_domain, &len_user,
+				  *str, &len_domain, &pe_use);
 	if (!translate_sid_to_user)
 		FREE_AND_NULL(*str);
 	else
@@ -3622,8 +3927,7 @@ static int acls_supported(const char *path)
 	WCHAR wroot[MAX_PATH];
 	DWORD file_system_flags;
 
-	if (offset &&
-	    xutftowcsn(wroot, path, MAX_PATH, offset) > 0 &&
+	if (offset && xutftowcsn(wroot, path, MAX_PATH, offset) > 0 &&
 	    GetVolumeInformationW(wroot, NULL, 0, NULL, NULL,
 				  &file_system_flags, NULL, 0))
 		return !!(file_system_flags & FILE_PERSISTENT_ACLS);
@@ -3662,7 +3966,7 @@ int is_path_owned_by_current_sid(const char *path, struct strbuf *report)
 	/* Get the owner SID */
 	err = GetNamedSecurityInfoW(wpath, SE_FILE_OBJECT,
 				    OWNER_SECURITY_INFORMATION |
-				    DACL_SECURITY_INFORMATION,
+					    DACL_SECURITY_INFORMATION,
 				    &sid, NULL, NULL, NULL, &descriptor);
 
 	if (err == ERROR_SUCCESS && sid && IsValidSid(sid)) {
@@ -3673,8 +3977,7 @@ int is_path_owned_by_current_sid(const char *path, struct strbuf *report)
 		if (!current_user_sid)
 			current_user_sid = get_current_user_sid();
 
-		if (current_user_sid &&
-		    IsValidSid(current_user_sid) &&
+		if (current_user_sid && IsValidSid(current_user_sid) &&
 		    EqualSid(sid, current_user_sid))
 			result = 1;
 		else if (IsWellKnownSid(sid, WinBuiltinAdministratorsSid) &&
@@ -3686,18 +3989,19 @@ int is_path_owned_by_current_sid(const char *path, struct strbuf *report)
 			 * okay, too.
 			 */
 			result = 1;
-		else if (report &&
-			 IsWellKnownSid(sid, WinWorldSid) &&
+		else if (report && IsWellKnownSid(sid, WinWorldSid) &&
 			 !acls_supported(path)) {
 			/*
 			 * On FAT32 volumes, ownership is not actually recorded.
 			 */
-			strbuf_addf(report, "'%s' is on a file system that does "
-				    "not record ownership\n", path);
+			strbuf_addf(report,
+				    "'%s' is on a file system that does "
+				    "not record ownership\n",
+				    path);
 		} else if (report) {
-			LPSTR str1, str2, str3, str4, to_free1 = NULL,
-			    to_free3 = NULL, to_local_free2 = NULL,
-			    to_local_free4 = NULL;
+			LPSTR str1, str2, str3, str4,
+				to_free1 = NULL, to_free3 = NULL,
+				to_local_free2 = NULL, to_local_free4 = NULL;
 
 			if (user_sid_to_user_name(sid, &str1))
 				to_free1 = str1;
@@ -3711,8 +4015,7 @@ int is_path_owned_by_current_sid(const char *path, struct strbuf *report)
 			if (!current_user_sid) {
 				str3 = "(none)";
 				str4 = "(none)";
-			}
-			else if (!IsValidSid(current_user_sid)) {
+			} else if (!IsValidSid(current_user_sid)) {
 				str3 = "(invalid)";
 				str4 = "(invalid)";
 			} else {
@@ -3764,7 +4067,8 @@ int is_valid_win32_path(const char *path, int allow_literal_nul)
 		char c = *(path++);
 		switch (c) {
 		case '\0':
-		case '/': case '\\':
+		case '/':
+		case '\\':
 			/* cannot end in ` ` or `.`, except for `.` and `..` */
 			if (preceding_space_or_period &&
 			    (i != periods || periods > 2))
@@ -3774,17 +4078,19 @@ int is_valid_win32_path(const char *path, int allow_literal_nul)
 
 			i = periods = preceding_space_or_period = 0;
 
-segment_start:
+		segment_start:
 			switch (*path) {
-			case 'a': case 'A': /* AUX */
+			case 'a':
+			case 'A': /* AUX */
 				if (((c = path[++i]) != 'u' && c != 'U') ||
 				    ((c = path[++i]) != 'x' && c != 'X')) {
-not_a_reserved_name:
+				not_a_reserved_name:
 					path += i;
 					continue;
 				}
 				break;
-			case 'c': case 'C':
+			case 'c':
+			case 'C':
 				/* COM1 ... COM9, CON, CONIN$, CONOUT$ */
 				if ((c = path[++i]) != 'o' && c != 'O')
 					goto not_a_reserved_name;
@@ -3810,20 +4116,23 @@ not_a_reserved_name:
 				} else
 					goto not_a_reserved_name;
 				break;
-			case 'l': case 'L': /* LPT<N> */
+			case 'l':
+			case 'L': /* LPT<N> */
 				if (((c = path[++i]) != 'p' && c != 'P') ||
 				    ((c = path[++i]) != 't' && c != 'T') ||
 				    !isdigit(path[++i]))
 					goto not_a_reserved_name;
 				break;
-			case 'n': case 'N': /* NUL */
+			case 'n':
+			case 'N': /* NUL */
 				if (((c = path[++i]) != 'u' && c != 'U') ||
 				    ((c = path[++i]) != 'l' && c != 'L') ||
-				    (allow_literal_nul &&
-				     !path[i + 1] && p == path))
+				    (allow_literal_nul && !path[i + 1] &&
+				     p == path))
 					goto not_a_reserved_name;
 				break;
-			case 'p': case 'P': /* PRN */
+			case 'p':
+			case 'P': /* PRN */
 				if (((c = path[++i]) != 'r' && c != 'R') ||
 				    ((c = path[++i]) != 'n' && c != 'N'))
 					goto not_a_reserved_name;
@@ -3847,7 +4156,8 @@ not_a_reserved_name:
 			}
 
 			c = path[i];
-			if (c && c != '.' && c != ':' && !is_xplatform_dir_sep(c))
+			if (c && c != '.' && c != ':' &&
+			    !is_xplatform_dir_sep(c))
 				goto not_a_reserved_name;
 
 			/* contains reserved name */
@@ -3860,7 +4170,12 @@ not_a_reserved_name:
 			i++;
 			continue;
 		case ':': /* DOS drive prefix was already skipped */
-		case '<': case '>': case '"': case '|': case '?': case '*':
+		case '<':
+		case '>':
+		case '"':
+		case '|':
+		case '?':
+		case '*':
 			/* illegal character */
 			return 0;
 		default:
@@ -3910,8 +4225,8 @@ int handle_long_path(wchar_t *path, int len, int max_path, int expand)
 	 */
 	if (result < max_path) {
 		/* Be careful not to add a drive prefix if there was none */
-		if (is_wdir_sep(path[0]) &&
-		    !is_wdir_sep(buf[0]) && buf[1] == L':' && is_wdir_sep(buf[2]))
+		if (is_wdir_sep(path[0]) && !is_wdir_sep(buf[0]) &&
+		    buf[1] == L':' && is_wdir_sep(buf[2]))
 			wcscpy(path, buf + 2);
 		else
 			wcscpy(path, buf);
@@ -3997,15 +4312,16 @@ static void maybe_redirect_std_handle(const wchar_t *key, DWORD std_id, int fd,
 			if (handle != INVALID_HANDLE_VALUE)
 				CloseHandle(handle);
 		} else {
-			int new_fd = _open_osfhandle((intptr_t)handle, O_BINARY);
+			int new_fd =
+				_open_osfhandle((intptr_t)handle, O_BINARY);
 			SetStdHandle(std_id, handle);
 			dup2(new_fd, fd);
 			/* do *not* close the new_fd: that would close stdout */
 		}
 		return;
 	}
-	handle = CreateFileW(buf, desired_access, 0, NULL, create_flag,
-			     flags, NULL);
+	handle = CreateFileW(buf, desired_access, 0, NULL, create_flag, flags,
+			     NULL);
 	if (handle != INVALID_HANDLE_VALUE) {
 		int new_fd = _open_osfhandle((intptr_t)handle, O_BINARY);
 		SetStdHandle(std_id, handle);
@@ -4105,7 +4421,8 @@ int wmain(int argc, const wchar_t **wargv)
 	ALLOC_ARRAY(argv, argc + 1);
 	ALLOC_ARRAY(save, argc + 1);
 	for (i = 0; i < argc; i++)
-		argv[i] = save[i] = wcstoutfdup_startup(buffer, wargv[i], maxlen);
+		argv[i] = save[i] =
+			wcstoutfdup_startup(buffer, wargv[i], maxlen);
 	argv[i] = save[i] = NULL;
 	free(buffer);
 
@@ -4149,11 +4466,10 @@ int uname(struct utsname *buf)
 	unsigned v = (unsigned)GetVersion();
 	memset(buf, 0, sizeof(*buf));
 	xsnprintf(buf->sysname, sizeof(buf->sysname), "Windows");
-	xsnprintf(buf->release, sizeof(buf->release),
-		 "%u.%u", v & 0xff, (v >> 8) & 0xff);
+	xsnprintf(buf->release, sizeof(buf->release), "%u.%u", v & 0xff,
+		  (v >> 8) & 0xff);
 	/* assuming NT variants only.. */
-	xsnprintf(buf->version, sizeof(buf->version),
-		  "%u", (v >> 16) & 0x7fff);
+	xsnprintf(buf->version, sizeof(buf->version), "%u", (v >> 16) & 0x7fff);
 	return 0;
 }
 
@@ -4167,7 +4483,10 @@ int mingw_have_unix_sockets(void)
 	if (scm) {
 		srvc = OpenServiceA(scm, "afunix", SERVICE_QUERY_STATUS);
 		if (srvc) {
-			if(QueryServiceStatusEx(srvc, SC_STATUS_PROCESS_INFO, (LPBYTE)&status, sizeof(SERVICE_STATUS_PROCESS), &bytes))
+			if (QueryServiceStatusEx(srvc, SC_STATUS_PROCESS_INFO,
+						 (LPBYTE)&status,
+						 sizeof(SERVICE_STATUS_PROCESS),
+						 &bytes))
 				ret = status.dwCurrentState == SERVICE_RUNNING;
 			CloseServiceHandle(srvc);
 		}
@@ -4201,14 +4520,15 @@ int is_inside_windows_container(void)
 	if (inside_container != -1)
 		return inside_container;
 
-	inside_container = ERROR_SUCCESS ==
+	inside_container =
+		ERROR_SUCCESS ==
 		RegOpenKeyExA(HKEY_LOCAL_MACHINE, key, 0, KEY_READ, &handle);
 	RegCloseKey(handle);
 
 	return inside_container;
 }
 
-int file_attr_to_st_mode (DWORD attr, DWORD tag, const char *path)
+int file_attr_to_st_mode(DWORD attr, DWORD tag, const char *path)
 {
 	int fMode = S_IREAD;
 	if ((attr & FILE_ATTRIBUTE_REPARSE_POINT) &&

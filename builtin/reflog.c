@@ -1,32 +1,30 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "repository.h"
-#include "revision.h"
-#include "reachable.h"
-#include "wildmatch.h"
-#include "worktree.h"
-#include "reflog.h"
-#include "refs.h"
-#include "parse-options.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/repository.h"
+#include "components/revision.h"
+#include "components/reachable.h"
+#include "components/wildmatch.h"
+#include "components/worktree.h"
+#include "components/reflog.h"
+#include "components/refs.h"
+#include "components/parse-options.h"
 
 #define BUILTIN_REFLOG_SHOW_USAGE \
 	N_("git reflog [show] [<log-options>] [<ref>]")
 
-#define BUILTIN_REFLOG_LIST_USAGE \
-	N_("git reflog list")
+#define BUILTIN_REFLOG_LIST_USAGE N_("git reflog list")
 
-#define BUILTIN_REFLOG_EXPIRE_USAGE \
+#define BUILTIN_REFLOG_EXPIRE_USAGE                                              \
 	N_("git reflog expire [--expire=<time>] [--expire-unreachable=<time>]\n" \
-	   "                  [--rewrite] [--updateref] [--stale-fix]\n" \
+	   "                  [--rewrite] [--updateref] [--stale-fix]\n"         \
 	   "                  [--dry-run | -n] [--verbose] [--all [--single-worktree] | <refs>...]")
 
-#define BUILTIN_REFLOG_DELETE_USAGE \
+#define BUILTIN_REFLOG_DELETE_USAGE                        \
 	N_("git reflog delete [--rewrite] [--updateref]\n" \
 	   "                  [--dry-run | -n] [--verbose] <ref>@{<specifier>}...")
 
-#define BUILTIN_REFLOG_EXISTS_USAGE \
-	N_("git reflog exists <ref>")
+#define BUILTIN_REFLOG_EXISTS_USAGE N_("git reflog exists <ref>")
 
 static const char *const reflog_show_usage[] = {
 	BUILTIN_REFLOG_SHOW_USAGE,
@@ -38,15 +36,11 @@ static const char *const reflog_list_usage[] = {
 	NULL,
 };
 
-static const char *const reflog_expire_usage[] = {
-	BUILTIN_REFLOG_EXPIRE_USAGE,
-	NULL
-};
+static const char *const reflog_expire_usage[] = { BUILTIN_REFLOG_EXPIRE_USAGE,
+						   NULL };
 
-static const char *const reflog_delete_usage[] = {
-	BUILTIN_REFLOG_DELETE_USAGE,
-	NULL
-};
+static const char *const reflog_delete_usage[] = { BUILTIN_REFLOG_DELETE_USAGE,
+						   NULL };
 
 static const char *const reflog_exists_usage[] = {
 	BUILTIN_REFLOG_EXISTS_USAGE,
@@ -54,12 +48,9 @@ static const char *const reflog_exists_usage[] = {
 };
 
 static const char *const reflog_usage[] = {
-	BUILTIN_REFLOG_SHOW_USAGE,
-	BUILTIN_REFLOG_LIST_USAGE,
-	BUILTIN_REFLOG_EXPIRE_USAGE,
-	BUILTIN_REFLOG_DELETE_USAGE,
-	BUILTIN_REFLOG_EXISTS_USAGE,
-	NULL
+	BUILTIN_REFLOG_SHOW_USAGE,   BUILTIN_REFLOG_LIST_USAGE,
+	BUILTIN_REFLOG_EXPIRE_USAGE, BUILTIN_REFLOG_DELETE_USAGE,
+	BUILTIN_REFLOG_EXISTS_USAGE, NULL
 };
 
 static timestamp_t default_reflog_expire;
@@ -95,7 +86,7 @@ static struct reflog_expire_cfg {
 	timestamp_t expire_total;
 	timestamp_t expire_unreachable;
 	char pattern[FLEX_ARRAY];
-} *reflog_expire_cfg, **reflog_expire_cfg_tail;
+} * reflog_expire_cfg, **reflog_expire_cfg_tail;
 
 static struct reflog_expire_cfg *find_cfg_ent(const char *pattern, size_t len)
 {
@@ -115,7 +106,7 @@ static struct reflog_expire_cfg *find_cfg_ent(const char *pattern, size_t len)
 }
 
 /* expiry timer slot */
-#define EXPIRE_TOTAL   01
+#define EXPIRE_TOTAL 01
 #define EXPIRE_UNREACH 02
 
 static int reflog_expire_config(const char *var, const char *value,
@@ -167,11 +158,12 @@ static int reflog_expire_config(const char *var, const char *value,
 	return 0;
 }
 
-static void set_reflog_expiry_param(struct cmd_reflog_expire_cb *cb, const char *ref)
+static void set_reflog_expiry_param(struct cmd_reflog_expire_cb *cb,
+				    const char *ref)
 {
 	struct reflog_expire_cfg *ent;
 
-	if (cb->explicit_expiry == (EXPIRE_TOTAL|EXPIRE_UNREACH))
+	if (cb->explicit_expiry == (EXPIRE_TOTAL | EXPIRE_UNREACH))
 		return; /* both given explicitly -- nothing to tweak */
 
 	for (ent = reflog_expire_cfg; ent; ent = ent->next) {
@@ -179,7 +171,8 @@ static void set_reflog_expiry_param(struct cmd_reflog_expire_cb *cb, const char 
 			if (!(cb->explicit_expiry & EXPIRE_TOTAL))
 				cb->expire_total = ent->expire_total;
 			if (!(cb->explicit_expiry & EXPIRE_UNREACH))
-				cb->expire_unreachable = ent->expire_unreachable;
+				cb->expire_unreachable =
+					ent->expire_unreachable;
 			return;
 		}
 	}
@@ -203,23 +196,21 @@ static void set_reflog_expiry_param(struct cmd_reflog_expire_cb *cb, const char 
 }
 
 static int expire_unreachable_callback(const struct option *opt,
-				 const char *arg,
-				 int unset)
+				       const char *arg, int unset)
 {
 	struct cmd_reflog_expire_cb *cmd = opt->value;
 
 	BUG_ON_OPT_NEG(unset);
 
 	if (parse_expiry_date(arg, &cmd->expire_unreachable))
-		die(_("invalid timestamp '%s' given to '--%s'"),
-		    arg, opt->long_name);
+		die(_("invalid timestamp '%s' given to '--%s'"), arg,
+		    opt->long_name);
 
 	cmd->explicit_expiry |= EXPIRE_UNREACH;
 	return 0;
 }
 
-static int expire_total_callback(const struct option *opt,
-				 const char *arg,
+static int expire_total_callback(const struct option *opt, const char *arg,
 				 int unset)
 {
 	struct cmd_reflog_expire_cb *cmd = opt->value;
@@ -227,8 +218,8 @@ static int expire_total_callback(const struct option *opt,
 	BUG_ON_OPT_NEG(unset);
 
 	if (parse_expiry_date(arg, &cmd->expire_total))
-		die(_("invalid timestamp '%s' given to '--%s'"),
-		    arg, opt->long_name);
+		die(_("invalid timestamp '%s' given to '--%s'"), arg,
+		    opt->long_name);
 
 	cmd->explicit_expiry |= EXPIRE_TOTAL;
 	return 0;
@@ -236,13 +227,11 @@ static int expire_total_callback(const struct option *opt,
 
 static int cmd_reflog_show(int argc, const char **argv, const char *prefix)
 {
-	struct option options[] = {
-		OPT_END()
-	};
+	struct option options[] = { OPT_END() };
 
 	parse_options(argc, argv, prefix, options, reflog_show_usage,
 		      PARSE_OPT_KEEP_DASHDASH | PARSE_OPT_KEEP_ARGV0 |
-		      PARSE_OPT_KEEP_UNKNOWN_OPT);
+			      PARSE_OPT_KEEP_UNKNOWN_OPT);
 
 	return cmd_log_reflog(argc, argv, prefix);
 }
@@ -255,15 +244,13 @@ static int show_reflog(const char *refname, void *cb_data UNUSED)
 
 static int cmd_reflog_list(int argc, const char **argv, const char *prefix)
 {
-	struct option options[] = {
-		OPT_END()
-	};
+	struct option options[] = { OPT_END() };
 	struct ref_store *ref_store;
 
 	argc = parse_options(argc, argv, prefix, options, reflog_list_usage, 0);
 	if (argc)
-		return error(_("%s does not accept arguments: '%s'"),
-			     "list", argv[0]);
+		return error(_("%s does not accept arguments: '%s'"), "list",
+			     argv[0]);
 
 	ref_store = get_main_ref_store(the_repository);
 
@@ -277,9 +264,11 @@ static int cmd_reflog_expire(int argc, const char **argv, const char *prefix)
 	int i, status, do_all, single_worktree = 0;
 	unsigned int flags = 0;
 	int verbose = 0;
-	reflog_expiry_should_prune_fn *should_prune_fn = should_expire_reflog_ent;
+	reflog_expiry_should_prune_fn *should_prune_fn =
+		should_expire_reflog_ent;
 	const struct option options[] = {
-		OPT_BIT('n', "dry-run", &flags, N_("do not actually prune any entries"),
+		OPT_BIT('n', "dry-run", &flags,
+			N_("do not actually prune any entries"),
 			EXPIRE_REFLOGS_DRY_RUN),
 		OPT_BIT(0, "rewrite", &flags,
 			N_("rewrite the old SHA1 with the new SHA1 of the entry that now precedes it"),
@@ -287,20 +276,23 @@ static int cmd_reflog_expire(int argc, const char **argv, const char *prefix)
 		OPT_BIT(0, "updateref", &flags,
 			N_("update the reference to the value of the top reflog entry"),
 			EXPIRE_REFLOGS_UPDATE_REF),
-		OPT_BOOL(0, "verbose", &verbose, N_("print extra information on screen")),
+		OPT_BOOL(0, "verbose", &verbose,
+			 N_("print extra information on screen")),
 		OPT_CALLBACK_F(0, "expire", &cmd, N_("timestamp"),
 			       N_("prune entries older than the specified time"),
-			       PARSE_OPT_NONEG,
-			       expire_total_callback),
-		OPT_CALLBACK_F(0, "expire-unreachable", &cmd, N_("timestamp"),
-			       N_("prune entries older than <time> that are not reachable from the current tip of the branch"),
-			       PARSE_OPT_NONEG,
-			       expire_unreachable_callback),
-		OPT_BOOL(0, "stale-fix", &cmd.stalefix,
-			 N_("prune any reflog entries that point to broken commits")),
-		OPT_BOOL(0, "all", &do_all, N_("process the reflogs of all references")),
-		OPT_BOOL(0, "single-worktree", &single_worktree,
-			 N_("limits processing to reflogs from the current worktree only")),
+			       PARSE_OPT_NONEG, expire_total_callback),
+		OPT_CALLBACK_F(
+			0, "expire-unreachable", &cmd, N_("timestamp"),
+			N_("prune entries older than <time> that are not reachable from the current tip of the branch"),
+			PARSE_OPT_NONEG, expire_unreachable_callback),
+		OPT_BOOL(
+			0, "stale-fix", &cmd.stalefix,
+			N_("prune any reflog entries that point to broken commits")),
+		OPT_BOOL(0, "all", &do_all,
+			 N_("process the reflogs of all references")),
+		OPT_BOOL(
+			0, "single-worktree", &single_worktree,
+			N_("limits processing to reflogs from the current worktree only")),
 		OPT_END()
 	};
 
@@ -315,7 +307,8 @@ static int cmd_reflog_expire(int argc, const char **argv, const char *prefix)
 	cmd.expire_total = default_reflog_expire;
 	cmd.expire_unreachable = default_reflog_expire_unreachable;
 
-	argc = parse_options(argc, argv, prefix, options, reflog_expire_usage, 0);
+	argc = parse_options(argc, argv, prefix, options, reflog_expire_usage,
+			     0);
 
 	if (verbose)
 		should_prune_fn = should_expire_reflog_ent_verbose;
@@ -357,18 +350,17 @@ static int cmd_reflog_expire(int argc, const char **argv, const char *prefix)
 		}
 		free_worktrees(worktrees);
 
-		for_each_string_list_item(item, &collected.reflogs) {
+		for_each_string_list_item (item, &collected.reflogs) {
 			struct expire_reflog_policy_cb cb = {
 				.cmd = cmd,
 				.dry_run = !!(flags & EXPIRE_REFLOGS_DRY_RUN),
 			};
 
-			set_reflog_expiry_param(&cb.cmd,  item->string);
+			set_reflog_expiry_param(&cb.cmd, item->string);
 			status |= reflog_expire(item->string, flags,
 						reflog_expiry_prepare,
 						should_prune_fn,
-						reflog_expiry_cleanup,
-						&cb);
+						reflog_expiry_cleanup, &cb);
 		}
 		string_list_clear(&collected.reflogs, 0);
 	}
@@ -382,10 +374,8 @@ static int cmd_reflog_expire(int argc, const char **argv, const char *prefix)
 			continue;
 		}
 		set_reflog_expiry_param(&cb.cmd, ref);
-		status |= reflog_expire(ref, flags,
-					reflog_expiry_prepare,
-					should_prune_fn,
-					reflog_expiry_cleanup,
+		status |= reflog_expire(ref, flags, reflog_expiry_prepare,
+					should_prune_fn, reflog_expiry_cleanup,
 					&cb);
 		free(ref);
 	}
@@ -399,7 +389,8 @@ static int cmd_reflog_delete(int argc, const char **argv, const char *prefix)
 	int verbose = 0;
 
 	const struct option options[] = {
-		OPT_BIT('n', "dry-run", &flags, N_("do not actually prune any entries"),
+		OPT_BIT('n', "dry-run", &flags,
+			N_("do not actually prune any entries"),
 			EXPIRE_REFLOGS_DRY_RUN),
 		OPT_BIT(0, "rewrite", &flags,
 			N_("rewrite the old SHA1 with the new SHA1 of the entry that now precedes it"),
@@ -407,11 +398,13 @@ static int cmd_reflog_delete(int argc, const char **argv, const char *prefix)
 		OPT_BIT(0, "updateref", &flags,
 			N_("update the reference to the value of the top reflog entry"),
 			EXPIRE_REFLOGS_UPDATE_REF),
-		OPT_BOOL(0, "verbose", &verbose, N_("print extra information on screen")),
+		OPT_BOOL(0, "verbose", &verbose,
+			 N_("print extra information on screen")),
 		OPT_END()
 	};
 
-	argc = parse_options(argc, argv, prefix, options, reflog_delete_usage, 0);
+	argc = parse_options(argc, argv, prefix, options, reflog_delete_usage,
+			     0);
 
 	if (argc < 1)
 		return error(_("no reflog specified to delete"));
@@ -424,9 +417,7 @@ static int cmd_reflog_delete(int argc, const char **argv, const char *prefix)
 
 static int cmd_reflog_exists(int argc, const char **argv, const char *prefix)
 {
-	struct option options[] = {
-		OPT_END()
-	};
+	struct option options[] = { OPT_END() };
 	const char *refname;
 
 	argc = parse_options(argc, argv, prefix, options, reflog_exists_usage,
@@ -456,10 +447,10 @@ int cmd_reflog(int argc, const char **argv, const char *prefix)
 		OPT_END()
 	};
 
-	argc = parse_options(argc, argv, prefix, options, reflog_usage,
-			     PARSE_OPT_SUBCOMMAND_OPTIONAL |
-			     PARSE_OPT_KEEP_DASHDASH | PARSE_OPT_KEEP_ARGV0 |
-			     PARSE_OPT_KEEP_UNKNOWN_OPT);
+	argc = parse_options(
+		argc, argv, prefix, options, reflog_usage,
+		PARSE_OPT_SUBCOMMAND_OPTIONAL | PARSE_OPT_KEEP_DASHDASH |
+			PARSE_OPT_KEEP_ARGV0 | PARSE_OPT_KEEP_UNKNOWN_OPT);
 	if (fn)
 		return fn(argc - 1, argv + 1, prefix);
 	else

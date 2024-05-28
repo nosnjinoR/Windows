@@ -1,36 +1,35 @@
-#include "git-compat-util.h"
-#include "advice.h"
-#include "config.h"
-#include "environment.h"
-#include "hex.h"
-#include "transport.h"
-#include "hook.h"
-#include "pkt-line.h"
-#include "fetch-pack.h"
-#include "remote.h"
-#include "connect.h"
-#include "send-pack.h"
-#include "bundle.h"
-#include "gettext.h"
-#include "refs.h"
-#include "refspec.h"
-#include "branch.h"
-#include "url.h"
-#include "submodule.h"
-#include "string-list.h"
-#include "oid-array.h"
-#include "sigchain.h"
-#include "trace2.h"
-#include "transport-internal.h"
-#include "protocol.h"
-#include "object-name.h"
-#include "color.h"
-#include "bundle-uri.h"
+#include "components/git-compat-util.h"
+#include "components/advice.h"
+#include "components/config.h"
+#include "components/environment.h"
+#include "components/hex.h"
+#include "components/transport.h"
+#include "components/hook.h"
+#include "components/pkt-line.h"
+#include "components/fetch-pack.h"
+#include "components/remote.h"
+#include "components/connect.h"
+#include "components/send-pack.h"
+#include "components/bundle.h"
+#include "components/gettext.h"
+#include "components/refs.h"
+#include "components/refspec.h"
+#include "components/branch.h"
+#include "components/url.h"
+#include "components/submodule.h"
+#include "components/string-list.h"
+#include "components/oid-array.h"
+#include "components/sigchain.h"
+#include "components/trace2.h"
+#include "components/transport-internal.h"
+#include "components/protocol.h"
+#include "components/object-name.h"
+#include "components/color.h"
+#include "components/bundle-uri.h"
 
 static int transport_use_color = -1;
 static char transport_colors[][COLOR_MAXLEN] = {
-	GIT_COLOR_RESET,
-	GIT_COLOR_RED		/* REJECTED */
+	GIT_COLOR_RESET, GIT_COLOR_RED /* REJECTED */
 };
 
 enum color_transport {
@@ -40,10 +39,9 @@ enum color_transport {
 
 static int transport_color_config(void)
 {
-	const char *keys[] = {
-		"color.transport.reset",
-		"color.transport.rejected"
-	}, *key = "color.transport";
+	const char *keys[] = { "color.transport.reset",
+			       "color.transport.rejected" },
+		   *key = "color.transport";
 	char *value;
 	int i;
 	static int initialized;
@@ -77,7 +75,7 @@ static const char *transport_get_color(enum color_transport ix)
 }
 
 static void set_upstreams(struct transport *transport, struct ref *refs,
-	int pretend)
+			  int pretend)
 {
 	struct ref *ref;
 	for (ref = refs; ref; ref = ref->next) {
@@ -90,7 +88,7 @@ static void set_upstreams(struct transport *transport, struct ref *refs,
 		 * already up-to-date ref create/modify (not delete).
 		 */
 		if (ref->status != REF_STATUS_OK &&
-			ref->status != REF_STATUS_UPTODATE)
+		    ref->status != REF_STATUS_UPTODATE)
 			continue;
 		if (!ref->peer_ref)
 			continue;
@@ -100,10 +98,10 @@ static void set_upstreams(struct transport *transport, struct ref *refs,
 		/* Follow symbolic refs (mainly for HEAD). */
 		localname = ref->peer_ref->name;
 		remotename = ref->name;
-		tmp = resolve_ref_unsafe(localname, RESOLVE_REF_READING,
-					 NULL, &flag);
+		tmp = resolve_ref_unsafe(localname, RESOLVE_REF_READING, NULL,
+					 &flag);
 		if (tmp && flag & REF_ISSYMREF &&
-			starts_with(tmp, "refs/heads/"))
+		    starts_with(tmp, "refs/heads/"))
 			localname = tmp;
 
 		/* Both source and destination must be local branches. */
@@ -113,13 +111,16 @@ static void set_upstreams(struct transport *transport, struct ref *refs,
 			continue;
 
 		if (!pretend) {
-			int flag = transport->verbose < 0 ? 0 : BRANCH_CONFIG_VERBOSE;
+			int flag = transport->verbose < 0 ?
+					   0 :
+					   BRANCH_CONFIG_VERBOSE;
 			install_branch_config(flag, localname + 11,
-				transport->remote->name, remotename);
+					      transport->remote->name,
+					      remotename);
 		} else if (transport->verbose >= 0)
 			printf(_("Would set upstream of '%s' to '%s' of '%s'\n"),
-				localname + 11, remotename + 11,
-				transport->remote->name);
+			       localname + 11, remotename + 11,
+			       transport->remote->name);
 	}
 }
 
@@ -144,9 +145,9 @@ static void get_refs_from_bundle_inner(struct transport *transport)
 	transport->hash_algo = data->header.hash_algo;
 }
 
-static struct ref *get_refs_from_bundle(struct transport *transport,
-					int for_push,
-					struct transport_ls_refs_options *transport_options UNUSED)
+static struct ref *
+get_refs_from_bundle(struct transport *transport, int for_push,
+		     struct transport_ls_refs_options *transport_options UNUSED)
 {
 	struct bundle_transport_data *data = transport->data;
 	struct ref *result = NULL;
@@ -208,8 +209,8 @@ struct git_transport_data {
 	struct oid_array shallow;
 };
 
-static int set_git_option(struct git_transport_options *opts,
-			  const char *name, const char *value)
+static int set_git_option(struct git_transport_options *opts, const char *name,
+			  const char *value)
 {
 	if (!strcmp(name, TRANS_OPT_UPLOADPACK)) {
 		opts->uploadpack = value;
@@ -236,7 +237,8 @@ static int set_git_option(struct git_transport_options *opts,
 			char *end;
 			opts->depth = strtol(value, &end, 0);
 			if (*end)
-				die(_("transport: invalid depth option '%s'"), value);
+				die(_("transport: invalid depth option '%s'"),
+				    value);
 		}
 		return 0;
 	} else if (!strcmp(name, TRANS_OPT_DEEPEN_SINCE)) {
@@ -274,19 +276,21 @@ static int connect_setup(struct transport *transport, int for_push)
 		return 0;
 
 	switch (transport->family) {
-	case TRANSPORT_FAMILY_ALL: break;
-	case TRANSPORT_FAMILY_IPV4: flags |= CONNECT_IPV4; break;
-	case TRANSPORT_FAMILY_IPV6: flags |= CONNECT_IPV6; break;
+	case TRANSPORT_FAMILY_ALL:
+		break;
+	case TRANSPORT_FAMILY_IPV4:
+		flags |= CONNECT_IPV4;
+		break;
+	case TRANSPORT_FAMILY_IPV6:
+		flags |= CONNECT_IPV6;
+		break;
 	}
 
-	data->conn = git_connect(data->fd, transport->url,
-				 for_push ?
-					"git-receive-pack" :
-					"git-upload-pack",
-				 for_push ?
-					data->options.receivepack :
-					data->options.uploadpack,
-				 flags);
+	data->conn = git_connect(
+		data->fd, transport->url,
+		for_push ? "git-receive-pack" : "git-upload-pack",
+		for_push ? data->options.receivepack : data->options.uploadpack,
+		flags);
 
 	return 0;
 }
@@ -322,27 +326,25 @@ static struct ref *handshake(struct transport *transport, int for_push,
 
 	packet_reader_init(&reader, data->fd[0], NULL, 0,
 			   PACKET_READ_CHOMP_NEWLINE |
-			   PACKET_READ_GENTLE_ON_EOF |
-			   PACKET_READ_DIE_ON_ERR_PACKET);
+				   PACKET_READ_GENTLE_ON_EOF |
+				   PACKET_READ_DIE_ON_ERR_PACKET);
 
 	data->version = discover_version(&reader);
 	switch (data->version) {
 	case protocol_v2:
 		if (server_feature_v2("session-id", &server_sid))
-			trace2_data_string("transfer", NULL, "server-sid", server_sid);
+			trace2_data_string("transfer", NULL, "server-sid",
+					   server_sid);
 		if (must_list_refs)
 			get_remote_refs(data->fd[1], &reader, &refs, for_push,
-					options,
-					transport->server_options,
+					options, transport->server_options,
 					transport->stateless_rpc);
 		break;
 	case protocol_v1:
 	case protocol_v0:
 		die_if_server_options(transport);
-		get_remote_heads(&reader, &refs,
-				 for_push ? REF_NORMAL : 0,
-				 &data->extra_have,
-				 &data->shallow);
+		get_remote_heads(&reader, &refs, for_push ? REF_NORMAL : 0,
+				 &data->extra_have, &data->shallow);
 		server_sid = server_feature_value("session-id", &sid_len);
 		if (server_sid) {
 			char *sid = xstrndup(server_sid, sid_len);
@@ -362,8 +364,9 @@ static struct ref *handshake(struct transport *transport, int for_push,
 	return refs;
 }
 
-static struct ref *get_refs_via_connect(struct transport *transport, int for_push,
-					struct transport_ls_refs_options *options)
+static struct ref *
+get_refs_via_connect(struct transport *transport, int for_push,
+		     struct transport_ls_refs_options *options)
 {
 	return handshake(transport, for_push, options, 1);
 }
@@ -395,14 +398,14 @@ static int get_bundle_uri(struct transport *transport)
 
 	packet_reader_init(&reader, data->fd[0], NULL, 0,
 			   PACKET_READ_CHOMP_NEWLINE |
-			   PACKET_READ_GENTLE_ON_EOF);
+				   PACKET_READ_GENTLE_ON_EOF);
 
-	return get_remote_bundle_uri(data->fd[1], &reader,
-				     transport->bundles, stateless_rpc);
+	return get_remote_bundle_uri(data->fd[1], &reader, transport->bundles,
+				     stateless_rpc);
 }
 
-static int fetch_refs_via_pack(struct transport *transport,
-			       int nr_heads, struct ref **to_fetch)
+static int fetch_refs_via_pack(struct transport *transport, int nr_heads,
+			       struct ref **to_fetch)
 {
 	int ret = 0;
 	struct git_transport_data *data = transport->data;
@@ -457,7 +460,8 @@ static int fetch_refs_via_pack(struct transport *transport,
 		if (data->version < protocol_v2) {
 			warning(_("--negotiate-only requires protocol v2"));
 			ret = -1;
-		} else if (!server_supports_feature("fetch", "wait-for-done", 0)) {
+		} else if (!server_supports_feature("fetch", "wait-for-done",
+						    0)) {
 			warning(_("server does not support wait-for-done"));
 			ret = -1;
 		} else {
@@ -518,7 +522,7 @@ static int push_had_errors(struct ref *ref)
 int transport_refs_pushed(struct ref *ref)
 {
 	for (; ref; ref = ref->next) {
-		switch(ref->status) {
+		switch (ref->status) {
 		case REF_STATUS_NONE:
 		case REF_STATUS_UPTODATE:
 			break;
@@ -541,17 +545,19 @@ static void update_one_tracking_ref(struct remote *remote, char *refname,
 
 	if (!remote_find_tracking(remote, &rs)) {
 		if (verbose)
-			fprintf(stderr, "updating local tracking ref '%s'\n", rs.dst);
+			fprintf(stderr, "updating local tracking ref '%s'\n",
+				rs.dst);
 		if (deletion)
 			delete_ref(NULL, rs.dst, NULL, 0);
 		else
-			update_ref("update by push", rs.dst, new_oid,
-				   NULL, 0, 0);
+			update_ref("update by push", rs.dst, new_oid, NULL, 0,
+				   0);
 		free(rs.dst);
 	}
 }
 
-void transport_update_tracking_ref(struct remote *remote, struct ref *ref, int verbose)
+void transport_update_tracking_ref(struct remote *remote, struct ref *ref,
+				   int verbose)
 {
 	char *refname;
 	struct object_id *new_oid;
@@ -566,17 +572,19 @@ void transport_update_tracking_ref(struct remote *remote, struct ref *ref, int v
 					ref->deletion, verbose);
 	else
 		for (; report; report = report->next) {
-			refname = report->ref_name ? (char *)report->ref_name : ref->name;
-			new_oid = report->new_oid ? report->new_oid : &ref->new_oid;
+			refname = report->ref_name ? (char *)report->ref_name :
+						     ref->name;
+			new_oid = report->new_oid ? report->new_oid :
+						    &ref->new_oid;
 			update_one_tracking_ref(remote, refname, new_oid,
 						is_null_oid(new_oid), verbose);
 		}
 }
 
-static void print_ref_status(char flag, const char *summary,
-			     struct ref *to, struct ref *from, const char *msg,
-			     struct ref_push_report *report,
-			     int porcelain, int summary_width)
+static void print_ref_status(char flag, const char *summary, struct ref *to,
+			     struct ref *from, const char *msg,
+			     struct ref_push_report *report, int porcelain,
+			     int summary_width)
 {
 	const char *to_name;
 
@@ -587,7 +595,8 @@ static void print_ref_status(char flag, const char *summary,
 
 	if (porcelain) {
 		if (from)
-			fprintf(stdout, "%c\t%s:%s\t", flag, from->name, to_name);
+			fprintf(stdout, "%c\t%s:%s\t", flag, from->name,
+				to_name);
 		else
 			fprintf(stdout, "%c\t:%s\t", flag, to_name);
 		if (msg)
@@ -617,8 +626,7 @@ static void print_ref_status(char flag, const char *summary,
 	}
 }
 
-static void print_ok_ref_status(struct ref *ref,
-				struct ref_push_report *report,
+static void print_ok_ref_status(struct ref *ref, struct ref_push_report *report,
 				int porcelain, int summary_width)
 {
 	struct object_id *old_oid;
@@ -644,24 +652,24 @@ static void print_ok_ref_status(struct ref *ref,
 		ref_name = ref->name;
 
 	if (ref->deletion)
-		print_ref_status('-', "[deleted]", ref, NULL, NULL,
-				 report, porcelain, summary_width);
+		print_ref_status('-', "[deleted]", ref, NULL, NULL, report,
+				 porcelain, summary_width);
 	else if (is_null_oid(old_oid))
-		print_ref_status('*',
-				 (starts_with(ref_name, "refs/tags/")
-				  ? "[new tag]"
-				  : (starts_with(ref_name, "refs/heads/")
-				     ? "[new branch]"
-				     : "[new reference]")),
-				 ref, ref->peer_ref, NULL,
-				 report, porcelain, summary_width);
+		print_ref_status(
+			'*',
+			(starts_with(ref_name, "refs/tags/") ?
+				 "[new tag]" :
+				 (starts_with(ref_name, "refs/heads/") ?
+					  "[new branch]" :
+					  "[new reference]")),
+			ref, ref->peer_ref, NULL, report, porcelain,
+			summary_width);
 	else {
 		struct strbuf quickref = STRBUF_INIT;
 		char type;
 		const char *msg;
 
-		strbuf_add_unique_abbrev(&quickref, old_oid,
-					 DEFAULT_ABBREV);
+		strbuf_add_unique_abbrev(&quickref, old_oid, DEFAULT_ABBREV);
 		if (forced_update) {
 			strbuf_addstr(&quickref, "...");
 			type = '+';
@@ -671,8 +679,7 @@ static void print_ok_ref_status(struct ref *ref,
 			type = ' ';
 			msg = NULL;
 		}
-		strbuf_add_unique_abbrev(&quickref, new_oid,
-					 DEFAULT_ABBREV);
+		strbuf_add_unique_abbrev(&quickref, new_oid, DEFAULT_ABBREV);
 
 		print_ref_status(type, quickref.buf, ref, ref->peer_ref, msg,
 				 report, porcelain, summary_width);
@@ -681,8 +688,8 @@ static void print_ok_ref_status(struct ref *ref,
 }
 
 static int print_one_push_report(struct ref *ref, const char *dest, int count,
-				 struct ref_push_report *report,
-				 int porcelain, int summary_width)
+				 struct ref_push_report *report, int porcelain,
+				 int summary_width)
 {
 	if (!count) {
 		char *url = transport_anonymize_url(dest);
@@ -690,10 +697,10 @@ static int print_one_push_report(struct ref *ref, const char *dest, int count,
 		free(url);
 	}
 
-	switch(ref->status) {
+	switch (ref->status) {
 	case REF_STATUS_NONE:
-		print_ref_status('X', "[no match]", ref, NULL, NULL,
-				 report, porcelain, summary_width);
+		print_ref_status('X', "[no match]", ref, NULL, NULL, report,
+				 porcelain, summary_width);
 		break;
 	case REF_STATUS_REJECT_NODELETE:
 		print_ref_status('!', "[rejected]", ref, NULL,
@@ -701,61 +708,60 @@ static int print_one_push_report(struct ref *ref, const char *dest, int count,
 				 report, porcelain, summary_width);
 		break;
 	case REF_STATUS_UPTODATE:
-		print_ref_status('=', "[up to date]", ref,
-				 ref->peer_ref, NULL,
+		print_ref_status('=', "[up to date]", ref, ref->peer_ref, NULL,
 				 report, porcelain, summary_width);
 		break;
 	case REF_STATUS_REJECT_NONFASTFORWARD:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "non-fast-forward",
-				 report, porcelain, summary_width);
+				 "non-fast-forward", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_REJECT_ALREADY_EXISTS:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "already exists",
-				 report, porcelain, summary_width);
+				 "already exists", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_REJECT_FETCH_FIRST:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "fetch first",
-				 report, porcelain, summary_width);
+				 "fetch first", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_REJECT_NEEDS_FORCE:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "needs force",
-				 report, porcelain, summary_width);
+				 "needs force", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_REJECT_STALE:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "stale info",
-				 report, porcelain, summary_width);
+				 "stale info", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_REJECT_REMOTE_UPDATED:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "remote ref updated since checkout",
-				 report, porcelain, summary_width);
+				 "remote ref updated since checkout", report,
+				 porcelain, summary_width);
 		break;
 	case REF_STATUS_REJECT_SHALLOW:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "new shallow roots not allowed",
-				 report, porcelain, summary_width);
+				 "new shallow roots not allowed", report,
+				 porcelain, summary_width);
 		break;
 	case REF_STATUS_REMOTE_REJECT:
 		print_ref_status('!', "[remote rejected]", ref,
 				 ref->deletion ? NULL : ref->peer_ref,
-				 ref->remote_status,
-				 report, porcelain, summary_width);
+				 ref->remote_status, report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_EXPECTING_REPORT:
 		print_ref_status('!', "[remote failure]", ref,
 				 ref->deletion ? NULL : ref->peer_ref,
-				 "remote failed to report status",
-				 report, porcelain, summary_width);
+				 "remote failed to report status", report,
+				 porcelain, summary_width);
 		break;
 	case REF_STATUS_ATOMIC_PUSH_FAILED:
 		print_ref_status('!', "[rejected]", ref, ref->peer_ref,
-				 "atomic push failed",
-				 report, porcelain, summary_width);
+				 "atomic push failed", report, porcelain,
+				 summary_width);
 		break;
 	case REF_STATUS_OK:
 		print_ok_ref_status(ref, report, porcelain, summary_width);
@@ -772,12 +778,12 @@ static int print_one_push_status(struct ref *ref, const char *dest, int count,
 	int n = 0;
 
 	if (!ref->report)
-		return print_one_push_report(ref, dest, count,
-					     NULL, porcelain, summary_width);
+		return print_one_push_report(ref, dest, count, NULL, porcelain,
+					     summary_width);
 
 	for (report = ref->report; report; report = report->next)
-		print_one_push_report(ref, dest, count + n++,
-				      report, porcelain, summary_width);
+		print_one_push_report(ref, dest, count + n++, report, porcelain,
+				      summary_width);
 	return n;
 }
 
@@ -804,7 +810,8 @@ int transport_summary_width(const struct ref *refs)
 }
 
 void transport_print_push_status(const char *dest, struct ref *refs,
-				  int verbose, int porcelain, unsigned int *reject_reasons)
+				 int verbose, int porcelain,
+				 unsigned int *reject_reasons)
 {
 	struct ref *ref;
 	int n = 0;
@@ -819,22 +826,22 @@ void transport_print_push_status(const char *dest, struct ref *refs,
 	if (verbose) {
 		for (ref = refs; ref; ref = ref->next)
 			if (ref->status == REF_STATUS_UPTODATE)
-				n += print_one_push_status(ref, dest, n,
-							   porcelain, summary_width);
+				n += print_one_push_status(
+					ref, dest, n, porcelain, summary_width);
 	}
 
 	for (ref = refs; ref; ref = ref->next)
 		if (ref->status == REF_STATUS_OK)
-			n += print_one_push_status(ref, dest, n,
-						   porcelain, summary_width);
+			n += print_one_push_status(ref, dest, n, porcelain,
+						   summary_width);
 
 	*reject_reasons = 0;
 	for (ref = refs; ref; ref = ref->next) {
 		if (ref->status != REF_STATUS_NONE &&
 		    ref->status != REF_STATUS_UPTODATE &&
 		    ref->status != REF_STATUS_OK)
-			n += print_one_push_status(ref, dest, n,
-						   porcelain, summary_width);
+			n += print_one_push_status(ref, dest, n, porcelain,
+						   summary_width);
 		if (ref->status == REF_STATUS_REJECT_NONFASTFORWARD) {
 			if (head != NULL && !strcmp(head, ref->name))
 				*reject_reasons |= REJECT_NON_FF_HEAD;
@@ -853,7 +860,8 @@ void transport_print_push_status(const char *dest, struct ref *refs,
 	free(head);
 }
 
-static int git_transport_push(struct transport *transport, struct ref *remote_refs, int flags)
+static int git_transport_push(struct transport *transport,
+			      struct ref *remote_refs, int flags)
 {
 	struct git_transport_data *data = transport->data;
 	struct send_pack_args args;
@@ -919,8 +927,7 @@ static int connect_git(struct transport *transport, const char *name,
 		       const char *executable, int fd[2])
 {
 	struct git_transport_data *data = transport->data;
-	data->conn = git_connect(data->fd, transport->url,
-				 name, executable, 0);
+	data->conn = git_connect(data->fd, transport->url, name, executable, 0);
 	fd[0] = data->fd[0];
 	fd[1] = data->fd[1];
 	return 0;
@@ -944,11 +951,11 @@ static int disconnect_git(struct transport *transport)
 }
 
 static struct transport_vtable taken_over_vtable = {
-	.get_refs_list	= get_refs_via_connect,
+	.get_refs_list = get_refs_via_connect,
 	.get_bundle_uri = get_bundle_uri,
-	.fetch_refs	= fetch_refs_via_pack,
-	.push_refs	= git_transport_push,
-	.disconnect	= disconnect_git
+	.fetch_refs = fetch_refs_via_pack,
+	.push_refs = git_transport_push,
+	.disconnect = disconnect_git
 };
 
 void transport_take_over(struct transport *transport,
@@ -1050,10 +1057,8 @@ static enum protocol_allow_config get_protocol_config(const char *type)
 
 	/* fallback to built-in defaults */
 	/* known safe */
-	if (!strcmp(type, "http") ||
-	    !strcmp(type, "https") ||
-	    !strcmp(type, "git") ||
-	    !strcmp(type, "ssh"))
+	if (!strcmp(type, "http") || !strcmp(type, "https") ||
+	    !strcmp(type, "git") || !strcmp(type, "ssh"))
 		return PROTOCOL_ALLOW_ALWAYS;
 
 	/* known scary; err on the side of caution */
@@ -1091,18 +1096,18 @@ void transport_check_allowed(const char *type)
 }
 
 static struct transport_vtable bundle_vtable = {
-	.get_refs_list	= get_refs_from_bundle,
-	.fetch_refs	= fetch_refs_from_bundle,
-	.disconnect	= close_bundle
+	.get_refs_list = get_refs_from_bundle,
+	.fetch_refs = fetch_refs_from_bundle,
+	.disconnect = close_bundle
 };
 
 static struct transport_vtable builtin_smart_vtable = {
-	.get_refs_list	= get_refs_via_connect,
+	.get_refs_list = get_refs_via_connect,
 	.get_bundle_uri = get_bundle_uri,
-	.fetch_refs	= fetch_refs_via_pack,
-	.push_refs	= git_transport_push,
-	.connect	= connect_git,
-	.disconnect	= disconnect_git
+	.fetch_refs = fetch_refs_via_pack,
+	.push_refs = git_transport_push,
+	.connect = connect_git,
+	.disconnect = disconnect_git
 };
 
 struct transport *transport_get(struct remote *remote, const char *url)
@@ -1141,20 +1146,20 @@ struct transport *transport_get(struct remote *remote, const char *url)
 		transport_helper_init(ret, helper);
 	} else if (starts_with(url, "rsync:")) {
 		die(_("git-over-rsync is no longer supported"));
-	} else if (url_is_local_not_ssh(url) && is_file(url) && is_bundle(url, 1)) {
+	} else if (url_is_local_not_ssh(url) && is_file(url) &&
+		   is_bundle(url, 1)) {
 		struct bundle_transport_data *data = xcalloc(1, sizeof(*data));
 		bundle_header_init(&data->header);
 		transport_check_allowed("file");
 		ret->data = data;
 		ret->vtable = &bundle_vtable;
 		ret->smart_options = NULL;
-	} else if (!is_url(url)
-		|| starts_with(url, "file://")
-		|| starts_with(url, "git://")
-		|| starts_with(url, "ssh://")
-		|| starts_with(url, "git+ssh://") /* deprecated - do not use */
-		|| starts_with(url, "ssh+git://") /* deprecated - do not use */
-		) {
+	} else if (!is_url(url) || starts_with(url, "file://") ||
+		   starts_with(url, "git://") || starts_with(url, "ssh://") ||
+		   starts_with(url, "git+ssh://") /* deprecated - do not use */
+		   || starts_with(url, "ssh+git://") /* deprecated - do not use
+						      */
+	) {
 		/*
 		 * These are builtin smart transports; "allowed" transports
 		 * will be checked individually in git_connect.
@@ -1194,18 +1199,18 @@ const struct git_hash_algo *transport_get_hash_algo(struct transport *transport)
 	return transport->hash_algo;
 }
 
-int transport_set_option(struct transport *transport,
-			 const char *name, const char *value)
+int transport_set_option(struct transport *transport, const char *name,
+			 const char *value)
 {
 	int git_reports = 1, protocol_reports = 1;
 
 	if (transport->smart_options)
-		git_reports = set_git_option(transport->smart_options,
-					     name, value);
+		git_reports =
+			set_git_option(transport->smart_options, name, value);
 
 	if (transport->vtable->set_option)
-		protocol_reports = transport->vtable->set_option(transport,
-								 name, value);
+		protocol_reports =
+			transport->vtable->set_option(transport, name, value);
 
 	/* If either report is 0, report 0 (success). */
 	if (!git_reports || !protocol_reports)
@@ -1218,7 +1223,7 @@ int transport_set_option(struct transport *transport,
 }
 
 void transport_set_verbosity(struct transport *transport, int verbosity,
-	int force_progress)
+			     int force_progress)
 {
 	if (verbosity >= 1)
 		transport->verbose = verbosity <= 3 ? verbosity : 3;
@@ -1230,9 +1235,9 @@ void transport_set_verbosity(struct transport *transport, int verbosity,
 	 * when a rule is satisfied):
 	 *
 	 *   . Report progress, if force_progress is 1 (ie. --progress).
-	 *   . Don't report progress, if force_progress is 0 (ie. --no-progress).
-	 *   . Don't report progress, if verbosity < 0 (ie. -q/--quiet ).
-	 *   . Report progress if isatty(2) is 1.
+	 *   . Don't report progress, if force_progress is 0 (ie.
+	 *--no-progress). . Don't report progress, if verbosity < 0 (ie.
+	 *-q/--quiet ). . Report progress if isatty(2) is 1.
 	 **/
 	if (force_progress >= 0)
 		transport->progress = !!force_progress;
@@ -1244,8 +1249,9 @@ static void die_with_unpushed_submodules(struct string_list *needs_pushing)
 {
 	int i;
 
-	fprintf(stderr, _("The following submodule paths contain changes that can\n"
-			"not be found on any remote:\n"));
+	fprintf(stderr,
+		_("The following submodule paths contain changes that can\n"
+		  "not be found on any remote:\n"));
 	for (i = 0; i < needs_pushing->nr; i++)
 		fprintf(stderr, "  %s\n", needs_pushing->items[i].string);
 	fprintf(stderr, _("\nPlease try\n\n"
@@ -1288,16 +1294,21 @@ static int run_pre_push_hook(struct transport *transport,
 	strbuf_init(&buf, 256);
 
 	for (r = remote_refs; r; r = r->next) {
-		if (!r->peer_ref) continue;
-		if (r->status == REF_STATUS_REJECT_NONFASTFORWARD) continue;
-		if (r->status == REF_STATUS_REJECT_STALE) continue;
-		if (r->status == REF_STATUS_REJECT_REMOTE_UPDATED) continue;
-		if (r->status == REF_STATUS_UPTODATE) continue;
+		if (!r->peer_ref)
+			continue;
+		if (r->status == REF_STATUS_REJECT_NONFASTFORWARD)
+			continue;
+		if (r->status == REF_STATUS_REJECT_STALE)
+			continue;
+		if (r->status == REF_STATUS_REJECT_REMOTE_UPDATED)
+			continue;
+		if (r->status == REF_STATUS_UPTODATE)
+			continue;
 
 		strbuf_reset(&buf);
-		strbuf_addf( &buf, "%s %s %s %s\n",
-			 r->peer_ref->name, oid_to_hex(&r->new_oid),
-			 r->name, oid_to_hex(&r->old_oid));
+		strbuf_addf(&buf, "%s %s %s %s\n", r->peer_ref->name,
+			    oid_to_hex(&r->new_oid), r->name,
+			    oid_to_hex(&r->old_oid));
 
 		if (write_in_full(proc.in, buf.buf, buf.len) < 0) {
 			/* We do not mind if a hook does not read all refs. */
@@ -1322,10 +1333,8 @@ static int run_pre_push_hook(struct transport *transport,
 	return ret;
 }
 
-int transport_push(struct repository *r,
-		   struct transport *transport,
-		   struct refspec *rs, int flags,
-		   unsigned int *reject_reasons)
+int transport_push(struct repository *r, struct transport *transport,
+		   struct refspec *rs, int flags, unsigned int *reject_reasons)
 {
 	struct ref *remote_refs = NULL;
 	struct ref *local_refs = NULL;
@@ -1373,15 +1382,13 @@ int transport_push(struct repository *r,
 	if (match_push_refs(local_refs, &remote_refs, rs, match_flags))
 		goto done;
 
-	if (transport->smart_options &&
-	    transport->smart_options->cas &&
+	if (transport->smart_options && transport->smart_options->cas &&
 	    !is_empty_cas(transport->smart_options->cas))
-		apply_push_cas(transport->smart_options->cas,
-			       transport->remote, remote_refs);
+		apply_push_cas(transport->smart_options->cas, transport->remote,
+			       remote_refs);
 
-	set_ref_status_for_push(remote_refs,
-		flags & TRANSPORT_PUSH_MIRROR,
-		flags & TRANSPORT_PUSH_FORCE);
+	set_ref_status_for_push(remote_refs, flags & TRANSPORT_PUSH_MIRROR,
+				flags & TRANSPORT_PUSH_FORCE);
 
 	if (!(flags & TRANSPORT_PUSH_NO_HOOK))
 		if (run_pre_push_hook(transport, remote_refs))
@@ -1396,17 +1403,14 @@ int transport_push(struct repository *r,
 		trace2_region_enter("transport_push", "push_submodules", r);
 		for (; ref; ref = ref->next)
 			if (!is_null_oid(&ref->new_oid))
-				oid_array_append(&commits,
-						  &ref->new_oid);
+				oid_array_append(&commits, &ref->new_oid);
 
-		if (!push_unpushed_submodules(r,
-					      &commits,
-					      transport->remote,
-					      rs,
-					      transport->push_options,
+		if (!push_unpushed_submodules(r, &commits, transport->remote,
+					      rs, transport->push_options,
 					      pretend)) {
 			oid_array_clear(&commits);
-			trace2_region_leave("transport_push", "push_submodules", r);
+			trace2_region_leave("transport_push", "push_submodules",
+					    r);
 			die(_("failed to push all needed submodules"));
 		}
 		oid_array_clear(&commits);
@@ -1416,7 +1420,8 @@ int transport_push(struct repository *r,
 	if (((flags & TRANSPORT_RECURSE_SUBMODULES_CHECK) ||
 	     ((flags & (TRANSPORT_RECURSE_SUBMODULES_ON_DEMAND |
 			TRANSPORT_RECURSE_SUBMODULES_ONLY)) &&
-	      !pretend)) && !is_bare_repository()) {
+	      !pretend)) &&
+	    !is_bare_repository()) {
 		struct ref *ref = remote_refs;
 		struct string_list needs_pushing = STRING_LIST_INIT_DUP;
 		struct oid_array commits = OID_ARRAY_INIT;
@@ -1424,15 +1429,14 @@ int transport_push(struct repository *r,
 		trace2_region_enter("transport_push", "check_submodules", r);
 		for (; ref; ref = ref->next)
 			if (!is_null_oid(&ref->new_oid))
-				oid_array_append(&commits,
-						  &ref->new_oid);
+				oid_array_append(&commits, &ref->new_oid);
 
-		if (find_unpushed_submodules(r,
-					     &commits,
+		if (find_unpushed_submodules(r, &commits,
 					     transport->remote->name,
 					     &needs_pushing)) {
 			oid_array_clear(&commits);
-			trace2_region_leave("transport_push", "check_submodules", r);
+			trace2_region_leave("transport_push",
+					    "check_submodules", r);
 			die_with_unpushed_submodules(&needs_pushing);
 		}
 		string_list_clear(&needs_pushing, 0);
@@ -1442,7 +1446,8 @@ int transport_push(struct repository *r,
 
 	if (!(flags & TRANSPORT_RECURSE_SUBMODULES_ONLY)) {
 		trace2_region_enter("transport_push", "push_refs", r);
-		push_ret = transport->vtable->push_refs(transport, remote_refs, flags);
+		push_ret = transport->vtable->push_refs(transport, remote_refs,
+							flags);
 		trace2_region_leave("transport_push", "push_refs", r);
 	} else
 		push_ret = 0;
@@ -1451,17 +1456,18 @@ int transport_push(struct repository *r,
 
 	if (!quiet || err)
 		transport_print_push_status(transport->url, remote_refs,
-				verbose | porcelain, porcelain,
-				reject_reasons);
+					    verbose | porcelain, porcelain,
+					    reject_reasons);
 
 	if (flags & TRANSPORT_PUSH_SET_UPSTREAM)
 		set_upstreams(transport, remote_refs, pretend);
 
-	if (!(flags & (TRANSPORT_PUSH_DRY_RUN |
-		       TRANSPORT_RECURSE_SUBMODULES_ONLY))) {
+	if (!(flags &
+	      (TRANSPORT_PUSH_DRY_RUN | TRANSPORT_RECURSE_SUBMODULES_ONLY))) {
 		struct ref *ref;
 		for (ref = remote_refs; ref; ref = ref->next)
-			transport_update_tracking_ref(transport->remote, ref, verbose);
+			transport_update_tracking_ref(transport->remote, ref,
+						      verbose);
 	}
 
 	if (porcelain && !push_ret)
@@ -1476,13 +1482,13 @@ done:
 	return ret;
 }
 
-const struct ref *transport_get_remote_refs(struct transport *transport,
-					    struct transport_ls_refs_options *transport_options)
+const struct ref *
+transport_get_remote_refs(struct transport *transport,
+			  struct transport_ls_refs_options *transport_options)
 {
 	if (!transport->got_remote_refs) {
-		transport->remote_refs =
-			transport->vtable->get_refs_list(transport, 0,
-							 transport_options);
+		transport->remote_refs = transport->vtable->get_refs_list(
+			transport, 0, transport_options);
 		transport->got_remote_refs = 1;
 	}
 
@@ -1504,8 +1510,7 @@ int transport_fetch_refs(struct transport *transport, struct ref *refs)
 
 	for (rm = refs; rm; rm = rm->next) {
 		nr_refs++;
-		if (rm->peer_ref &&
-		    !is_null_oid(&rm->old_oid) &&
+		if (rm->peer_ref && !is_null_oid(&rm->old_oid) &&
 		    oideq(&rm->peer_ref->old_oid, &rm->old_oid))
 			continue;
 		ALLOC_GROW(heads, nr_heads + 1, nr_alloc);
@@ -1552,23 +1557,27 @@ int transport_get_remote_bundle_uri(struct transport *transport)
 		transport->bundles->baseURI = xstrdup(transport->url);
 
 	if (!vtable->get_bundle_uri)
-		return error(_("bundle-uri operation not supported by protocol"));
+		return error(
+			_("bundle-uri operation not supported by protocol"));
 
 	if (vtable->get_bundle_uri(transport) < 0)
-		return error(_("could not retrieve server-advertised bundle-uri list"));
+		return error(_(
+			"could not retrieve server-advertised bundle-uri list"));
 	return 0;
 }
 
 void transport_unlock_pack(struct transport *transport, unsigned int flags)
 {
-	int in_signal_handler = !!(flags & TRANSPORT_UNLOCK_PACK_IN_SIGNAL_HANDLER);
+	int in_signal_handler =
+		!!(flags & TRANSPORT_UNLOCK_PACK_IN_SIGNAL_HANDLER);
 	int i;
 
 	for (i = 0; i < transport->pack_lockfiles.nr; i++)
 		if (in_signal_handler)
 			unlink(transport->pack_lockfiles.items[i].string);
 		else
-			unlink_or_warn(transport->pack_lockfiles.items[i].string);
+			unlink_or_warn(
+				transport->pack_lockfiles.items[i].string);
 	if (!in_signal_handler)
 		string_list_clear(&transport->pack_lockfiles, 0);
 }
@@ -1620,7 +1629,9 @@ char *transport_anonymize_url(const char *url)
 		for (cp = url; cp < scheme_prefix; cp++) {
 			switch (*cp) {
 				/* RFC 1738 2.1 */
-			case '+': case '.': case '-':
+			case '+':
+			case '.':
+			case '-':
 				break; /* ok */
 			default:
 				if (isalnum(*cp))
@@ -1635,8 +1646,8 @@ char *transport_anonymize_url(const char *url)
 			goto literal_copy;
 		prefix_len = scheme_prefix - url + 3;
 	}
-	return xstrfmt("%.*s%.*s", (int)prefix_len, url,
-		       (int)anon_len, anon_part);
+	return xstrfmt("%.*s%.*s", (int)prefix_len, url, (int)anon_len,
+		       anon_part);
 literal_copy:
 	return xstrdup(url);
 }

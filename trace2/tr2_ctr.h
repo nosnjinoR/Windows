@@ -1,7 +1,7 @@
 #ifndef TR2_CTR_H
 #define TR2_CTR_H
 
-#include "trace2.h"
+#include "components/trace2.h"
 #include "trace2/tr2_tgt.h"
 
 /*
@@ -61,7 +61,7 @@ struct tr2_counter_metadata {
 	 * True if we should emit per-thread events for this counter
 	 * when individual threads exit.
 	 */
-	unsigned int want_per_thread_events:1;
+	unsigned int want_per_thread_events : 1;
 };
 
 /*

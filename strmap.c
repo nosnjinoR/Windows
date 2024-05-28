@@ -1,6 +1,6 @@
-#include "git-compat-util.h"
-#include "strmap.h"
-#include "mem-pool.h"
+#include "components/git-compat-util.h"
+#include "components/strmap.h"
+#include "components/mem-pool.h"
 
 int cmp_strmap_entry(const void *hashmap_cmp_fn_data UNUSED,
 		     const struct hashmap_entry *entry1,
@@ -29,8 +29,7 @@ void strmap_init(struct strmap *map)
 	memcpy(map, &blank, sizeof(*map));
 }
 
-void strmap_init_with_options(struct strmap *map,
-			      struct mem_pool *pool,
+void strmap_init_with_options(struct strmap *map, struct mem_pool *pool,
 			      int strdup_strings)
 {
 	hashmap_init(&map->map, cmp_strmap_entry, NULL, 0);
@@ -57,7 +56,8 @@ static void strmap_free_entries_(struct strmap *map, int free_values)
 	 * the hashmap, though, might as well free e too and avoid the need
 	 * to make some call into the hashmap API to do that.
 	 */
-	hashmap_for_each_entry(&map->map, &iter, e, ent) {
+	hashmap_for_each_entry(&map->map, &iter, e, ent)
+	{
 		if (free_values)
 			free(e->value);
 		if (!map->pool)
@@ -77,8 +77,7 @@ void strmap_partial_clear(struct strmap *map, int free_values)
 	hashmap_partial_clear(&map->map);
 }
 
-static struct strmap_entry *create_entry(struct strmap *map,
-					 const char *str,
+static struct strmap_entry *create_entry(struct strmap *map, const char *str,
 					 void *data)
 {
 	struct strmap_entry *entry;
@@ -154,10 +153,9 @@ void strintmap_incr(struct strintmap *map, const char *str, intptr_t amt)
 {
 	struct strmap_entry *entry = find_strmap_entry(&map->map, str);
 	if (entry) {
-		intptr_t *whence = (intptr_t*)&entry->value;
+		intptr_t *whence = (intptr_t *)&entry->value;
 		*whence += amt;
-	}
-	else
+	} else
 		strintmap_set(map, str, map->default_value + amt);
 }
 

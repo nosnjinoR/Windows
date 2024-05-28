@@ -3,19 +3,18 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "builtin.h"
-#include "config.h"
-#include "diff.h"
-#include "diff-merges.h"
-#include "commit.h"
-#include "preload-index.h"
-#include "repository.h"
-#include "revision.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/diff.h"
+#include "components/diff-merges.h"
+#include "components/commit.h"
+#include "components/preload-index.h"
+#include "components/repository.h"
+#include "components/revision.h"
 
 static const char diff_files_usage[] =
-"git diff-files [-q] [-0 | -1 | -2 | -3 | -c | --cc] [<common-diff-options>] [<path>...]"
-"\n"
-COMMON_DIFF_OPTIONS_HELP;
+	"git diff-files [-q] [-0 | -1 | -2 | -3 | -c | --cc] [<common-diff-options>] [<path>...]"
+	"\n" COMMON_DIFF_OPTIONS_HELP;
 
 int cmd_diff_files(int argc, const char **argv, const char *prefix)
 {
@@ -54,7 +53,8 @@ int cmd_diff_files(int argc, const char **argv, const char *prefix)
 			options |= DIFF_SILENT_ON_REMOVED;
 		else
 			usage(diff_files_usage);
-		argv++; argc--;
+		argv++;
+		argc--;
 	}
 	if (!rev.diffopt.output_format)
 		rev.diffopt.output_format = DIFF_FORMAT_RAW;
@@ -65,8 +65,7 @@ int cmd_diff_files(int argc, const char **argv, const char *prefix)
 	 * rev.max_count is reasonable (0 <= n <= 3), and
 	 * there is no other revision filtering parameters.
 	 */
-	if (rev.pending.nr ||
-	    rev.min_age != -1 || rev.max_age != -1 ||
+	if (rev.pending.nr || rev.min_age != -1 || rev.max_age != -1 ||
 	    3 < rev.max_count)
 		usage(diff_files_usage);
 
@@ -79,7 +78,8 @@ int cmd_diff_files(int argc, const char **argv, const char *prefix)
 	    (rev.diffopt.output_format & DIFF_FORMAT_PATCH))
 		diff_merges_set_dense_combined_if_unset(&rev);
 
-	if (repo_read_index_preload(the_repository, &rev.diffopt.pathspec, 0) < 0)
+	if (repo_read_index_preload(the_repository, &rev.diffopt.pathspec, 0) <
+	    0)
 		die_errno("repo_read_index_preload");
 	run_diff_files(&rev, options);
 	result = diff_result_code(&rev.diffopt);

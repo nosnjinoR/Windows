@@ -1,12 +1,11 @@
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "server-info.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/server-info.h"
 
-static const char * const update_server_info_usage[] = {
-	"git update-server-info [-f | --force]",
-	NULL
+static const char *const update_server_info_usage[] = {
+	"git update-server-info [-f | --force]", NULL
 };
 
 int cmd_update_server_info(int argc, const char **argv, const char *prefix)

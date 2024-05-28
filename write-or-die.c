@@ -1,7 +1,7 @@
-#include "git-compat-util.h"
-#include "parse.h"
-#include "run-command.h"
-#include "write-or-die.h"
+#include "components/git-compat-util.h"
+#include "components/parse.h"
+#include "components/run-command.h"
+#include "components/write-or-die.h"
 
 /*
  * Some cases use stdio, but want to flush after the write
@@ -28,7 +28,8 @@ void maybe_flush_or_die(FILE *f, const char *desc)
 				if (fstat(fileno(stdout), &st))
 					force_flush_stdout = 1;
 				else
-					force_flush_stdout = !S_ISREG(st.st_mode);
+					force_flush_stdout =
+						!S_ISREG(st.st_mode);
 			}
 		}
 		if (!force_flush_stdout && !ferror(f))
@@ -82,7 +83,8 @@ int fsync_component(enum fsync_component component, int fd)
 	return 0;
 }
 
-void fsync_component_or_die(enum fsync_component component, int fd, const char *msg)
+void fsync_component_or_die(enum fsync_component component, int fd,
+			    const char *msg)
 {
 	if (fsync_components & component)
 		fsync_or_die(fd, msg);

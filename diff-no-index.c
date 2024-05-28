@@ -4,17 +4,17 @@
  * Copyright (c) 2008 by Junio C Hamano
  */
 
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "color.h"
-#include "commit.h"
-#include "diff.h"
-#include "diffcore.h"
-#include "gettext.h"
-#include "revision.h"
-#include "parse-options.h"
-#include "string-list.h"
-#include "dir.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/color.h"
+#include "components/commit.h"
+#include "components/diff.h"
+#include "components/diffcore.h"
+#include "components/gettext.h"
+#include "components/revision.h"
+#include "components/parse-options.h"
+#include "components/string-list.h"
+#include "components/dir.h"
 
 static int read_directory_contents(const char *path, struct string_list *list)
 {
@@ -127,8 +127,8 @@ static struct diff_filespec *noindex_filespec(const char *name, int mode,
 	return s;
 }
 
-static int queue_diff(struct diff_options *o,
-		      const char *name1, const char *name2, int recursing)
+static int queue_diff(struct diff_options *o, const char *name1,
+		      const char *name2, int recursing)
 {
 	int mode1 = 0, mode2 = 0;
 	enum special special1 = SPECIAL_NONE, special2 = SPECIAL_NONE;
@@ -187,7 +187,7 @@ static int queue_diff(struct diff_options *o,
 			len2 = buffer2.len;
 		}
 
-		for (i1 = i2 = 0; !ret && (i1 < p1.nr || i2 < p2.nr); ) {
+		for (i1 = i2 = 0; !ret && (i1 < p1.nr || i2 < p2.nr);) {
 			const char *n1, *n2;
 			int comp;
 
@@ -199,7 +199,8 @@ static int queue_diff(struct diff_options *o,
 			else if (i2 == p2.nr)
 				comp = -1;
 			else
-				comp = strcmp(p1.items[i1].string, p2.items[i2].string);
+				comp = strcmp(p1.items[i1].string,
+					      p2.items[i2].string);
 
 			if (comp > 0)
 				n1 = NULL;
@@ -240,7 +241,8 @@ static int queue_diff(struct diff_options *o,
 }
 
 /* append basename of F to D */
-static void append_basename(struct strbuf *path, const char *dir, const char *file)
+static void append_basename(struct strbuf *path, const char *dir,
+			    const char *file)
 {
 	const char *tail = strrchr(file, '/');
 
@@ -290,14 +292,12 @@ static void fixup_paths(const char **path, struct strbuf *replacement)
 	}
 }
 
-static const char * const diff_no_index_usage[] = {
-	N_("git diff --no-index [<options>] <path> <path>"),
-	NULL
+static const char *const diff_no_index_usage[] = {
+	N_("git diff --no-index [<options>] <path> <path>"), NULL
 };
 
-int diff_no_index(struct rev_info *revs,
-		  int implicit_no_index,
-		  int argc, const char **argv)
+int diff_no_index(struct rev_info *revs, int implicit_no_index, int argc,
+		  const char **argv)
 {
 	int i, no_index;
 	int ret = 1;

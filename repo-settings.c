@@ -1,9 +1,9 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "repository.h"
-#include "midx.h"
-#include "fsmonitor-ipc.h"
-#include "fsmonitor-settings.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/repository.h"
+#include "components/midx.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/fsmonitor-settings.h"
 
 static void repo_cfg_bool(struct repository *r, const char *key, int *dest,
 			  int def)
@@ -43,7 +43,8 @@ void prepare_repo_settings(struct repository *r)
 
 	/* Defaults modified by feature.* */
 	if (experimental) {
-		r->settings.fetch_negotiation_algorithm = FETCH_NEGOTIATION_SKIPPING;
+		r->settings.fetch_negotiation_algorithm =
+			FETCH_NEGOTIATION_SKIPPING;
 		r->settings.pack_use_bitmap_boundary_traversal = 1;
 		r->settings.pack_use_multi_pack_reuse = 1;
 
@@ -64,10 +65,10 @@ void prepare_repo_settings(struct repository *r)
 		 * (and I don't want to overload the _reason field
 		 * because it describes incompabilities).
 		 */
-		if (manyfiles &&
-		    fsmonitor_ipc__is_supported()  &&
+		if (manyfiles && fsmonitor_ipc__is_supported() &&
 		    fsm_settings__get_mode(r) == FSMONITOR_MODE_DISABLED &&
-		    repo_config_get_maybe_bool(r, "core.fsmonitor", &value) > 0 &&
+		    repo_config_get_maybe_bool(r, "core.fsmonitor", &value) >
+			    0 &&
 		    repo_config_get_bool(r, "core.useBuiltinFSMonitor", &value))
 			fsm_settings__set_ipc(r);
 	}
@@ -79,21 +80,29 @@ void prepare_repo_settings(struct repository *r)
 
 	/* Commit graph config or default, does not cascade (simple) */
 	repo_cfg_bool(r, "core.commitgraph", &r->settings.core_commit_graph, 1);
-	repo_cfg_int(r, "commitgraph.generationversion", &r->settings.commit_graph_generation_version, 2);
-	repo_cfg_bool(r, "commitgraph.readchangedpaths", &r->settings.commit_graph_read_changed_paths, 1);
-	repo_cfg_bool(r, "gc.writecommitgraph", &r->settings.gc_write_commit_graph, 1);
-	repo_cfg_bool(r, "fetch.writecommitgraph", &r->settings.fetch_write_commit_graph, 0);
+	repo_cfg_int(r, "commitgraph.generationversion",
+		     &r->settings.commit_graph_generation_version, 2);
+	repo_cfg_bool(r, "commitgraph.readchangedpaths",
+		      &r->settings.commit_graph_read_changed_paths, 1);
+	repo_cfg_bool(r, "gc.writecommitgraph",
+		      &r->settings.gc_write_commit_graph, 1);
+	repo_cfg_bool(r, "fetch.writecommitgraph",
+		      &r->settings.fetch_write_commit_graph, 0);
 
 	/* Boolean config or default, does not cascade (simple)  */
 	repo_cfg_bool(r, "pack.usesparse", &r->settings.pack_use_sparse, 1);
-	repo_cfg_bool(r, "core.multipackindex", &r->settings.core_multi_pack_index, 1);
+	repo_cfg_bool(r, "core.multipackindex",
+		      &r->settings.core_multi_pack_index, 1);
 	repo_cfg_bool(r, "index.sparse", &r->settings.sparse_index, 0);
-	repo_cfg_bool(r, "index.skiphash", &r->settings.index_skip_hash, r->settings.index_skip_hash);
-	repo_cfg_bool(r, "pack.readreverseindex", &r->settings.pack_read_reverse_index, 1);
+	repo_cfg_bool(r, "index.skiphash", &r->settings.index_skip_hash,
+		      r->settings.index_skip_hash);
+	repo_cfg_bool(r, "pack.readreverseindex",
+		      &r->settings.pack_read_reverse_index, 1);
 	repo_cfg_bool(r, "pack.usebitmapboundarytraversal",
 		      &r->settings.pack_use_bitmap_boundary_traversal,
 		      r->settings.pack_use_bitmap_boundary_traversal);
-	repo_cfg_bool(r, "core.usereplacerefs", &r->settings.read_replace_refs, 1);
+	repo_cfg_bool(r, "core.usereplacerefs", &r->settings.read_replace_refs,
+		      1);
 
 	/*
 	 * The GIT_TEST_MULTI_PACK_INDEX variable is special in that
@@ -120,18 +129,23 @@ void prepare_repo_settings(struct repository *r)
 		 * at the default of UNTRACKED_CACHE_KEEP.
 		 */
 		if (v >= 0)
-			r->settings.core_untracked_cache = v ?
-				UNTRACKED_CACHE_WRITE : UNTRACKED_CACHE_REMOVE;
+			r->settings.core_untracked_cache =
+				v ? UNTRACKED_CACHE_WRITE :
+				    UNTRACKED_CACHE_REMOVE;
 	}
 
-	if (!repo_config_get_string_tmp(r, "fetch.negotiationalgorithm", &strval)) {
+	if (!repo_config_get_string_tmp(r, "fetch.negotiationalgorithm",
+					&strval)) {
 		int fetch_default = r->settings.fetch_negotiation_algorithm;
 		if (!strcasecmp(strval, "skipping"))
-			r->settings.fetch_negotiation_algorithm = FETCH_NEGOTIATION_SKIPPING;
+			r->settings.fetch_negotiation_algorithm =
+				FETCH_NEGOTIATION_SKIPPING;
 		else if (!strcasecmp(strval, "noop"))
-			r->settings.fetch_negotiation_algorithm = FETCH_NEGOTIATION_NOOP;
+			r->settings.fetch_negotiation_algorithm =
+				FETCH_NEGOTIATION_NOOP;
 		else if (!strcasecmp(strval, "consecutive"))
-			r->settings.fetch_negotiation_algorithm = FETCH_NEGOTIATION_CONSECUTIVE;
+			r->settings.fetch_negotiation_algorithm =
+				FETCH_NEGOTIATION_CONSECUTIVE;
 		else if (!strcasecmp(strval, "default"))
 			r->settings.fetch_negotiation_algorithm = fetch_default;
 		else

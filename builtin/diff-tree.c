@@ -1,15 +1,15 @@
 #define USE_THE_INDEX_VARIABLE
-#include "builtin.h"
-#include "config.h"
-#include "diff.h"
-#include "commit.h"
-#include "gettext.h"
-#include "hex.h"
-#include "log-tree.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "revision.h"
-#include "tree.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/diff.h"
+#include "components/commit.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/log-tree.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/revision.h"
+#include "components/tree.h"
 
 static struct rev_info log_tree_opt;
 
@@ -54,9 +54,9 @@ static int stdin_diff_trees(struct tree *tree1, const char *p)
 	if (!tree2 || parse_tree(tree2))
 		return -1;
 	printf("%s %s\n", oid_to_hex(&tree1->object.oid),
-			  oid_to_hex(&tree2->object.oid));
-	diff_tree_oid(&tree1->object.oid, &tree2->object.oid,
-		      "", &log_tree_opt.diffopt);
+	       oid_to_hex(&tree2->object.oid));
+	diff_tree_oid(&tree1->object.oid, &tree2->object.oid, "",
+		      &log_tree_opt.diffopt);
 	log_tree_diff_flush(&log_tree_opt);
 	return 0;
 }
@@ -68,9 +68,9 @@ static int diff_tree_stdin(char *line)
 	struct object *obj;
 	const char *p;
 
-	if (!len || line[len-1] != '\n')
+	if (!len || line[len - 1] != '\n')
 		return -1;
-	line[len-1] = 0;
+	line[len - 1] = 0;
 	if (parse_oid_hex(line, &oid, &p))
 		return -1;
 	obj = parse_object(the_repository, &oid);
@@ -80,23 +80,22 @@ static int diff_tree_stdin(char *line)
 		return stdin_diff_commit((struct commit *)obj, p);
 	if (obj->type == OBJ_TREE)
 		return stdin_diff_trees((struct tree *)obj, p);
-	error("Object %s is a %s, not a commit or tree",
-	      oid_to_hex(&oid), type_name(obj->type));
+	error("Object %s is a %s, not a commit or tree", oid_to_hex(&oid),
+	      type_name(obj->type));
 	return -1;
 }
 
 static const char diff_tree_usage[] =
-"git diff-tree [--stdin] [-m] [-s] [-v] [--no-commit-id] [--pretty]\n"
-"              [-t] [-r] [-c | --cc] [--combined-all-paths] [--root] [--merge-base]\n"
-"              [<common-diff-options>] <tree-ish> [<tree-ish>] [<path>...]\n"
-"\n"
-"  -r            diff recursively\n"
-"  -c            show combined diff for merge commits\n"
-"  --cc          show combined diff for merge commits removing uninteresting hunks\n"
-"  --combined-all-paths\n"
-"                show name of file in all parents for combined diffs\n"
-"  --root        include the initial commit as diff against /dev/null\n"
-COMMON_DIFF_OPTIONS_HELP;
+	"git diff-tree [--stdin] [-m] [-s] [-v] [--no-commit-id] [--pretty]\n"
+	"              [-t] [-r] [-c | --cc] [--combined-all-paths] [--root] [--merge-base]\n"
+	"              [<common-diff-options>] <tree-ish> [<tree-ish>] [<path>...]\n"
+	"\n"
+	"  -r            diff recursively\n"
+	"  -c            show combined diff for merge commits\n"
+	"  --cc          show combined diff for merge commits removing uninteresting hunks\n"
+	"  --combined-all-paths\n"
+	"                show name of file in all parents for combined diffs\n"
+	"  --root        include the initial commit as diff against /dev/null\n" COMMON_DIFF_OPTIONS_HELP;
 
 static void diff_tree_tweak_rev(struct rev_info *rev)
 {
@@ -161,7 +160,8 @@ int cmd_diff_tree(int argc, const char **argv, const char *prefix)
 	}
 
 	if (read_stdin && merge_base)
-		die(_("options '%s' and '%s' cannot be used together"), "--stdin", "--merge-base");
+		die(_("options '%s' and '%s' cannot be used together"),
+		    "--stdin", "--merge-base");
 	if (merge_base && opt->pending.nr != 2)
 		die(_("--merge-base only works with two commits"));
 
@@ -216,11 +216,12 @@ int cmd_diff_tree(int argc, const char **argv, const char *prefix)
 			if (get_oid_hex(line, &oid)) {
 				fputs(line, stdout);
 				fflush(stdout);
-			}
-			else {
+			} else {
 				diff_tree_stdin(line);
-				if (saved_nrl < opt->diffopt.needed_rename_limit)
-					saved_nrl = opt->diffopt.needed_rename_limit;
+				if (saved_nrl <
+				    opt->diffopt.needed_rename_limit)
+					saved_nrl =
+						opt->diffopt.needed_rename_limit;
 				if (opt->diffopt.degraded_cc_to_c)
 					saved_dcctc = 1;
 			}

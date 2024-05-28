@@ -1,7 +1,7 @@
-#include "../../git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "../win32.h"
-#include "../../repository.h"
-#include "config.h"
+#include "components/repository.h"
+#include "components/config.h"
 #include "ntifs.h"
 #include "wsl.h"
 
@@ -35,7 +35,8 @@ int copy_wsl_mode_bits_from_disk(const wchar_t *wpath, ssize_t wpathlen,
 		 * It's caller's duty to make sure wpathlen is reasonable so
 		 * it does not overflow.
 		 */
-		wchar_t *fn2 = (wchar_t*)alloca((wpathlen + 1) * sizeof(wchar_t));
+		wchar_t *fn2 =
+			(wchar_t *)alloca((wpathlen + 1) * sizeof(wchar_t));
 		memcpy(fn2, wpath, wpathlen * sizeof(wchar_t));
 		fn2[wpathlen] = 0;
 		wpath = fn2;

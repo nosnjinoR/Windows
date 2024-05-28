@@ -1,15 +1,15 @@
-#include "git-compat-util.h"
-#include "parse-options.h"
-#include "branch.h"
-#include "commit.h"
-#include "color.h"
-#include "date.h"
-#include "environment.h"
-#include "gettext.h"
-#include "object-name.h"
-#include "string-list.h"
-#include "strvec.h"
-#include "oid-array.h"
+#include "components/git-compat-util.h"
+#include "components/parse-options.h"
+#include "components/branch.h"
+#include "components/commit.h"
+#include "components/color.h"
+#include "components/date.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/object-name.h"
+#include "components/string-list.h"
+#include "components/strvec.h"
+#include "components/oid-array.h"
 
 /*----- some often used options -----*/
 
@@ -55,14 +55,14 @@ int parse_opt_color_flag_cb(const struct option *opt, const char *arg,
 		arg = unset ? "never" : (const char *)opt->defval;
 	value = git_config_colorbool(NULL, arg);
 	if (value < 0)
-		return error(_("option `%s' expects \"always\", \"auto\", or \"never\""),
-			     opt->long_name);
+		return error(
+			_("option `%s' expects \"always\", \"auto\", or \"never\""),
+			opt->long_name);
 	*(int *)opt->value = value;
 	return 0;
 }
 
-int parse_opt_verbosity_cb(const struct option *opt, const char *arg,
-			   int unset)
+int parse_opt_verbosity_cb(const struct option *opt, const char *arg, int unset)
 {
 	int *target = opt->value;
 
@@ -227,8 +227,7 @@ int parse_opt_strvec(const struct option *opt, const char *arg, int unset)
 	return 0;
 }
 
-int parse_opt_noop_cb(const struct option *opt UNUSED,
-		      const char *arg UNUSED,
+int parse_opt_noop_cb(const struct option *opt UNUSED, const char *arg UNUSED,
 		      int unset UNUSED)
 {
 	return 0;
@@ -238,7 +237,7 @@ int parse_opt_noop_cb(const struct option *opt UNUSED,
  * Recreates the command-line option in the strbuf.
  */
 static int recreate_opt(struct strbuf *sb, const struct option *opt,
-		const char *arg, int unset)
+			const char *arg, int unset)
 {
 	strbuf_reset(sb);
 
@@ -288,7 +287,8 @@ int parse_opt_passthru(const struct option *opt, const char *arg, int unset)
  * the command-line option, which can be specified multiple times, to another
  * command.
  */
-int parse_opt_passthru_argv(const struct option *opt, const char *arg, int unset)
+int parse_opt_passthru_argv(const struct option *opt, const char *arg,
+			    int unset)
 {
 	static struct strbuf sb = STRBUF_INIT;
 	struct strvec *opt_value = opt->value;
@@ -301,7 +301,8 @@ int parse_opt_passthru_argv(const struct option *opt, const char *arg, int unset
 	return 0;
 }
 
-int parse_opt_tracking_mode(const struct option *opt, const char *arg, int unset)
+int parse_opt_tracking_mode(const struct option *opt, const char *arg,
+			    int unset)
 {
 	if (unset)
 		*(enum branch_track *)opt->value = BRANCH_TRACK_NEVER;

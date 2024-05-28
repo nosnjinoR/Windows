@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "dir.h"
-#include "hash.h"
-#include "read-cache.h"
-#include "resolve-undo.h"
-#include "sparse-index.h"
-#include "string-list.h"
+#include "components/git-compat-util.h"
+#include "components/dir.h"
+#include "components/hash.h"
+#include "components/read-cache.h"
+#include "components/resolve-undo.h"
+#include "components/sparse-index.h"
+#include "components/string-list.h"
 
 /* The only error case is to run out of memory in string-list */
 void record_resolve_undo(struct index_state *istate, struct cache_entry *ce)
@@ -34,7 +34,7 @@ void record_resolve_undo(struct index_state *istate, struct cache_entry *ce)
 void resolve_undo_write(struct strbuf *sb, struct string_list *resolve_undo)
 {
 	struct string_list_item *item;
-	for_each_string_list_item(item, resolve_undo) {
+	for_each_string_list_item (item, resolve_undo) {
 		struct resolve_undo_info *ui = item->util;
 		int i;
 
@@ -81,7 +81,7 @@ struct string_list *resolve_undo_read(const char *data, unsigned long size)
 			ui->mode[i] = strtoul(data, &endptr, 8);
 			if (!endptr || endptr == data || *endptr)
 				goto error;
-			len = (endptr + 1) - (char*)data;
+			len = (endptr + 1) - (char *)data;
 			if (size <= len)
 				goto error;
 			size -= len;
@@ -139,8 +139,8 @@ int unmerge_index_entry(struct index_state *istate, const char *path,
 		struct cache_entry *ce;
 		if (!ru->mode[i])
 			continue;
-		ce = make_cache_entry(istate, ru->mode[i], &ru->oid[i],
-				      path, i + 1, 0);
+		ce = make_cache_entry(istate, ru->mode[i], &ru->oid[i], path,
+				      i + 1, 0);
 		ce->ce_flags |= ce_flags;
 		if (add_index_entry(istate, ce, ADD_CACHE_OK_TO_ADD))
 			return error("cannot unmerge '%s'", path);
@@ -159,14 +159,13 @@ void unmerge_index(struct index_state *istate, const struct pathspec *pathspec,
 	/* TODO: audit for interaction with sparse-index. */
 	ensure_full_index(istate);
 
-	for_each_string_list_item(item, istate->resolve_undo) {
+	for_each_string_list_item (item, istate->resolve_undo) {
 		const char *path = item->string;
 		struct resolve_undo_info *ru = item->util;
 		if (!item->util)
 			continue;
-		if (!match_pathspec(istate, pathspec,
-				    item->string, strlen(item->string),
-				    0, NULL, 0))
+		if (!match_pathspec(istate, pathspec, item->string,
+				    strlen(item->string), 0, NULL, 0))
 			continue;
 		unmerge_index_entry(istate, path, ru, ce_flags);
 		free(ru);

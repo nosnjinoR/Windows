@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "object-store-ll.h"
-#include "packfile.h"
-#include "progress.h"
-#include "prune-packed.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/object-store-ll.h"
+#include "components/packfile.h"
+#include "components/progress.h"
+#include "components/prune-packed.h"
 
 static struct progress *progress;
 
@@ -18,7 +18,7 @@ static int prune_subdir(unsigned int nr, const char *path, void *data)
 }
 
 static int prune_object(const struct object_id *oid, const char *path,
-			 void *data)
+			void *data)
 {
 	int *opts = data;
 
@@ -35,10 +35,11 @@ static int prune_object(const struct object_id *oid, const char *path,
 void prune_packed_objects(int opts)
 {
 	if (opts & PRUNE_PACKED_VERBOSE)
-		progress = start_delayed_progress(_("Removing duplicate objects"), 256);
+		progress = start_delayed_progress(
+			_("Removing duplicate objects"), 256);
 
-	for_each_loose_file_in_objdir(get_object_directory(),
-				      prune_object, NULL, prune_subdir, &opts);
+	for_each_loose_file_in_objdir(get_object_directory(), prune_object,
+				      NULL, prune_subdir, &opts);
 
 	/* Ensure we show 100% before finishing progress */
 	display_progress(progress, 256);

@@ -1,22 +1,22 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "gettext.h"
-#include "range-diff.h"
-#include "object-name.h"
-#include "string-list.h"
-#include "run-command.h"
-#include "strvec.h"
-#include "hashmap.h"
-#include "xdiff-interface.h"
-#include "linear-assignment.h"
-#include "diffcore.h"
-#include "commit.h"
-#include "pager.h"
-#include "pretty.h"
-#include "repository.h"
-#include "userdiff.h"
-#include "apply.h"
-#include "revision.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/gettext.h"
+#include "components/range-diff.h"
+#include "components/object-name.h"
+#include "components/string-list.h"
+#include "components/run-command.h"
+#include "components/strvec.h"
+#include "components/hashmap.h"
+#include "components/xdiff-interface.h"
+#include "components/linear-assignment.h"
+#include "components/diffcore.h"
+#include "components/commit.h"
+#include "components/pager.h"
+#include "components/pretty.h"
+#include "components/repository.h"
+#include "components/userdiff.h"
+#include "components/apply.h"
+#include "components/revision.h"
 
 struct patch_util {
 	/* For the search for an exact match */
@@ -55,13 +55,9 @@ static int read_patches(const char *range, struct string_list *list,
 		      * else in diffs, but still look reasonable
 		      * (e.g. will not be confusing when debugging)
 		      */
-		     "--output-indicator-new=>",
-		     "--output-indicator-old=<",
-		     "--output-indicator-context=#",
-		     "--no-abbrev-commit",
-		     "--pretty=medium",
-		     "--show-notes-by-default",
-		     NULL);
+		     "--output-indicator-new=>", "--output-indicator-old=<",
+		     "--output-indicator-context=#", "--no-abbrev-commit",
+		     "--pretty=medium", "--show-notes-by-default", NULL);
 	strvec_push(&cp.args, range);
 	if (other_arg)
 		strvec_pushv(&cp.args, other_arg->v);
@@ -144,9 +140,11 @@ static int read_patches(const char *range, struct string_list *list,
 			if (patch.is_new > 0)
 				strbuf_addf(&buf, "%s (new)", patch.new_name);
 			else if (patch.is_delete > 0)
-				strbuf_addf(&buf, "%s (deleted)", patch.old_name);
+				strbuf_addf(&buf, "%s (deleted)",
+					    patch.old_name);
 			else if (patch.is_rename)
-				strbuf_addf(&buf, "%s => %s", patch.old_name, patch.new_name);
+				strbuf_addf(&buf, "%s => %s", patch.old_name,
+					    patch.new_name);
 			else
 				strbuf_addstr(&buf, patch.new_name);
 
@@ -231,12 +229,12 @@ cleanup:
 
 static int patch_util_cmp(const void *cmp_data UNUSED,
 			  const struct hashmap_entry *ha,
-			  const struct hashmap_entry *hb,
-			  const void *keydata)
+			  const struct hashmap_entry *hb, const void *keydata)
 {
-	const struct patch_util
-		*a = container_of(ha, const struct patch_util, e),
-		*b = container_of(hb, const struct patch_util, e);
+	const struct patch_util *a = container_of(ha, const struct patch_util,
+						  e),
+				*b = container_of(hb, const struct patch_util,
+						  e);
 	return strcmp(a->diff, keydata ? keydata : b->diff);
 }
 
@@ -277,16 +275,14 @@ static void find_exact_matches(struct string_list *a, struct string_list *b)
 	hashmap_clear(&map);
 }
 
-static int diffsize_consume(void *data,
-			     char *line UNUSED,
-			     unsigned long len UNUSED)
+static int diffsize_consume(void *data, char *line UNUSED,
+			    unsigned long len UNUSED)
 {
 	(*(int *)data)++;
 	return 0;
 }
 
-static void diffsize_hunk(void *data,
-			  long ob UNUSED, long on UNUSED,
+static void diffsize_hunk(void *data, long ob UNUSED, long on UNUSED,
 			  long nb UNUSED, long nn UNUSED,
 			  const char *func UNUSED, long funclen UNUSED)
 {
@@ -306,8 +302,7 @@ static int diffsize(const char *a, const char *b)
 	mf2.size = strlen(b);
 
 	cfg.ctxlen = 3;
-	if (!xdi_diff_outf(&mf1, &mf2,
-			   diffsize_hunk, diffsize_consume, &count,
+	if (!xdi_diff_outf(&mf1, &mf2, diffsize_hunk, diffsize_consume, &count,
 			   &pp, &cfg))
 		return count;
 
@@ -342,7 +337,8 @@ static void get_correspondences(struct string_list *a, struct string_list *b,
 		}
 
 		c = a_util->matching < 0 ?
-			a_util->diffsize * creation_factor / 100 : COST_MAX;
+			    a_util->diffsize * creation_factor / 100 :
+			    COST_MAX;
 		for (j = b->nr; j < n; j++)
 			cost[i + n * j] = c;
 	}
@@ -351,7 +347,8 @@ static void get_correspondences(struct string_list *a, struct string_list *b,
 		struct patch_util *util = b->items[j].util;
 
 		c = util->matching < 0 ?
-			util->diffsize * creation_factor / 100 : COST_MAX;
+			    util->diffsize * creation_factor / 100 :
+			    COST_MAX;
 		for (i = a->nr; i < n; i++)
 			cost[i + n * j] = c;
 	}
@@ -376,10 +373,8 @@ static void get_correspondences(struct string_list *a, struct string_list *b,
 	free(b2a);
 }
 
-static void output_pair_header(struct diff_options *diffopt,
-			       int patch_no_width,
-			       struct strbuf *buf,
-			       struct strbuf *dashes,
+static void output_pair_header(struct diff_options *diffopt, int patch_no_width,
+			       struct strbuf *buf, struct strbuf *dashes,
 			       struct patch_util *a_util,
 			       struct patch_util *b_util)
 {
@@ -398,7 +393,8 @@ static void output_pair_header(struct diff_options *diffopt,
 
 	if (!dashes->len)
 		strbuf_addchars(dashes, '-',
-				strlen(repo_find_unique_abbrev(the_repository, oid, abbrev)));
+				strlen(repo_find_unique_abbrev(the_repository,
+							       oid, abbrev)));
 
 	if (!b_util) {
 		color = color_old;
@@ -420,7 +416,8 @@ static void output_pair_header(struct diff_options *diffopt,
 		strbuf_addf(buf, "%*s:  %s ", patch_no_width, "-", dashes->buf);
 	else
 		strbuf_addf(buf, "%*d:  %s ", patch_no_width, a_util->i + 1,
-			    repo_find_unique_abbrev(the_repository, &a_util->oid, abbrev));
+			    repo_find_unique_abbrev(the_repository,
+						    &a_util->oid, abbrev));
 
 	if (status == '!')
 		strbuf_addf(buf, "%s%s", color_reset, color);
@@ -432,7 +429,8 @@ static void output_pair_header(struct diff_options *diffopt,
 		strbuf_addf(buf, " %*s:  %s", patch_no_width, "-", dashes->buf);
 	else
 		strbuf_addf(buf, " %*d:  %s", patch_no_width, b_util->i + 1,
-			    repo_find_unique_abbrev(the_repository, &b_util->oid, abbrev));
+			    repo_find_unique_abbrev(the_repository,
+						    &b_util->oid, abbrev));
 
 	commit = lookup_commit_reference(the_repository, oid);
 	if (commit) {
@@ -447,10 +445,10 @@ static void output_pair_header(struct diff_options *diffopt,
 	fwrite(buf->buf, buf->len, 1, diffopt->file);
 }
 
-static struct userdiff_driver section_headers = {
-	.funcname = { "^ ## (.*) ##$\n"
-		      "^.?@@ (.*)$", REG_EXTENDED }
-};
+static struct userdiff_driver section_headers = { .funcname = {
+							  "^ ## (.*) ##$\n"
+							  "^.?@@ (.*)$",
+							  REG_EXTENDED } };
 
 static struct diff_filespec *get_filespec(const char *name, const char *p)
 {
@@ -469,14 +467,15 @@ static struct diff_filespec *get_filespec(const char *name, const char *p)
 static void patch_diff(const char *a, const char *b,
 		       struct diff_options *diffopt)
 {
-	diff_queue(&diff_queued_diff,
-		   get_filespec("a", a), get_filespec("b", b));
+	diff_queue(&diff_queued_diff, get_filespec("a", a),
+		   get_filespec("b", b));
 
 	diffcore_std(diffopt);
 	diff_flush(diffopt);
 }
 
-static struct strbuf *output_prefix_cb(struct diff_options *opt UNUSED, void *data)
+static struct strbuf *output_prefix_cb(struct diff_options *opt UNUSED,
+				       void *data)
 {
 	return data;
 }
@@ -499,8 +498,7 @@ static void output(struct string_list *a, struct string_list *b,
 	if (!opts.output_format)
 		opts.output_format = DIFF_FORMAT_PATCH;
 	opts.flags.suppress_diff_headers = 1;
-	opts.flags.dual_color_diffed_diffs =
-		range_diff_opts->dual_color;
+	opts.flags.dual_color_diffed_diffs = range_diff_opts->dual_color;
 	opts.flags.suppress_hunk_header_line_count = 1;
 	opts.output_prefix = output_prefix_cb;
 	strbuf_addstr(&indent, "    ");
@@ -527,8 +525,8 @@ static void output(struct string_list *a, struct string_list *b,
 		/* Show unmatched LHS commit whose predecessors were shown. */
 		if (i < a->nr && a_util->matching < 0) {
 			if (!range_diff_opts->right_only)
-				output_pair_header(&opts, patch_no_width,
-					   &buf, &dashes, a_util, NULL);
+				output_pair_header(&opts, patch_no_width, &buf,
+						   &dashes, a_util, NULL);
 			i++;
 			continue;
 		}
@@ -536,16 +534,16 @@ static void output(struct string_list *a, struct string_list *b,
 		/* Show unmatched RHS commits. */
 		while (j < b->nr && b_util->matching < 0) {
 			if (!range_diff_opts->left_only)
-				output_pair_header(&opts, patch_no_width,
-					   &buf, &dashes, NULL, b_util);
+				output_pair_header(&opts, patch_no_width, &buf,
+						   &dashes, NULL, b_util);
 			b_util = ++j < b->nr ? b->items[j].util : NULL;
 		}
 
 		/* Show matching LHS/RHS pair. */
 		if (j < b->nr) {
 			a_util = a->items[b_util->matching].util;
-			output_pair_header(&opts, patch_no_width,
-					   &buf, &dashes, a_util, b_util);
+			output_pair_header(&opts, patch_no_width, &buf, &dashes,
+					   a_util, b_util);
 			if (!(opts.output_format & DIFF_FORMAT_NO_OUTPUT))
 				patch_diff(a->items[b_util->matching].string,
 					   b->items[j].string, &opts);
@@ -569,7 +567,8 @@ int show_range_diff(const char *range1, const char *range2,
 	struct string_list branch2 = STRING_LIST_INIT_DUP;
 
 	if (range_diff_opts->left_only && range_diff_opts->right_only)
-		res = error(_("options '%s' and '%s' cannot be used together"), "--left-only", "--right-only");
+		res = error(_("options '%s' and '%s' cannot be used together"),
+			    "--left-only", "--right-only");
 
 	if (!res && read_patches(range1, &branch1, range_diff_opts->other_arg))
 		res = error(_("could not parse log for '%s'"), range1);

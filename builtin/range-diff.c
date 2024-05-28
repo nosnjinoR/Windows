@@ -1,16 +1,15 @@
-#include "builtin.h"
-#include "gettext.h"
-#include "object-name.h"
-#include "parse-options.h"
-#include "range-diff.h"
-#include "config.h"
-#include "repository.h"
+#include "components/builtin.h"
+#include "components/gettext.h"
+#include "components/object-name.h"
+#include "components/parse-options.h"
+#include "components/range-diff.h"
+#include "components/config.h"
+#include "components/repository.h"
 
-static const char * const builtin_range_diff_usage[] = {
-N_("git range-diff [<options>] <old-base>..<old-tip> <new-base>..<new-tip>"),
-N_("git range-diff [<options>] <old-tip>...<new-tip>"),
-N_("git range-diff [<options>] <base> <old-tip> <new-tip>"),
-NULL
+static const char *const builtin_range_diff_usage[] = {
+	N_("git range-diff [<options>] <old-base>..<old-tip> <new-base>..<new-tip>"),
+	N_("git range-diff [<options>] <old-tip>...<new-tip>"),
+	N_("git range-diff [<options>] <base> <old-tip> <new-tip>"), NULL
 };
 
 int cmd_range_diff(int argc, const char **argv, const char *prefix)
@@ -28,10 +27,9 @@ int cmd_range_diff(int argc, const char **argv, const char *prefix)
 			    &range_diff_opts.creation_factor,
 			    N_("percentage by which creation is weighted")),
 		OPT_BOOL(0, "no-dual-color", &simple_color,
-			    N_("use simple diff colors")),
-		OPT_PASSTHRU_ARGV(0, "notes", &other_arg,
-				  N_("notes"), N_("passed to 'git log'"),
-				  PARSE_OPT_OPTARG),
+			 N_("use simple diff colors")),
+		OPT_PASSTHRU_ARGV(0, "notes", &other_arg, N_("notes"),
+				  N_("passed to 'git log'"), PARSE_OPT_OPTARG),
 		OPT_BOOL(0, "left-only", &left_only,
 			 N_("only emit output related to the first range")),
 		OPT_BOOL(0, "right-only", &right_only,
@@ -87,11 +85,10 @@ int cmd_range_diff(int argc, const char **argv, const char *prefix)
 		strbuf_addf(&range1, "%s..%s", argv[0], argv[1]);
 		strbuf_addf(&range2, "%s..%s", argv[0], argv[2]);
 
-		strvec_pushv(&other_arg, argv +
-			     (dash_dash < 0 ? 3 : dash_dash));
+		strvec_pushv(&other_arg,
+			     argv + (dash_dash < 0 ? 3 : dash_dash));
 	} else if (dash_dash == 2 ||
-		   (dash_dash < 0 && argc > 1 &&
-		    is_range_diff_range(argv[0]) &&
+		   (dash_dash < 0 && argc > 1 && is_range_diff_range(argv[0]) &&
 		    is_range_diff_range(argv[1]))) {
 		if (dash_dash < 0)
 			; /* already validated arguments */
@@ -107,11 +104,10 @@ int cmd_range_diff(int argc, const char **argv, const char *prefix)
 		strbuf_addstr(&range1, argv[0]);
 		strbuf_addstr(&range2, argv[1]);
 
-		strvec_pushv(&other_arg, argv +
-			     (dash_dash < 0 ? 2 : dash_dash));
-	} else if (dash_dash == 1 ||
-		   (dash_dash < 0 && argc > 0 &&
-		    (three_dots = strstr(argv[0], "...")))) {
+		strvec_pushv(&other_arg,
+			     argv + (dash_dash < 0 ? 2 : dash_dash));
+	} else if (dash_dash == 1 || (dash_dash < 0 && argc > 0 &&
+				      (three_dots = strstr(argv[0], "...")))) {
 		const char *a, *b;
 		int a_len;
 
@@ -119,8 +115,8 @@ int cmd_range_diff(int argc, const char **argv, const char *prefix)
 			; /* already validated arguments */
 		else if (!(three_dots = strstr(argv[0], "...")))
 			usage_msg_optf(_("not a symmetric range: '%s'"),
-					 builtin_range_diff_usage, options,
-					 argv[0]);
+				       builtin_range_diff_usage, options,
+				       argv[0]);
 
 		if (three_dots == argv[0]) {
 			a = "HEAD";
@@ -138,8 +134,8 @@ int cmd_range_diff(int argc, const char **argv, const char *prefix)
 		strbuf_addf(&range1, "%s..%.*s", b, a_len, a);
 		strbuf_addf(&range2, "%.*s..%s", a_len, a, b);
 
-		strvec_pushv(&other_arg, argv +
-			     (dash_dash < 0 ? 1 : dash_dash));
+		strvec_pushv(&other_arg,
+			     argv + (dash_dash < 0 ? 1 : dash_dash));
 	} else
 		usage_msg_opt(_("need two commit ranges"),
 			      builtin_range_diff_usage, options);

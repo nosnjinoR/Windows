@@ -1,7 +1,7 @@
 #include "test-tool.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "setup.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/setup.h"
 
 int cmd__dump_fsmonitor(int ac UNUSED, const char **av UNUSED)
 {
@@ -18,7 +18,8 @@ int cmd__dump_fsmonitor(int ac UNUSED, const char **av UNUSED)
 	printf("fsmonitor last update %s\n", istate->fsmonitor_last_update);
 
 	for (i = 0; i < istate->cache_nr; i++)
-		printf((istate->cache[i]->ce_flags & CE_FSMONITOR_VALID) ? "+" : "-");
+		printf((istate->cache[i]->ce_flags & CE_FSMONITOR_VALID) ? "+" :
+									   "-");
 
 	return 0;
 }

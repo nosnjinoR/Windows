@@ -1,26 +1,27 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "dir.h"
-#include "environment.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/dir.h"
+#include "components/environment.h"
 #include "ewah/ewok.h"
-#include "fsmonitor.h"
-#include "fsmonitor-ipc.h"
-#include "name-hash.h"
-#include "run-command.h"
-#include "strbuf.h"
-#include "trace2.h"
+#include "components/fsmonitor.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/name-hash.h"
+#include "components/run-command.h"
+#include "components/strbuf.h"
+#include "components/trace2.h"
 
-#define INDEX_EXTENSION_VERSION1	(1)
-#define INDEX_EXTENSION_VERSION2	(2)
-#define HOOK_INTERFACE_VERSION1		(1)
-#define HOOK_INTERFACE_VERSION2		(2)
+#define INDEX_EXTENSION_VERSION1 (1)
+#define INDEX_EXTENSION_VERSION2 (2)
+#define HOOK_INTERFACE_VERSION1 (1)
+#define HOOK_INTERFACE_VERSION2 (2)
 
 struct trace_key trace_fsmonitor = TRACE_KEY_INIT(FSMONITOR);
 
 static void assert_index_minimum(struct index_state *istate, size_t pos)
 {
 	if (pos > istate->cache_nr)
-		BUG("fsmonitor_dirty has more entries than the index (%"PRIuMAX" > %u)",
+		BUG("fsmonitor_dirty has more entries than the index (%" PRIuMAX
+		    " > %u)",
 		    (uintmax_t)pos, istate->cache_nr);
 }
 
@@ -47,12 +48,13 @@ static int fsmonitor_hook_version(void)
 		return hook_version;
 
 	warning("Invalid hook version '%i' in core.fsmonitorhookversion. "
-		"Must be 1 or 2.", hook_version);
+		"Must be 1 or 2.",
+		hook_version);
 	return -1;
 }
 
 int read_fsmonitor_extension(struct index_state *istate, const void *data,
-	unsigned long sz)
+			     unsigned long sz)
 {
 	const char *index = data;
 	uint32_t hdr_version;
@@ -69,7 +71,7 @@ int read_fsmonitor_extension(struct index_state *istate, const void *data,
 	index += sizeof(uint32_t);
 	if (hdr_version == INDEX_EXTENSION_VERSION1) {
 		timestamp = get_be64(index);
-		strbuf_addf(&last_update, "%"PRIu64"", timestamp);
+		strbuf_addf(&last_update, "%" PRIu64 "", timestamp);
 		index += sizeof(uint64_t);
 	} else if (hdr_version == INDEX_EXTENSION_VERSION2) {
 		strbuf_addstr(&last_update, index);
@@ -87,7 +89,8 @@ int read_fsmonitor_extension(struct index_state *istate, const void *data,
 	ret = ewah_read_mmap(fsmonitor_dirty, index, ewah_size);
 	if (ret != ewah_size) {
 		ewah_free(fsmonitor_dirty);
-		return error("failed to parse ewah bitmap reading fsmonitor index extension");
+		return error(
+			"failed to parse ewah bitmap reading fsmonitor index extension");
 	}
 	istate->fsmonitor_dirty = fsmonitor_dirty;
 
@@ -131,7 +134,8 @@ void write_fsmonitor_extension(struct strbuf *sb, struct index_state *istate)
 	strbuf_addch(sb, 0); /* Want to keep a NUL */
 
 	fixup = sb->len;
-	strbuf_add(sb, &ewah_size, sizeof(uint32_t)); /* we'll fix this up later */
+	strbuf_add(sb, &ewah_size, sizeof(uint32_t)); /* we'll fix this up later
+						       */
 
 	ewah_start = sb->len;
 	ewah_serialize_strbuf(istate->fsmonitor_dirty, sb);
@@ -150,10 +154,10 @@ void write_fsmonitor_extension(struct strbuf *sb, struct index_state *istate)
 }
 
 /*
- * Call the query-fsmonitor hook passing the last update token of the saved results.
+ * Call the query-fsmonitor hook passing the last update token of the saved
+ * results.
  */
-static int query_fsmonitor_hook(struct repository *r,
-				int version,
+static int query_fsmonitor_hook(struct repository *r, int version,
 				const char *last_update,
 				struct strbuf *query_result)
 {
@@ -200,8 +204,8 @@ static void invalidate_ce_fsm(struct cache_entry *ce)
 	}
 }
 
-static size_t handle_path_with_trailing_slash(
-	struct index_state *istate, const char *name, int pos);
+static size_t handle_path_with_trailing_slash(struct index_state *istate,
+					      const char *name, int pos);
 
 /*
  * Use the name-hash to do a case-insensitive cache-entry lookup with
@@ -209,8 +213,8 @@ static size_t handle_path_with_trailing_slash(
  *
  * Returns the number of cache-entries that we invalidated.
  */
-static size_t handle_using_name_hash_icase(
-	struct index_state *istate, const char *name)
+static size_t handle_using_name_hash_icase(struct index_state *istate,
+					   const char *name)
 {
 	struct cache_entry *ce = NULL;
 
@@ -235,8 +239,8 @@ static size_t handle_using_name_hash_icase(
 	 * do the usual scan.
 	 */
 	trace_printf_key(&trace_fsmonitor,
-			 "fsmonitor_refresh_callback MAP: '%s' '%s'",
-			 name, ce->name);
+			 "fsmonitor_refresh_callback MAP: '%s' '%s'", name,
+			 ce->name);
 
 	/*
 	 * NEEDSWORK: We used the name-hash to find the correct
@@ -261,8 +265,8 @@ static size_t handle_using_name_hash_icase(
  *
  * Returns the number of cache-entries that we invalidated.
  */
-static size_t handle_using_dir_name_hash_icase(
-	struct index_state *istate, const char *name)
+static size_t handle_using_dir_name_hash_icase(struct index_state *istate,
+					       const char *name)
 {
 	struct strbuf canonical_path = STRBUF_INIT;
 	int pos;
@@ -292,8 +296,8 @@ static size_t handle_using_dir_name_hash_icase(
 	}
 
 	trace_printf_key(&trace_fsmonitor,
-			 "fsmonitor_refresh_callback MAP: '%s' '%s'",
-			 name, canonical_path.buf);
+			 "fsmonitor_refresh_callback MAP: '%s' '%s'", name,
+			 canonical_path.buf);
 
 	/*
 	 * The dir-name-hash only tells us the corrected spelling of
@@ -302,10 +306,9 @@ static size_t handle_using_dir_name_hash_icase(
 	 * original search using the case-corrected spelling.
 	 */
 	strbuf_addch(&canonical_path, '/');
-	pos = index_name_pos(istate, canonical_path.buf,
-			     canonical_path.len);
-	nr_in_cone = handle_path_with_trailing_slash(
-		istate, canonical_path.buf, pos);
+	pos = index_name_pos(istate, canonical_path.buf, canonical_path.len);
+	nr_in_cone = handle_path_with_trailing_slash(istate, canonical_path.buf,
+						     pos);
 	strbuf_release(&canonical_path);
 	return nr_in_cone;
 }
@@ -323,8 +326,8 @@ static size_t handle_using_dir_name_hash_icase(
  *
  * Return the number of cache-entries that we invalidated.
  */
-static size_t handle_path_without_trailing_slash(
-	struct index_state *istate, const char *name, int pos)
+static size_t handle_path_without_trailing_slash(struct index_state *istate,
+						 const char *name, int pos)
 {
 	/*
 	 * Mark the untracked cache dirty for this path (regardless of
@@ -399,8 +402,8 @@ static size_t handle_path_without_trailing_slash(
  * matches, we still don't know if the observed path is simply
  * untracked or case-incorrect.
  */
-static size_t handle_path_with_trailing_slash(
-	struct index_state *istate, const char *name, int pos)
+static size_t handle_path_with_trailing_slash(struct index_state *istate,
+					      const char *name, int pos)
 {
 	int i;
 	size_t nr_in_cone = 0;
@@ -435,13 +438,13 @@ static void fsmonitor_refresh_callback(struct index_state *istate, char *name)
 	size_t nr_in_cone;
 
 	trace_printf_key(&trace_fsmonitor,
-			 "fsmonitor_refresh_callback '%s' (pos %d)",
-			 name, pos);
+			 "fsmonitor_refresh_callback '%s' (pos %d)", name, pos);
 
 	if (name[len - 1] == '/')
 		nr_in_cone = handle_path_with_trailing_slash(istate, name, pos);
 	else
-		nr_in_cone = handle_path_without_trailing_slash(istate, name, pos);
+		nr_in_cone =
+			handle_path_without_trailing_slash(istate, name, pos);
 
 	/*
 	 * If we did not find an exact match for this pathname or any
@@ -452,8 +455,8 @@ static void fsmonitor_refresh_callback(struct index_state *istate, char *name)
 	if (!nr_in_cone && ignore_case) {
 		nr_in_cone = handle_using_name_hash_icase(istate, name);
 		if (!nr_in_cone)
-			nr_in_cone = handle_using_dir_name_hash_icase(
-				istate, name);
+			nr_in_cone =
+				handle_using_dir_name_hash_icase(istate, name);
 	}
 
 	if (nr_in_cone)
@@ -532,7 +535,8 @@ void refresh_fsmonitor(struct index_state *istate)
 	if (fsm_mode == FSMONITOR_MODE_IPC) {
 		query_success = !fsmonitor_ipc__send_query(
 			istate->fsmonitor_last_update ?
-			istate->fsmonitor_last_update : "builtin:fake",
+				istate->fsmonitor_last_update :
+				"builtin:fake",
 			&query_result);
 		if (query_success) {
 			/*
@@ -577,15 +581,16 @@ void refresh_fsmonitor(struct index_state *istate)
 	 */
 	last_update = getnanotime();
 	if (hook_version == HOOK_INTERFACE_VERSION1)
-		strbuf_addf(&last_update_token, "%"PRIu64"", last_update);
+		strbuf_addf(&last_update_token, "%" PRIu64 "", last_update);
 
 	/*
-	 * If we have a last update token, call query_fsmonitor_hook for the set of
-	 * changes since that token, else assume everything is possibly dirty
+	 * If we have a last update token, call query_fsmonitor_hook for the set
+	 * of changes since that token, else assume everything is possibly dirty
 	 * and check it all.
 	 */
 	if (istate->fsmonitor_last_update) {
-		if (hook_version == -1 || hook_version == HOOK_INTERFACE_VERSION2) {
+		if (hook_version == -1 ||
+		    hook_version == HOOK_INTERFACE_VERSION2) {
 			query_success = !query_fsmonitor_hook(
 				r, HOOK_INTERFACE_VERSION2,
 				istate->fsmonitor_last_update, &query_result);
@@ -608,12 +613,14 @@ void refresh_fsmonitor(struct index_state *istate)
 					query_success = 0;
 				} else {
 					bol = last_update_token.len + 1;
-					is_trivial = query_result.buf[bol] == '/';
+					is_trivial = query_result.buf[bol] ==
+						     '/';
 				}
 			} else if (hook_version < 0) {
 				hook_version = HOOK_INTERFACE_VERSION1;
 				if (!last_update_token.len)
-					strbuf_addf(&last_update_token, "%"PRIu64"", last_update);
+					strbuf_addf(&last_update_token,
+						    "%" PRIu64 "", last_update);
 			}
 		}
 
@@ -698,7 +705,8 @@ apply_results:
 		for (i = 0; i < istate->cache_nr; i++) {
 			if (istate->cache[i]->ce_flags & CE_FSMONITOR_VALID) {
 				is_cache_changed = 1;
-				istate->cache[i]->ce_flags &= ~CE_FSMONITOR_VALID;
+				istate->cache[i]->ce_flags &=
+					~CE_FSMONITOR_VALID;
 			}
 		}
 
@@ -748,7 +756,7 @@ static void initialize_fsmonitor_last_update(struct index_state *istate)
 {
 	struct strbuf last_update = STRBUF_INIT;
 
-	strbuf_addf(&last_update, "%"PRIu64"", getnanotime());
+	strbuf_addf(&last_update, "%" PRIu64 "", getnanotime());
 	istate->fsmonitor_last_update = strbuf_detach(&last_update, NULL);
 }
 
@@ -788,8 +796,8 @@ void remove_fsmonitor(struct index_state *istate)
 void tweak_fsmonitor(struct index_state *istate)
 {
 	unsigned int i;
-	int fsmonitor_enabled = (fsm_settings__get_mode(istate->repo)
-				 > FSMONITOR_MODE_DISABLED);
+	int fsmonitor_enabled = (fsm_settings__get_mode(istate->repo) >
+				 FSMONITOR_MODE_DISABLED);
 
 	if (istate->fsmonitor_dirty) {
 		if (fsmonitor_enabled) {
@@ -797,12 +805,15 @@ void tweak_fsmonitor(struct index_state *istate)
 			for (i = 0; i < istate->cache_nr; i++) {
 				if (S_ISGITLINK(istate->cache[i]->ce_mode))
 					continue;
-				istate->cache[i]->ce_flags |= CE_FSMONITOR_VALID;
+				istate->cache[i]->ce_flags |=
+					CE_FSMONITOR_VALID;
 			}
 
 			/* Mark all previously saved entries as dirty */
-			assert_index_minimum(istate, istate->fsmonitor_dirty->bit_size);
-			ewah_each_bit(istate->fsmonitor_dirty, fsmonitor_ewah_callback, istate);
+			assert_index_minimum(istate,
+					     istate->fsmonitor_dirty->bit_size);
+			ewah_each_bit(istate->fsmonitor_dirty,
+				      fsmonitor_ewah_callback, istate);
 
 			refresh_fsmonitor(istate);
 		}

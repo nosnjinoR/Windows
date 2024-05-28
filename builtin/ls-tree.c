@@ -3,21 +3,20 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "tree.h"
-#include "path.h"
-#include "quote.h"
-#include "parse-options.h"
-#include "pathspec.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/tree.h"
+#include "components/path.h"
+#include "components/quote.h"
+#include "components/parse-options.h"
+#include "components/pathspec.h"
 
-static const char * const ls_tree_usage[] = {
-	N_("git ls-tree [<options>] <tree-ish> [<path>...]"),
-	NULL
+static const char *const ls_tree_usage[] = {
+	N_("git ls-tree [<options>] <tree-ish> [<path>...]"), NULL
 };
 
 static void expand_objectsize(struct strbuf *line, const struct object_id *oid,
@@ -29,9 +28,9 @@ static void expand_objectsize(struct strbuf *line, const struct object_id *oid,
 			die(_("could not get object info about '%s'"),
 			    oid_to_hex(oid));
 		if (padded)
-			strbuf_addf(line, "%7"PRIuMAX, (uintmax_t)size);
+			strbuf_addf(line, "%7" PRIuMAX, (uintmax_t)size);
 		else
-			strbuf_addf(line, "%"PRIuMAX, (uintmax_t)size);
+			strbuf_addf(line, "%" PRIuMAX, (uintmax_t)size);
 	} else if (padded) {
 		strbuf_addf(line, "%7s", "-");
 	} else {
@@ -40,7 +39,7 @@ static void expand_objectsize(struct strbuf *line, const struct object_id *oid,
 }
 
 struct ls_tree_options {
-	unsigned null_termination:1;
+	unsigned null_termination : 1;
 	int abbrev;
 	enum ls_tree_path_options {
 		LS_RECURSIVE = 1 << 0,
@@ -92,9 +91,11 @@ static int show_tree_fmt(const struct object_id *oid, struct strbuf *base,
 	enum object_type type = object_type(mode);
 	const char *format = options->format;
 
-	if (type == OBJ_TREE && show_recursive(options, base->buf, base->len, pathname))
+	if (type == OBJ_TREE &&
+	    show_recursive(options, base->buf, base->len, pathname))
 		recurse = READ_TREE_RECURSIVE;
-	if (type == OBJ_TREE && recurse && !(options->ls_options & LS_SHOW_TREES))
+	if (type == OBJ_TREE && recurse &&
+	    !(options->ls_options & LS_SHOW_TREES))
 		return recurse;
 	if (type == OBJ_BLOB && (options->ls_options & LS_TREE_ONLY))
 		return 0;
@@ -181,8 +182,7 @@ static void show_tree_common_default_long(struct ls_tree_options *options,
 }
 
 static int show_tree_default(const struct object_id *oid, struct strbuf *base,
-			     const char *pathname, unsigned mode,
-			     void *context)
+			     const char *pathname, unsigned mode, void *context)
 {
 	struct ls_tree_options *options = context;
 	int early;
@@ -200,8 +200,7 @@ static int show_tree_default(const struct object_id *oid, struct strbuf *base,
 }
 
 static int show_tree_long(const struct object_id *oid, struct strbuf *base,
-			  const char *pathname, unsigned mode,
-			  void *context)
+			  const char *pathname, unsigned mode, void *context)
 {
 	struct ls_tree_options *options = context;
 	int early;
@@ -218,8 +217,8 @@ static int show_tree_long(const struct object_id *oid, struct strbuf *base,
 		if (oid_object_info(the_repository, oid, &size) == OBJ_BAD)
 			xsnprintf(size_text, sizeof(size_text), "BAD");
 		else
-			xsnprintf(size_text, sizeof(size_text),
-				  "%" PRIuMAX, (uintmax_t)size);
+			xsnprintf(size_text, sizeof(size_text), "%" PRIuMAX,
+				  (uintmax_t)size);
 	} else {
 		xsnprintf(size_text, sizeof(size_text), "-");
 	}
@@ -232,9 +231,8 @@ static int show_tree_long(const struct object_id *oid, struct strbuf *base,
 }
 
 static int show_tree_name_only(const struct object_id *oid UNUSED,
-			       struct strbuf *base,
-			       const char *pathname, unsigned mode,
-			       void *context)
+			       struct strbuf *base, const char *pathname,
+			       unsigned mode, void *context)
 {
 	struct ls_tree_options *options = context;
 	int early;
@@ -265,8 +263,7 @@ static int show_tree_name_only(const struct object_id *oid UNUSED,
 }
 
 static int show_tree_object(const struct object_id *oid, struct strbuf *base,
-			    const char *pathname, unsigned mode,
-			    void *context)
+			    const char *pathname, unsigned mode, void *context)
 {
 	struct ls_tree_options *options = context;
 	int early;
@@ -282,7 +279,7 @@ static int show_tree_object(const struct object_id *oid, struct strbuf *base,
 	if (options->null_termination) {
 		fputs(str, stdout);
 		fputc('\0', stdout);
-	} else  {
+	} else {
 		puts(str);
 	}
 	return recurse;
@@ -318,11 +315,9 @@ static struct ls_tree_cmdmode_to_fmt ls_tree_cmdmode_format[] = {
 		.fmt = "%(path)",
 		.fn = show_tree_name_only,
 	},
-	{
-		.mode = MODE_OBJECT_ONLY,
-		.fmt = "%(objectname)",
-		.fn = show_tree_object
-	},
+	{ .mode = MODE_OBJECT_ONLY,
+	  .fmt = "%(objectname)",
+	  .fn = show_tree_object },
 	{
 		/* fallback */
 		.fn = show_tree_default,
@@ -342,18 +337,18 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 	const struct option ls_tree_options[] = {
 		OPT_BIT('d', NULL, &options.ls_options, N_("only show trees"),
 			LS_TREE_ONLY),
-		OPT_BIT('r', NULL, &options.ls_options, N_("recurse into subtrees"),
-			LS_RECURSIVE),
-		OPT_BIT('t', NULL, &options.ls_options, N_("show trees when recursing"),
-			LS_SHOW_TREES),
+		OPT_BIT('r', NULL, &options.ls_options,
+			N_("recurse into subtrees"), LS_RECURSIVE),
+		OPT_BIT('t', NULL, &options.ls_options,
+			N_("show trees when recursing"), LS_SHOW_TREES),
 		OPT_BOOL('z', NULL, &null_termination,
 			 N_("terminate entries with NUL byte")),
 		OPT_CMDMODE('l', "long", &cmdmode, N_("include object size"),
 			    MODE_LONG),
 		OPT_CMDMODE(0, "name-only", &cmdmode, N_("list only filenames"),
 			    MODE_NAME_ONLY),
-		OPT_CMDMODE(0, "name-status", &cmdmode, N_("list only filenames"),
-			    MODE_NAME_STATUS),
+		OPT_CMDMODE(0, "name-status", &cmdmode,
+			    N_("list only filenames"), MODE_NAME_STATUS),
 		OPT_CMDMODE(0, "object-only", &cmdmode, N_("list only objects"),
 			    MODE_OBJECT_ONLY),
 		OPT_BOOL(0, "full-name", &full_name, N_("use full path names")),
@@ -361,8 +356,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 			 N_("list entire tree; not just current directory "
 			    "(implies --full-name)")),
 		OPT_STRING_F(0, "format", &options.format, N_("format"),
-					 N_("format to use for the output"),
-					 PARSE_OPT_NONEG),
+			     N_("format to use for the output"),
+			     PARSE_OPT_NONEG),
 		OPT__ABBREV(&options.abbrev),
 		OPT_END()
 	};
@@ -372,8 +367,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 
 	git_config(git_default_config, NULL);
 
-	argc = parse_options(argc, argv, prefix, ls_tree_options,
-			     ls_tree_usage, 0);
+	argc = parse_options(argc, argv, prefix, ls_tree_options, ls_tree_usage,
+			     0);
 	options.null_termination = null_termination;
 
 	if (full_tree)
@@ -389,8 +384,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 		cmdmode = MODE_NAME_ONLY;
 
 	/* -d -r should imply -t, but -d by itself should not have to. */
-	if ( (LS_TREE_ONLY|LS_RECURSIVE) ==
-	    ((LS_TREE_ONLY|LS_RECURSIVE) & options.ls_options))
+	if ((LS_TREE_ONLY | LS_RECURSIVE) ==
+	    ((LS_TREE_ONLY | LS_RECURSIVE) & options.ls_options))
 		options.ls_options |= LS_SHOW_TREES;
 
 	if (options.format && cmdmode)
@@ -399,9 +394,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 			ls_tree_usage, ls_tree_options);
 	if (argc < 1)
 		usage_with_options(ls_tree_usage, ls_tree_options);
-	if (get_oid_with_context(the_repository, argv[0],
-				 GET_OID_HASH_ANY, &oid,
-				 &obj_context))
+	if (get_oid_with_context(the_repository, argv[0], GET_OID_HASH_ANY,
+				 &oid, &obj_context))
 		die("Not a valid object name %s", argv[0]);
 
 	/*
@@ -410,12 +404,13 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 	 * cannot be lifted until it is converted to use
 	 * match_pathspec() or tree_entry_interesting()
 	 */
-	parse_pathspec(&options.pathspec, PATHSPEC_ALL_MAGIC &
-		       ~(PATHSPEC_FROMTOP | PATHSPEC_LITERAL),
-		       PATHSPEC_PREFER_CWD,
-		       prefix, argv + 1);
+	parse_pathspec(&options.pathspec,
+		       PATHSPEC_ALL_MAGIC &
+			       ~(PATHSPEC_FROMTOP | PATHSPEC_LITERAL),
+		       PATHSPEC_PREFER_CWD, prefix, argv + 1);
 	for (i = 0; i < options.pathspec.nr; i++)
-		options.pathspec.items[i].nowildcard_len = options.pathspec.items[i].len;
+		options.pathspec.items[i].nowildcard_len =
+			options.pathspec.items[i].len;
 	options.pathspec.has_wildcard = 0;
 	tree = parse_tree_indirect(&oid);
 	if (!tree)
@@ -427,7 +422,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 	while (m2f) {
 		if (!m2f->fmt) {
 			fn = options.format ? show_tree_fmt : show_tree_default;
-		} else if (options.format && !strcmp(options.format, m2f->fmt)) {
+		} else if (options.format &&
+			   !strcmp(options.format, m2f->fmt)) {
 			cmdmode = m2f->mode;
 			fn = m2f->fn;
 		} else if (!options.format && cmdmode == m2f->mode) {
@@ -439,7 +435,8 @@ int cmd_ls_tree(int argc, const char **argv, const char *prefix)
 		break;
 	}
 
-	ret = !!read_tree(the_repository, tree, &options.pathspec, fn, &options);
+	ret = !!read_tree(the_repository, tree, &options.pathspec, fn,
+			  &options);
 	clear_pathspec(&options.pathspec);
 	return ret;
 }

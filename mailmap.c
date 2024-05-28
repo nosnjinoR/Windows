@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "environment.h"
-#include "string-list.h"
-#include "mailmap.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "setup.h"
+#include "components/git-compat-util.h"
+#include "components/environment.h"
+#include "components/string-list.h"
+#include "components/mailmap.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/setup.h"
 
 const char *git_mailmap_file;
 const char *git_mailmap_blob;
@@ -57,9 +57,8 @@ static int namemap_cmp(const char *a, const char *b)
 	return strcasecmp(a, b);
 }
 
-static void add_mapping(struct string_list *map,
-			char *new_name, char *new_email,
-			char *old_name, char *old_email)
+static void add_mapping(struct string_list *map, char *new_name,
+			char *new_email, char *old_name, char *old_email)
 {
 	struct mailmap_entry *me;
 	struct string_list_item *item;
@@ -90,15 +89,16 @@ static void add_mapping(struct string_list *map,
 			me->email = xstrdup(new_email);
 		}
 	} else {
-		struct mailmap_info *mi = xcalloc(1, sizeof(struct mailmap_info));
+		struct mailmap_info *mi =
+			xcalloc(1, sizeof(struct mailmap_info));
 		mi->name = xstrdup_or_null(new_name);
 		mi->email = xstrdup_or_null(new_email);
 		string_list_insert(&me->namemap, old_name)->util = mi;
 	}
 }
 
-static char *parse_name_and_email(char *buffer, char **name,
-				  char **email, int allow_empty_email)
+static char *parse_name_and_email(char *buffer, char **name, char **email,
+				  int allow_empty_email)
 {
 	char *left, *right, *nstart, *nend;
 	*name = *email = NULL;
@@ -107,20 +107,20 @@ static char *parse_name_and_email(char *buffer, char **name,
 		return NULL;
 	if (!(right = strchr(left + 1, '>')))
 		return NULL;
-	if (!allow_empty_email && (left+1 == right))
+	if (!allow_empty_email && (left + 1 == right))
 		return NULL;
 
 	/* remove whitespace from beginning and end of name */
 	nstart = buffer;
 	while (isspace(*nstart) && nstart < left)
 		++nstart;
-	nend = left-1;
+	nend = left - 1;
 	while (nend > nstart && isspace(*nend))
 		--nend;
 
 	*name = (nstart <= nend ? nstart : NULL);
-	*email = left+1;
-	*(nend+1) = '\0';
+	*email = left + 1;
+	*(nend + 1) = '\0';
 	*right++ = '\0';
 
 	return (*right == '\0' ? NULL : right);
@@ -141,7 +141,7 @@ static void read_mailmap_line(struct string_list *map, char *buffer)
 }
 
 /* Flags for read_mailmap_file() */
-#define MAILMAP_NOFOLLOW (1<<0)
+#define MAILMAP_NOFOLLOW (1 << 0)
 
 static int read_mailmap_file(struct string_list *map, const char *filename,
 			     unsigned flags)
@@ -219,9 +219,9 @@ int read_mailmap(struct string_list *map)
 		git_mailmap_blob = "HEAD:.mailmap";
 
 	if (!startup_info->have_repository || !is_bare_repository())
-		err |= read_mailmap_file(map, ".mailmap",
-					 startup_info->have_repository ?
-					 MAILMAP_NOFOLLOW : 0);
+		err |= read_mailmap_file(
+			map, ".mailmap",
+			startup_info->have_repository ? MAILMAP_NOFOLLOW : 0);
 	if (startup_info->have_repository)
 		err |= read_mailmap_blob(map, git_mailmap_blob);
 	err |= read_mailmap_file(map, git_mailmap_file, 0);
@@ -285,8 +285,7 @@ static struct string_list_item *lookup_prefix(struct string_list *map,
 	return NULL;
 }
 
-int map_user(struct string_list *map,
-	     const char **email, size_t *emaillen,
+int map_user(struct string_list *map, const char **email, size_t *emaillen,
 	     const char **name, size_t *namelen)
 {
 	struct string_list_item *item;
@@ -312,12 +311,12 @@ int map_user(struct string_list *map,
 		if (mi->name == NULL && mi->email == NULL)
 			return 0;
 		if (mi->email) {
-				*email = mi->email;
-				*emaillen = strlen(*email);
+			*email = mi->email;
+			*emaillen = strlen(*email);
 		}
 		if (mi->name) {
-				*name = mi->name;
-				*namelen = strlen(*name);
+			*name = mi->name;
+			*namelen = strlen(*name);
 		}
 		return 1;
 	}

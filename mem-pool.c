@@ -2,10 +2,10 @@
  * Memory Pool implementation logic.
  */
 
-#include "git-compat-util.h"
-#include "mem-pool.h"
-#include "gettext.h"
-#include "trace.h"
+#include "components/git-compat-util.h"
+#include "components/mem-pool.h"
+#include "components/gettext.h"
+#include "components/trace.h"
 
 static struct trace_key trace_mem_pool = TRACE_KEY_INIT(MEMPOOL);
 #define BLOCK_GROWTH_SIZE (1024 * 1024 - sizeof(struct mp_block))
@@ -67,26 +67,27 @@ void mem_pool_init(struct mem_pool *pool, size_t initial_size)
 		mem_pool_alloc_block(pool, initial_size, NULL);
 
 	trace_printf_key(&trace_mem_pool,
-		"mem_pool (%p): init (%"PRIuMAX") initial size\n",
-		(void *)pool, (uintmax_t)initial_size);
+			 "mem_pool (%p): init (%" PRIuMAX ") initial size\n",
+			 (void *)pool, (uintmax_t)initial_size);
 }
 
 void mem_pool_discard(struct mem_pool *pool, int invalidate_memory)
 {
 	struct mp_block *block, *block_to_free;
 
-	trace_printf_key(&trace_mem_pool,
-		"mem_pool (%p): discard (%"PRIuMAX") unused\n",
-		(void *)pool,
+	trace_printf_key(
+		&trace_mem_pool,
+		"mem_pool (%p): discard (%" PRIuMAX ") unused\n", (void *)pool,
 		(uintmax_t)(pool->mp_block->end - pool->mp_block->next_free));
 	block = pool->mp_block;
-	while (block)
-	{
+	while (block) {
 		block_to_free = block;
 		block = block->next_block;
 
 		if (invalidate_memory)
-			memset(block_to_free->space, 0xDD, ((char *)block_to_free->end) - ((char *)block_to_free->space));
+			memset(block_to_free->space, 0xDD,
+			       ((char *)block_to_free->end) -
+				       ((char *)block_to_free->space));
 
 		free(block_to_free);
 	}
@@ -179,7 +180,7 @@ char *mem_pool_strndup(struct mem_pool *pool, const char *str, size_t len)
 {
 	char *p = memchr(str, '\0', len);
 	size_t actual_len = (p ? p - str : len);
-	char *ret = mem_pool_alloc(pool, actual_len+1);
+	char *ret = mem_pool_alloc(pool, actual_len + 1);
 
 	ret[actual_len] = '\0';
 	return memcpy(ret, str, actual_len);
@@ -191,8 +192,7 @@ int mem_pool_contains(struct mem_pool *pool, void *mem)
 
 	/* Check if memory is allocated in a block */
 	for (p = pool->mp_block; p; p = p->next_block)
-		if ((mem >= ((void *)p->space)) &&
-		    (mem < ((void *)p->end)))
+		if ((mem >= ((void *)p->space)) && (mem < ((void *)p->end)))
 			return 1;
 
 	return 0;

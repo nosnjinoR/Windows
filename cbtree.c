@@ -4,8 +4,8 @@
  * Based on Adam Langley's adaptation of Dan Bernstein's public domain code
  * git clone https://github.com/agl/critbit.git
  */
-#include "git-compat-util.h"
-#include "cbtree.h"
+#include "components/git-compat-util.h"
+#include "components/cbtree.h"
 
 static struct cb_node *cb_node_of(const void *p)
 {
@@ -14,7 +14,7 @@ static struct cb_node *cb_node_of(const void *p)
 
 /* locate the best match, does not do a final comparision */
 static struct cb_node *cb_internal_best_match(struct cb_node *p,
-					const uint8_t *k, size_t klen)
+					      const uint8_t *k, size_t klen)
 {
 	while (1 & (uintptr_t)p) {
 		struct cb_node *q = cb_node_of(p);
@@ -36,9 +36,9 @@ struct cb_node *cb_insert(struct cb_tree *t, struct cb_node *node, size_t klen)
 
 	assert(!((uintptr_t)node & 1)); /* allocations must be aligned */
 
-	if (!t->root) {		/* insert into empty tree */
+	if (!t->root) { /* insert into empty tree */
 		t->root = node;
-		return NULL;	/* success */
+		return NULL; /* success */
 	}
 
 	/* see if a node already exists */
@@ -49,7 +49,7 @@ struct cb_node *cb_insert(struct cb_tree *t, struct cb_node *node, size_t klen)
 		if (p->k[newbyte] != node->k[newbyte])
 			goto different_byte_found;
 	}
-	return p;	/* element exists, let user deal with it */
+	return p; /* element exists, let user deal with it */
 
 different_byte_found:
 	newotherbits = p->k[newbyte] ^ node->k[newbyte];
@@ -108,14 +108,15 @@ static enum cb_next cb_descend(struct cb_node *p, cb_iter fn, void *arg)
 	}
 }
 
-void cb_each(struct cb_tree *t, const uint8_t *kpfx, size_t klen,
-			cb_iter fn, void *arg)
+void cb_each(struct cb_tree *t, const uint8_t *kpfx, size_t klen, cb_iter fn,
+	     void *arg)
 {
 	struct cb_node *p = t->root;
 	struct cb_node *top = p;
 	size_t i = 0;
 
-	if (!p) return; /* empty tree */
+	if (!p)
+		return; /* empty tree */
 
 	/* Walk tree, maintaining top pointer */
 	while (1 & (uintptr_t)p) {

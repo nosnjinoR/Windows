@@ -1,11 +1,11 @@
-#include "builtin.h"
-#include "config.h"
-#include "entry.h"
-#include "gettext.h"
-#include "parallel-checkout.h"
-#include "parse-options.h"
-#include "pkt-line.h"
-#include "read-cache-ll.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/entry.h"
+#include "components/gettext.h"
+#include "components/parallel-checkout.h"
+#include "components/parse-options.h"
+#include "components/pkt-line.h"
+#include "components/read-cache-ll.h"
 
 static void packet_to_pc_item(const char *buffer, int len,
 			      struct parallel_checkout_item *pc_item)
@@ -21,7 +21,7 @@ static void packet_to_pc_item(const char *buffer, int len,
 	fixed_portion = (struct pc_item_fixed_portion *)buffer;
 
 	if (len - sizeof(struct pc_item_fixed_portion) !=
-		fixed_portion->name_len + fixed_portion->working_tree_encoding_len)
+	    fixed_portion->name_len + fixed_portion->working_tree_encoding_len)
 		BUG("checkout worker received corrupted item");
 
 	variant = buffer + sizeof(struct pc_item_fixed_portion);
@@ -41,7 +41,8 @@ static void packet_to_pc_item(const char *buffer, int len,
 	}
 
 	memset(pc_item, 0, sizeof(*pc_item));
-	pc_item->ce = make_empty_transient_cache_entry(fixed_portion->name_len, NULL);
+	pc_item->ce =
+		make_empty_transient_cache_entry(fixed_portion->name_len, NULL);
 	pc_item->ce->ce_namelen = fixed_portion->name_len;
 	pc_item->ce->ce_mode = fixed_portion->ce_mode;
 	memcpy(pc_item->ce->name, variant, pc_item->ce->ce_namelen);
@@ -84,8 +85,8 @@ static void worker_loop(struct checkout *state)
 	size_t i, nr = 0, alloc = 0;
 
 	while (1) {
-		int len = packet_read(0, packet_buffer, sizeof(packet_buffer),
-				      0);
+		int len =
+			packet_read(0, packet_buffer, sizeof(packet_buffer), 0);
 
 		if (len < 0)
 			BUG("packet_read() returned negative value");
@@ -108,9 +109,8 @@ static void worker_loop(struct checkout *state)
 	free(items);
 }
 
-static const char * const checkout_worker_usage[] = {
-	N_("git checkout--worker [<options>]"),
-	NULL
+static const char *const checkout_worker_usage[] = {
+	N_("git checkout--worker [<options>]"), NULL
 };
 
 int cmd_checkout__worker(int argc, const char **argv, const char *prefix)
@@ -118,7 +118,7 @@ int cmd_checkout__worker(int argc, const char **argv, const char *prefix)
 	struct checkout state = CHECKOUT_INIT;
 	struct option checkout_worker_options[] = {
 		OPT_STRING(0, "prefix", &state.base_dir, N_("string"),
-			N_("when creating files, prepend <string>")),
+			   N_("when creating files, prepend <string>")),
 		OPT_END()
 	};
 
@@ -130,7 +130,8 @@ int cmd_checkout__worker(int argc, const char **argv, const char *prefix)
 	argc = parse_options(argc, argv, prefix, checkout_worker_options,
 			     checkout_worker_usage, 0);
 	if (argc > 0)
-		usage_with_options(checkout_worker_usage, checkout_worker_options);
+		usage_with_options(checkout_worker_usage,
+				   checkout_worker_options);
 
 	if (state.base_dir)
 		state.base_dir_len = strlen(state.base_dir);

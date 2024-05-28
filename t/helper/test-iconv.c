@@ -1,9 +1,9 @@
 #include "test-tool.h"
-#include "git-compat-util.h"
-#include "strbuf.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "utf8.h"
+#include "components/git-compat-util.h"
+#include "components/strbuf.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/utf8.h"
 
 int cmd__iconv(int argc, const char **argv)
 {
@@ -11,18 +11,15 @@ int cmd__iconv(int argc, const char **argv)
 	char *from = NULL, *to = NULL, *p;
 	size_t len;
 	int ret = 0;
-	const char * const iconv_usage[] = {
-		N_("test-helper --iconv [<options>]"),
-		NULL
+	const char *const iconv_usage[] = {
+		N_("test-helper --iconv [<options>]"), NULL
 	};
 	struct option options[] = {
 		OPT_STRING('f', "from-code", &from, "encoding", "from"),
-		OPT_STRING('t', "to-code", &to, "encoding", "to"),
-		OPT_END()
+		OPT_STRING('t', "to-code", &to, "encoding", "to"), OPT_END()
 	};
 
-	argc = parse_options(argc, argv, NULL, options,
-			iconv_usage, 0);
+	argc = parse_options(argc, argv, NULL, options, iconv_usage, 0);
 
 	if (argc > 1 || !from || !to)
 		usage_with_options(iconv_usage, options);
@@ -37,7 +34,7 @@ int cmd__iconv(int argc, const char **argv)
 	if (!p)
 		die_errno("Could not reencode");
 	if (write(1, p, len) < 0)
-		ret = !!error_errno("Could not write %"PRIuMAX" bytes",
+		ret = !!error_errno("Could not write %" PRIuMAX " bytes",
 				    (uintmax_t)len);
 
 	strbuf_release(&buf);

@@ -1,12 +1,12 @@
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "gettext.h"
-#include "simple-ipc.h"
-#include "strbuf.h"
-#include "pkt-line.h"
-#include "thread-utils.h"
-#include "trace.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/gettext.h"
+#include "components/simple-ipc.h"
+#include "components/strbuf.h"
+#include "components/pkt-line.h"
+#include "components/thread-utils.h"
+#include "components/trace.h"
+#include "components/trace2.h"
 #include "accctrl.h"
 #include "aclapi.h"
 
@@ -73,11 +73,9 @@ enum ipc_active_state ipc_get_active_state(const char *path)
 
 #define WAIT_STEP_MS (50)
 
-static enum ipc_active_state connect_to_server(
-	const wchar_t *wpath,
-	DWORD timeout_ms,
-	const struct ipc_client_connect_options *options,
-	int *pfd)
+static enum ipc_active_state
+connect_to_server(const wchar_t *wpath, DWORD timeout_ms,
+		  const struct ipc_client_connect_options *options, int *pfd)
 {
 	DWORD t_start_ms, t_waited_ms;
 	DWORD step_ms;
@@ -88,8 +86,8 @@ static enum ipc_active_state connect_to_server(
 	*pfd = -1;
 
 	for (;;) {
-		hPipe = CreateFileW(wpath, GENERIC_READ | GENERIC_WRITE,
-				    0, NULL, OPEN_EXISTING, 0, NULL);
+		hPipe = CreateFileW(wpath, GENERIC_READ | GENERIC_WRITE, 0,
+				    NULL, OPEN_EXISTING, 0, NULL);
 		if (hPipe != INVALID_HANDLE_VALUE)
 			break;
 
@@ -102,8 +100,8 @@ static enum ipc_active_state connect_to_server(
 			if (!timeout_ms)
 				return IPC_STATE__PATH_NOT_FOUND;
 
-			step_ms = (timeout_ms < WAIT_STEP_MS) ?
-				timeout_ms : WAIT_STEP_MS;
+			step_ms = (timeout_ms < WAIT_STEP_MS) ? timeout_ms :
+								WAIT_STEP_MS;
 			sleep_millisec(step_ms);
 
 			timeout_ms -= step_ms;
@@ -140,7 +138,8 @@ static enum ipc_active_state connect_to_server(
 			 * race.  But also guard against special
 			 * NPMWAIT_ values (0 and -1).
 			 */
-			t_waited_ms = (DWORD)(getnanotime() / 1000000) - t_start_ms;
+			t_waited_ms =
+				(DWORD)(getnanotime() / 1000000) - t_start_ms;
 			if (t_waited_ms < timeout_ms)
 				timeout_ms -= t_waited_ms;
 			else
@@ -159,19 +158,17 @@ static enum ipc_active_state connect_to_server(
 	if (!SetNamedPipeHandleState(hPipe, &mode, NULL, NULL)) {
 		gle = GetLastError();
 		trace2_data_intmax("ipc-debug", NULL,
-				   "connect/setpipestate/gle",
-				   (intmax_t)gle);
+				   "connect/setpipestate/gle", (intmax_t)gle);
 
 		CloseHandle(hPipe);
 		return IPC_STATE__OTHER_ERROR;
 	}
 
-	*pfd = _open_osfhandle((intptr_t)hPipe, O_RDWR|O_BINARY);
+	*pfd = _open_osfhandle((intptr_t)hPipe, O_RDWR | O_BINARY);
 	if (*pfd < 0) {
 		gle = GetLastError();
 		trace2_data_intmax("ipc-debug", NULL,
-				   "connect/openosfhandle/gle",
-				   (intmax_t)gle);
+				   "connect/openosfhandle/gle", (intmax_t)gle);
 
 		CloseHandle(hPipe);
 		return IPC_STATE__OTHER_ERROR;
@@ -192,10 +189,10 @@ static enum ipc_active_state connect_to_server(
  */
 #define WINDOWS_CONNECTION_TIMEOUT_MS (30000)
 
-enum ipc_active_state ipc_client_try_connect(
-	const char *path,
-	const struct ipc_client_connect_options *options,
-	struct ipc_client_connection **p_connection)
+enum ipc_active_state
+ipc_client_try_connect(const char *path,
+		       const struct ipc_client_connect_options *options,
+		       struct ipc_client_connection **p_connection)
 {
 	wchar_t wpath[MAX_PATH];
 	enum ipc_active_state state = IPC_STATE__OTHER_ERROR;
@@ -217,7 +214,8 @@ enum ipc_active_state ipc_client_try_connect(
 	trace2_region_leave("ipc-client", "try-connect", NULL);
 
 	if (state == IPC_STATE__LISTENING) {
-		(*p_connection) = xcalloc(1, sizeof(struct ipc_client_connection));
+		(*p_connection) =
+			xcalloc(1, sizeof(struct ipc_client_connection));
 		(*p_connection)->fd = fd;
 	}
 
@@ -236,9 +234,8 @@ void ipc_client_close_connection(struct ipc_client_connection *connection)
 }
 
 int ipc_client_send_command_to_connection(
-	struct ipc_client_connection *connection,
-	const char *message, size_t message_len,
-	struct strbuf *answer)
+	struct ipc_client_connection *connection, const char *message,
+	size_t message_len, struct strbuf *answer)
 {
 	int ret = 0;
 
@@ -257,7 +254,8 @@ int ipc_client_send_command_to_connection(
 
 	if (read_packetized_to_strbuf(
 		    connection->fd, answer,
-		    PACKET_READ_GENTLE_ON_EOF | PACKET_READ_GENTLE_ON_READ_ERROR) < 0) {
+		    PACKET_READ_GENTLE_ON_EOF |
+			    PACKET_READ_GENTLE_ON_READ_ERROR) < 0) {
 		ret = error(_("could not read IPC response"));
 		goto done;
 	}
@@ -281,9 +279,8 @@ int ipc_client_send_command(const char *path,
 	if (state != IPC_STATE__LISTENING)
 		return ret;
 
-	ret = ipc_client_send_command_to_connection(connection,
-						    message, message_len,
-						    response);
+	ret = ipc_client_send_command_to_connection(connection, message,
+						    message_len, response);
 
 	ipc_client_close_connection(connection);
 
@@ -306,7 +303,7 @@ static int dup_fd_from_pipe(const HANDLE pipe)
 		return -1;
 	}
 
-	fd = _open_osfhandle((intptr_t)handle, O_RDWR|O_BINARY);
+	fd = _open_osfhandle((intptr_t)handle, O_RDWR | O_BINARY);
 	if (fd < 0) {
 		errno = err_win_to_posix(GetLastError());
 		CloseHandle(handle);
@@ -381,9 +378,9 @@ enum connect_result {
 	CR_SHUTDOWN,
 };
 
-static enum connect_result queue_overlapped_connect(
-	struct ipc_server_thread_data *server_thread_data,
-	OVERLAPPED *lpo)
+static enum connect_result
+queue_overlapped_connect(struct ipc_server_thread_data *server_thread_data,
+			 OVERLAPPED *lpo)
 {
 	if (ConnectNamedPipe(server_thread_data->hPipe, lpo))
 		goto failed;
@@ -402,8 +399,7 @@ static enum connect_result queue_overlapped_connect(
 
 failed:
 	error(_("ConnectNamedPipe failed for '%s' (%lu)"),
-	      server_thread_data->server_data->buf_path.buf,
-	      GetLastError());
+	      server_thread_data->server_data->buf_path.buf, GetLastError());
 	return CR_CONNECT_ERROR;
 }
 
@@ -411,9 +407,9 @@ failed:
  * Use Windows Overlapped IO to wait for a connection or for our event
  * to be signalled.
  */
-static enum connect_result wait_for_connection(
-	struct ipc_server_thread_data *server_thread_data,
-	OVERLAPPED *lpo)
+static enum connect_result
+wait_for_connection(struct ipc_server_thread_data *server_thread_data,
+		    OVERLAPPED *lpo)
 {
 	enum connect_result r;
 	HANDLE waitHandles[2];
@@ -454,7 +450,7 @@ static ipc_server_reply_cb do_io_reply_callback;
  * to chunk data to the client thru us.)
  */
 static int do_io_reply_callback(struct ipc_server_reply_data *reply_data,
-		       const char *response, size_t response_len)
+				const char *response, size_t response_len)
 {
 	if (reply_data->magic != MAGIC_SERVER_REPLY_DATA)
 		BUG("reply_cb called with wrong instance data");
@@ -496,8 +492,7 @@ static int do_io(struct ipc_server_thread_data *server_thread_data)
 		packet_flush_gently(reply_data.fd);
 
 		FlushFileBuffers((HANDLE)_get_osfhandle((reply_data.fd)));
-	}
-	else {
+	} else {
 		/*
 		 * The client probably disconnected/shutdown before it
 		 * could send a well-formed message.  Ignore it.
@@ -609,8 +604,7 @@ finished:
  * some of these intermediate pointers can be freed before we are
  * finished using the "lpSA" member.)
  */
-struct my_sa_data
-{
+struct my_sa_data {
 	PSID pEveryoneSID;
 	PACL pACL;
 	PSECURITY_DESCRIPTOR pSD;
@@ -662,9 +656,8 @@ static LPSECURITY_ATTRIBUTES get_sa(struct my_sa_data *d)
 	EXPLICIT_ACCESS ea[NR_EA];
 	DWORD dwResult;
 
-	if (!AllocateAndInitializeSid(&sid_auth_world, 1,
-				      SECURITY_WORLD_RID, 0,0,0,0,0,0,0,
-				      &d->pEveryoneSID)) {
+	if (!AllocateAndInitializeSid(&sid_auth_world, 1, SECURITY_WORLD_RID, 0,
+				      0, 0, 0, 0, 0, 0, &d->pEveryoneSID)) {
 		DWORD gle = GetLastError();
 		trace2_data_intmax("ipc-debug", NULL, "alloc-world-sid/gle",
 				   (intmax_t)gle);
@@ -693,19 +686,23 @@ static LPSECURITY_ATTRIBUTES get_sa(struct my_sa_data *d)
 
 	d->pSD = (PSECURITY_DESCRIPTOR)LocalAlloc(
 		LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
-	if (!InitializeSecurityDescriptor(d->pSD, SECURITY_DESCRIPTOR_REVISION)) {
+	if (!InitializeSecurityDescriptor(d->pSD,
+					  SECURITY_DESCRIPTOR_REVISION)) {
 		DWORD gle = GetLastError();
-		trace2_data_intmax("ipc-debug", NULL, "init-sd/gle", (intmax_t)gle);
+		trace2_data_intmax("ipc-debug", NULL, "init-sd/gle",
+				   (intmax_t)gle);
 		goto fail;
 	}
 
 	if (!SetSecurityDescriptorDacl(d->pSD, TRUE, d->pACL, FALSE)) {
 		DWORD gle = GetLastError();
-		trace2_data_intmax("ipc-debug", NULL, "set-sd-dacl/gle", (intmax_t)gle);
+		trace2_data_intmax("ipc-debug", NULL, "set-sd-dacl/gle",
+				   (intmax_t)gle);
 		goto fail;
 	}
 
-	d->lpSA = (LPSECURITY_ATTRIBUTES)LocalAlloc(LPTR, sizeof(SECURITY_ATTRIBUTES));
+	d->lpSA = (LPSECURITY_ATTRIBUTES)LocalAlloc(
+		LPTR, sizeof(SECURITY_ATTRIBUTES));
 	d->lpSA->nLength = sizeof(SECURITY_ATTRIBUTES);
 	d->lpSA->lpSecurityDescriptor = d->pSD;
 	d->lpSA->bInheritHandle = FALSE;
@@ -726,10 +723,10 @@ static HANDLE create_new_pipe(wchar_t *wpath, int is_first)
 	init_sa(&my_sa_data);
 
 	dwOpenMode = PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND |
-		FILE_FLAG_OVERLAPPED;
+		     FILE_FLAG_OVERLAPPED;
 
 	dwPipeMode = PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT |
-		PIPE_REJECT_REMOTE_CLIENTS;
+		     PIPE_REJECT_REMOTE_CLIENTS;
 
 	if (is_first) {
 		dwOpenMode |= FILE_FLAG_FIRST_PIPE_INSTANCE;
@@ -798,9 +795,8 @@ int ipc_server_run_async(struct ipc_server_data **returned_server_data,
 		std->server_data = server_data;
 		std->hPipe = INVALID_HANDLE_VALUE;
 
-		std->hPipe = (k == 0)
-			? hPipeFirst
-			: create_new_pipe(server_data->wpath, 0);
+		std->hPipe = (k == 0) ? hPipeFirst :
+					create_new_pipe(server_data->wpath, 0);
 
 		if (std->hPipe == INVALID_HANDLE_VALUE) {
 			/*
@@ -811,8 +807,8 @@ int ipc_server_run_async(struct ipc_server_data **returned_server_data,
 			break;
 		}
 
-		if (pthread_create(&std->pthread_id, NULL,
-				   server_thread_proc, std)) {
+		if (pthread_create(&std->pthread_id, NULL, server_thread_proc,
+				   std)) {
 			/*
 			 * Likewise, if we're out of threads, just use
 			 * fewer threads than requested.
@@ -860,7 +856,8 @@ int ipc_server_await(struct ipc_server_data *server_data)
 	if (!server_data)
 		return 0;
 
-	dwWaitResult = WaitForSingleObject(server_data->hEventStopRequested, INFINITE);
+	dwWaitResult =
+		WaitForSingleObject(server_data->hEventStopRequested, INFINITE);
 	if (dwWaitResult != WAIT_OBJECT_0)
 		return error(_("wait for hEvent failed for '%s'"),
 			     server_data->buf_path.buf);

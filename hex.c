@@ -1,6 +1,6 @@
-#include "git-compat-util.h"
-#include "hash.h"
-#include "hex.h"
+#include "components/git-compat-util.h"
+#include "components/hash.h"
+#include "components/hex.h"
 
 static int get_hash_hex_algop(const char *hex, unsigned char *hash,
 			      const struct git_hash_algo *algop)
@@ -50,8 +50,7 @@ int get_oid_hex(const char *hex, struct object_id *oid)
 }
 
 int parse_oid_hex_algop(const char *hex, struct object_id *oid,
-			const char **end,
-			const struct git_hash_algo *algop)
+			const char **end, const struct git_hash_algo *algop)
 {
 	int ret = get_oid_hex_algop(hex, oid, algop);
 	if (!ret)
@@ -101,7 +100,8 @@ char *oid_to_hex_r(char *buffer, const struct object_id *oid)
 	return hash_to_hex_algop_r(buffer, oid->hash, &hash_algos[oid->algo]);
 }
 
-char *hash_to_hex_algop(const unsigned char *hash, const struct git_hash_algo *algop)
+char *hash_to_hex_algop(const unsigned char *hash,
+			const struct git_hash_algo *algop)
 {
 	static int bufno;
 	static char hexbuffer[4][GIT_MAX_HEXSZ + 1];

@@ -1,26 +1,27 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hash.h"
-#include "hex.h"
-#include "lockfile.h"
-#include "merge.h"
-#include "commit.h"
-#include "repository.h"
-#include "run-command.h"
-#include "resolve-undo.h"
-#include "tree.h"
-#include "tree-walk.h"
-#include "unpack-trees.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/hex.h"
+#include "components/lockfile.h"
+#include "components/merge.h"
+#include "components/commit.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/resolve-undo.h"
+#include "components/tree.h"
+#include "components/tree-walk.h"
+#include "components/unpack-trees.h"
 
 static const char *merge_argument(struct commit *commit)
 {
-	return oid_to_hex(commit ? &commit->object.oid : the_hash_algo->empty_tree);
+	return oid_to_hex(commit ? &commit->object.oid :
+				   the_hash_algo->empty_tree);
 }
 
-int try_merge_command(struct repository *r,
-		      const char *strategy, size_t xopts_nr,
-		      const char **xopts, struct commit_list *common,
-		      const char *head_arg, struct commit_list *remotes)
+int try_merge_command(struct repository *r, const char *strategy,
+		      size_t xopts_nr, const char **xopts,
+		      struct commit_list *common, const char *head_arg,
+		      struct commit_list *remotes)
 {
 	struct child_process cmd = CHILD_PROCESS_INIT;
 	int i, ret;
@@ -47,10 +48,8 @@ int try_merge_command(struct repository *r,
 	return ret;
 }
 
-int checkout_fast_forward(struct repository *r,
-			  const struct object_id *head,
-			  const struct object_id *remote,
-			  int overwrite_ignore)
+int checkout_fast_forward(struct repository *r, const struct object_id *head,
+			  const struct object_id *remote, int overwrite_ignore)
 {
 	struct tree *trees[MAX_UNPACK_TREES];
 	struct unpack_trees_options opts;
@@ -81,8 +80,8 @@ int checkout_fast_forward(struct repository *r,
 			rollback_lock_file(&lock_file);
 			return -1;
 		}
-		init_tree_desc(t+i, &trees[i]->object.oid,
-			       trees[i]->buffer, trees[i]->size);
+		init_tree_desc(t + i, &trees[i]->object.oid, trees[i]->buffer,
+			       trees[i]->size);
 	}
 
 	memset(&opts, 0, sizeof(opts));

@@ -2,24 +2,24 @@
  * The Scalar command-line interface.
  */
 
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "gettext.h"
-#include "parse-options.h"
-#include "config.h"
-#include "run-command.h"
-#include "simple-ipc.h"
-#include "fsmonitor-ipc.h"
-#include "fsmonitor-settings.h"
-#include "refs.h"
-#include "dir.h"
-#include "packfile.h"
-#include "help.h"
-#include "setup.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/gettext.h"
+#include "components/parse-options.h"
+#include "components/config.h"
+#include "components/run-command.h"
+#include "components/simple-ipc.h"
+#include "components/fsmonitor-ipc.h"
+#include "components/fsmonitor-settings.h"
+#include "components/refs.h"
+#include "components/dir.h"
+#include "components/packfile.h"
+#include "components/help.h"
+#include "components/setup.h"
+#include "components/trace2.h"
 
 static void setup_enlistment_directory(int argc, const char **argv,
-				       const char * const *usagestr,
+				       const char *const *usagestr,
 				       const struct option *options,
 				       struct strbuf *enlistment_root)
 {
@@ -64,7 +64,8 @@ static void setup_enlistment_directory(int argc, const char **argv,
 		if (enlistment_is_repo_parent)
 			strbuf_addbuf(enlistment_root, &path);
 		else
-			strbuf_addstr(enlistment_root, the_repository->worktree);
+			strbuf_addstr(enlistment_root,
+				      the_repository->worktree);
 	}
 
 	strbuf_release(&path);
@@ -92,17 +93,20 @@ struct scalar_config {
 	int overwrite_on_reconfigure;
 };
 
-static int set_scalar_config(const struct scalar_config *config, int reconfigure)
+static int set_scalar_config(const struct scalar_config *config,
+			     int reconfigure)
 {
 	char *value = NULL;
 	int res;
 
 	if ((reconfigure && config->overwrite_on_reconfigure) ||
 	    git_config_get_string(config->key, &value)) {
-		trace2_data_string("scalar", the_repository, config->key, "created");
+		trace2_data_string("scalar", the_repository, config->key,
+				   "created");
 		res = git_config_set_gently(config->key, config->value);
 	} else {
-		trace2_data_string("scalar", the_repository, config->key, "exists");
+		trace2_data_string("scalar", the_repository, config->key,
+				   "exists");
 		res = 0;
 	}
 
@@ -208,10 +212,8 @@ static int set_recommended_config(int reconfigure)
 
 static int toggle_maintenance(int enable)
 {
-	return run_git("maintenance",
-		       enable ? "start" : "unregister",
-		       enable ? NULL : "--force",
-		       NULL);
+	return run_git("maintenance", enable ? "start" : "unregister",
+		       enable ? NULL : "--force", NULL);
 }
 
 static int add_or_remove_enlistment(int add)
@@ -380,7 +382,8 @@ static int delete_enlistment(struct strbuf *enlistment)
 	strbuf_add(&parent, enlistment->buf,
 		   path_sep ? path_sep - enlistment->buf : offset);
 	if (chdir(parent.buf) < 0) {
-		int res = error_errno(_("could not switch to '%s'"), parent.buf);
+		int res =
+			error_errno(_("could not switch to '%s'"), parent.buf);
 		strbuf_release(&parent);
 		return res;
 	}
@@ -422,7 +425,7 @@ static int cmd_clone(int argc, const char **argv)
 			 N_("create repository within 'src' directory")),
 		OPT_END(),
 	};
-	const char * const clone_usage[] = {
+	const char *const clone_usage[] = {
 		N_("scalar clone [--single-branch] [--branch <main-branch>] [--full-clone]\n"
 		   "\t[--[no-]src] <url> [<enlistment>]"),
 		NULL
@@ -511,8 +514,8 @@ static int cmd_clone(int argc, const char **argv)
 		return error(_("could not configure '%s'"), dir);
 
 	if ((res = run_git("fetch", "--quiet",
-				show_progress ? "--progress" : "--no-progress",
-				"origin", NULL))) {
+			   show_progress ? "--progress" : "--no-progress",
+			   "origin", NULL))) {
 		warning(_("partial clone failed; attempting full clone"));
 
 		if (set_config("remote.origin.promisor") ||
@@ -522,15 +525,15 @@ static int cmd_clone(int argc, const char **argv)
 		}
 
 		if ((res = run_git("fetch", "--quiet",
-					show_progress ? "--progress" : "--no-progress",
-					"origin", NULL)))
+				   show_progress ? "--progress" :
+						   "--no-progress",
+				   "origin", NULL)))
 			goto cleanup;
 	}
 
 	if ((res = set_config("branch.%s.remote=origin", branch)))
 		goto cleanup;
-	if ((res = set_config("branch.%s.merge=refs/heads/%s",
-			      branch, branch)))
+	if ((res = set_config("branch.%s.merge=refs/heads/%s", branch, branch)))
 		goto cleanup;
 
 	strbuf_reset(&buf);
@@ -553,21 +556,19 @@ static int cmd_diagnose(int argc, const char **argv)
 	struct option options[] = {
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar diagnose [<enlistment>]"),
-		NULL
-	};
+	const char *const usage[] = { N_("scalar diagnose [<enlistment>]"),
+				      NULL };
 	struct strbuf diagnostics_root = STRBUF_INIT;
 	int res = 0;
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
-	setup_enlistment_directory(argc, argv, usage, options, &diagnostics_root);
+	setup_enlistment_directory(argc, argv, usage, options,
+				   &diagnostics_root);
 	strbuf_addstr(&diagnostics_root, "/.scalarDiagnostics");
 
-	res = run_git("diagnose", "--mode=all", "-s", "%Y%m%d_%H%M%S",
-		      "-o", diagnostics_root.buf, NULL);
+	res = run_git("diagnose", "--mode=all", "-s", "%Y%m%d_%H%M%S", "-o",
+		      diagnostics_root.buf, NULL);
 
 	strbuf_release(&diagnostics_root);
 	return res;
@@ -588,13 +589,10 @@ static int cmd_register(int argc, const char **argv)
 	struct option options[] = {
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar register [<enlistment>]"),
-		NULL
-	};
+	const char *const usage[] = { N_("scalar register [<enlistment>]"),
+				      NULL };
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	setup_enlistment_directory(argc, argv, usage, options, NULL);
 
@@ -602,8 +600,7 @@ static int cmd_register(int argc, const char **argv)
 }
 
 static int get_scalar_repos(const char *key, const char *value,
-			    const struct config_context *ctx UNUSED,
-			    void *data)
+			    const struct config_context *ctx UNUSED, void *data)
 {
 	struct string_list *list = data;
 
@@ -618,13 +615,11 @@ static int remove_deleted_enlistment(struct strbuf *path)
 	int res = 0;
 	strbuf_realpath_forgiving(path, path->buf, 1);
 
-	if (run_git("config", "--global",
-		    "--unset", "--fixed-value",
+	if (run_git("config", "--global", "--unset", "--fixed-value",
 		    "scalar.repo", path->buf, NULL) < 0)
 		res = -1;
 
-	if (run_git("config", "--global",
-		    "--unset", "--fixed-value",
+	if (run_git("config", "--global", "--unset", "--fixed-value",
 		    "maintenance.repo", path->buf, NULL) < 0)
 		res = -1;
 
@@ -639,17 +634,15 @@ static int cmd_reconfigure(int argc, const char **argv)
 			 N_("reconfigure all registered enlistments")),
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar reconfigure [--all | <enlistment>]"),
-		NULL
+	const char *const usage[] = {
+		N_("scalar reconfigure [--all | <enlistment>]"), NULL
 	};
 	struct string_list scalar_repos = STRING_LIST_INIT_DUP;
 	int i, res = 0;
 	struct repository r = { NULL };
 	struct strbuf commondir = STRBUF_INIT, gitdir = STRBUF_INIT;
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	if (!all) {
 		setup_enlistment_directory(argc, argv, usage, options, NULL);
@@ -658,8 +651,8 @@ static int cmd_reconfigure(int argc, const char **argv)
 	}
 
 	if (argc > 0)
-		usage_msg_opt(_("--all or <enlistment>, but not both"),
-			      usage, options);
+		usage_msg_opt(_("--all or <enlistment>, but not both"), usage,
+			      options);
 
 	git_config(get_scalar_repos, &scalar_repos);
 
@@ -674,14 +667,16 @@ static int cmd_reconfigure(int argc, const char **argv)
 			struct strbuf buf = STRBUF_INIT;
 
 			if (errno != ENOENT) {
-				warning_errno(_("could not switch to '%s'"), dir);
+				warning_errno(_("could not switch to '%s'"),
+					      dir);
 				goto loop_end;
 			}
 
 			strbuf_addstr(&buf, dir);
 			if (remove_deleted_enlistment(&buf))
 				error(_("could not remove stale "
-					"scalar.repo '%s'"), dir);
+					"scalar.repo '%s'"),
+				      dir);
 			else {
 				warning(_("removed stale scalar.repo '%s'"),
 					dir);
@@ -693,12 +688,14 @@ static int cmd_reconfigure(int argc, const char **argv)
 
 		switch (discover_git_directory_reason(&commondir, &gitdir)) {
 		case GIT_DIR_INVALID_OWNERSHIP:
-			warning(_("repository at '%s' has different owner"), dir);
+			warning(_("repository at '%s' has different owner"),
+				dir);
 			goto loop_end;
 
 		case GIT_DIR_INVALID_GITFILE:
 		case GIT_DIR_INVALID_FORMAT:
-			warning(_("repository at '%s' has a format issue"), dir);
+			warning(_("repository at '%s' has a format issue"),
+				dir);
 			goto loop_end;
 
 		case GIT_DIR_DISCOVERED:
@@ -719,7 +716,7 @@ static int cmd_reconfigure(int argc, const char **argv)
 		if (set_recommended_config(1) >= 0)
 			succeeded = 1;
 
-loop_end:
+	loop_end:
 		if (!succeeded) {
 			res = -1;
 			warning(_("to unregister this repository from Scalar, run\n"
@@ -742,14 +739,12 @@ static int cmd_run(int argc, const char **argv)
 	};
 	struct {
 		const char *arg, *task;
-	} tasks[] = {
-		{ "config", NULL },
-		{ "commit-graph", "commit-graph" },
-		{ "fetch", "prefetch" },
-		{ "loose-objects", "loose-objects" },
-		{ "pack-files", "incremental-repack" },
-		{ NULL, NULL }
-	};
+	} tasks[] = { { "config", NULL },
+		      { "commit-graph", "commit-graph" },
+		      { "fetch", "prefetch" },
+		      { "loose-objects", "loose-objects" },
+		      { "pack-files", "incremental-repack" },
+		      { NULL, NULL } };
 	struct strbuf buf = STRBUF_INIT;
 	const char *usagestr[] = { NULL, NULL };
 	int i;
@@ -759,8 +754,7 @@ static int cmd_run(int argc, const char **argv)
 		strbuf_addf(&buf, "\t%s\n", tasks[i].arg);
 	usagestr[0] = buf.buf;
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usagestr, 0);
+	argc = parse_options(argc, argv, NULL, options, usagestr, 0);
 
 	if (!argc)
 		usage_with_options(usagestr, options);
@@ -786,14 +780,14 @@ static int cmd_run(int argc, const char **argv)
 		return register_dir();
 
 	if (i > 0)
-		return run_git("maintenance", "run",
-			       "--task", tasks[i].task, NULL);
+		return run_git("maintenance", "run", "--task", tasks[i].task,
+			       NULL);
 
 	if (register_dir())
 		return -1;
 	for (i = 1; tasks[i].arg; i++)
-		if (run_git("maintenance", "run",
-			    "--task", tasks[i].task, NULL))
+		if (run_git("maintenance", "run", "--task", tasks[i].task,
+			    NULL))
 			return -1;
 	return 0;
 }
@@ -803,13 +797,10 @@ static int cmd_unregister(int argc, const char **argv)
 	struct option options[] = {
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar unregister [<enlistment>]"),
-		NULL
-	};
+	const char *const usage[] = { N_("scalar unregister [<enlistment>]"),
+				      NULL };
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	/*
 	 * Be forgiving when the enlistment or worktree does not even exist any
@@ -817,11 +808,13 @@ static int cmd_unregister(int argc, const char **argv)
 	 * mistake and _still_ wants to unregister the thing.
 	 */
 	if (argc == 1) {
-		struct strbuf src_path = STRBUF_INIT, workdir_path = STRBUF_INIT;
+		struct strbuf src_path = STRBUF_INIT,
+			      workdir_path = STRBUF_INIT;
 
 		strbuf_addf(&src_path, "%s/src/.git", argv[0]);
 		strbuf_addf(&workdir_path, "%s/.git", argv[0]);
-		if (!is_directory(src_path.buf) && !is_directory(workdir_path.buf)) {
+		if (!is_directory(src_path.buf) &&
+		    !is_directory(workdir_path.buf)) {
 			/* remove possible matching registrations */
 			int res = -1;
 
@@ -850,15 +843,11 @@ static int cmd_delete(int argc, const char **argv)
 	struct option options[] = {
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar delete <enlistment>"),
-		NULL
-	};
+	const char *const usage[] = { N_("scalar delete <enlistment>"), NULL };
 	struct strbuf enlistment = STRBUF_INIT;
 	int res = 0;
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	if (argc != 1)
 		usage_with_options(usage, options);
@@ -882,13 +871,9 @@ static int cmd_help(int argc, const char **argv)
 	struct option options[] = {
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		"scalar help",
-		NULL
-	};
+	const char *const usage[] = { "scalar help", NULL };
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	if (argc != 0)
 		usage_with_options(usage, options);
@@ -905,14 +890,12 @@ static int cmd_version(int argc, const char **argv)
 			 N_("include Git's build options")),
 		OPT_END(),
 	};
-	const char * const usage[] = {
-		N_("scalar verbose [-v | --verbose] [--build-options]"),
-		NULL
+	const char *const usage[] = {
+		N_("scalar verbose [-v | --verbose] [--build-options]"), NULL
 	};
 	struct strbuf buf = STRBUF_INIT;
 
-	argc = parse_options(argc, argv, NULL, options,
-			     usage, 0);
+	argc = parse_options(argc, argv, NULL, options, usage, 0);
 
 	if (argc != 0)
 		usage_with_options(usage, options);
@@ -938,7 +921,7 @@ static struct {
 	{ "help", cmd_help },
 	{ "version", cmd_version },
 	{ "diagnose", cmd_diagnose },
-	{ NULL, NULL},
+	{ NULL, NULL },
 };
 
 int cmd_main(int argc, const char **argv)

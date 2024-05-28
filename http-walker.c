@@ -1,12 +1,12 @@
-#include "git-compat-util.h"
-#include "repository.h"
-#include "hex.h"
-#include "walker.h"
-#include "http.h"
-#include "list.h"
-#include "transport.h"
-#include "packfile.h"
-#include "object-store-ll.h"
+#include "components/git-compat-util.h"
+#include "components/repository.h"
+#include "components/hex.h"
+#include "components/walker.h"
+#include "components/http.h"
+#include "components/list.h"
+#include "components/transport.h"
+#include "components/packfile.h"
+#include "components/object-store-ll.h"
 
 struct alt_base {
 	char *base;
@@ -15,12 +15,7 @@ struct alt_base {
 	struct alt_base *next;
 };
 
-enum object_request_state {
-	WAITING,
-	ABORTED,
-	ACTIVE,
-	COMPLETE
-};
+enum object_request_state { WAITING, ABORTED, ACTIVE, COMPLETE };
 
 struct object_request {
 	struct walker *walker;
@@ -83,13 +78,13 @@ static void finish_object_request(struct object_request *obj_req)
 		return;
 
 	if (obj_req->req->rename == 0)
-		walker_say(obj_req->walker, "got %s\n", oid_to_hex(&obj_req->oid));
+		walker_say(obj_req->walker, "got %s\n",
+			   oid_to_hex(&obj_req->oid));
 }
 
 static void process_object_response(void *callback_data)
 {
-	struct object_request *obj_req =
-		(struct object_request *)callback_data;
+	struct object_request *obj_req = (struct object_request *)callback_data;
 	struct walker *walker = obj_req->walker;
 	struct walker_data *data = walker->data;
 	struct alt_base *alt = data->alt;
@@ -98,16 +93,14 @@ static void process_object_response(void *callback_data)
 	obj_req->state = COMPLETE;
 
 	normalize_curl_result(&obj_req->req->curl_result,
-			      obj_req->req->http_code,
-			      obj_req->req->errorstr,
+			      obj_req->req->http_code, obj_req->req->errorstr,
 			      sizeof(obj_req->req->errorstr));
 
 	/* Use alternates if necessary */
 	if (missing_target(obj_req->req)) {
 		fetch_alternates(walker, alt->base);
 		if (obj_req->repo->next) {
-			obj_req->repo =
-				obj_req->repo->next;
+			obj_req->repo = obj_req->repo->next;
 			release_http_object_request(obj_req->req);
 			start_object_request(obj_req);
 			return;
@@ -119,7 +112,7 @@ static void process_object_response(void *callback_data)
 
 static void release_object_request(struct object_request *obj_req)
 {
-	if (obj_req->req !=NULL && obj_req->req->localfile != -1)
+	if (obj_req->req != NULL && obj_req->req->localfile != -1)
 		error("fd leakage in release: %d", obj_req->req->localfile);
 
 	list_del(&obj_req->node);
@@ -131,7 +124,7 @@ static int fill_active_slot(void *data UNUSED)
 	struct object_request *obj_req;
 	struct list_head *pos, *tmp, *head = &object_queue_head;
 
-	list_for_each_safe(pos, tmp, head) {
+	list_for_each_safe (pos, tmp, head) {
 		obj_req = list_entry(pos, struct object_request, node);
 		if (obj_req->state == WAITING) {
 			if (repo_has_object_file(the_repository, &obj_req->oid))
@@ -166,9 +159,7 @@ static void prefetch(struct walker *walker, unsigned char *sha1)
 
 static int is_alternate_allowed(const char *url)
 {
-	const char *protocols[] = {
-		"http", "https", "ftp", "ftps"
-	};
+	const char *protocols[] = { "http", "https", "ftp", "ftps" };
 	int i;
 
 	if (http_follow_config != HTTP_FOLLOW_ALWAYS) {
@@ -212,9 +203,7 @@ static void process_alternates_response(void *callback_data)
 			      curl_errorstr, sizeof(curl_errorstr));
 
 	if (alt_req->http_specific) {
-		if (slot->curl_result != CURLE_OK ||
-		    !alt_req->buffer->len) {
-
+		if (slot->curl_result != CURLE_OK || !alt_req->buffer->len) {
 			/* Try reusing the slot to get non-http alternates */
 			alt_req->http_specific = 0;
 			strbuf_reset(alt_req->url);
@@ -261,10 +250,10 @@ static void process_alternates_response(void *callback_data)
 				 * so memcpy(dst, base, serverlen) will
 				 * copy up to "...git.host".
 				 */
-				const char *colon_ss = strstr(base,"://");
+				const char *colon_ss = strstr(base, "://");
 				if (colon_ss) {
-					serverlen = (strchr(colon_ss + 3, '/')
-						     - base);
+					serverlen = (strchr(colon_ss + 3, '/') -
+						     base);
 					okay = 1;
 				}
 			} else if (!memcmp(data + i, "../", 3)) {
@@ -297,8 +286,7 @@ static void process_alternates_response(void *callback_data)
 					i += 3;
 				}
 				/* If the server got removed, give up. */
-				okay = strchr(base, ':') - base + 3 <
-				       serverlen;
+				okay = strchr(base, ':') - base + 3 < serverlen;
 			} else if (alt_req->http_specific) {
 				char *colon = strchr(data + i, ':');
 				char *slash = strchr(data + i, '/');
@@ -321,7 +309,8 @@ static void process_alternates_response(void *callback_data)
 						target.buf);
 					newalt = xmalloc(sizeof(*newalt));
 					newalt->next = NULL;
-					newalt->base = strbuf_detach(&target, NULL);
+					newalt->base =
+						strbuf_detach(&target, NULL);
 					newalt->got_indices = 0;
 					newalt->packs = NULL;
 
@@ -420,7 +409,8 @@ static int fetch_indices(struct walker *walker, struct alt_base *repo)
 	return ret;
 }
 
-static int http_fetch_pack(struct walker *walker, struct alt_base *repo, unsigned char *sha1)
+static int http_fetch_pack(struct walker *walker, struct alt_base *repo,
+			   unsigned char *sha1)
 {
 	struct packed_git *target;
 	int ret;
@@ -435,10 +425,8 @@ static int http_fetch_pack(struct walker *walker, struct alt_base *repo, unsigne
 	close_pack_index(target);
 
 	if (walker->get_verbosely) {
-		fprintf(stderr, "Getting pack %s\n",
-			hash_to_hex(target->hash));
-		fprintf(stderr, " which contains %s\n",
-			hash_to_hex(sha1));
+		fprintf(stderr, "Getting pack %s\n", hash_to_hex(target->hash));
+		fprintf(stderr, " which contains %s\n", hash_to_hex(sha1));
 	}
 
 	preq = new_http_pack_request(target->hash, repo->base);
@@ -483,7 +471,7 @@ static int fetch_object(struct walker *walker, unsigned char *hash)
 	struct http_object_request *req;
 	struct list_head *pos, *head = &object_queue_head;
 
-	list_for_each(pos, head) {
+	list_for_each (pos, head) {
 		obj_req = list_entry(pos, struct object_request, node);
 		if (hasheq(obj_req->oid.hash, hash))
 			break;
@@ -516,19 +504,19 @@ static int fetch_object(struct walker *walker, unsigned char *hash)
 		req->localfile = -1;
 	}
 
-	normalize_curl_result(&req->curl_result, req->http_code,
-			      req->errorstr, sizeof(req->errorstr));
+	normalize_curl_result(&req->curl_result, req->http_code, req->errorstr,
+			      sizeof(req->errorstr));
 
 	if (obj_req->state == ABORTED) {
 		ret = error("Request for %s aborted", hex);
-	} else if (req->curl_result != CURLE_OK &&
-		   req->http_code != 416) {
+	} else if (req->curl_result != CURLE_OK && req->http_code != 416) {
 		if (missing_target(req))
 			ret = -1; /* Be silent, it is probably in a pack. */
 		else
-			ret = error("%s (curl_result = %d, http_code = %ld, sha1 = %s)",
-				    req->errorstr, req->curl_result,
-				    req->http_code, hex);
+			ret = error(
+				"%s (curl_result = %d, http_code = %ld, sha1 = %s)",
+				req->errorstr, req->curl_result, req->http_code,
+				hex);
 	} else if (req->zret != Z_STREAM_END) {
 		walker->corrupt_object_found++;
 		ret = error("File %s (%s) corrupt", hex, req->url);

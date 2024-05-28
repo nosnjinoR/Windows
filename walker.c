@@ -1,17 +1,17 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hex.h"
-#include "walker.h"
-#include "repository.h"
-#include "object-store-ll.h"
-#include "commit.h"
-#include "strbuf.h"
-#include "tree.h"
-#include "tree-walk.h"
-#include "tag.h"
-#include "blob.h"
-#include "refs.h"
-#include "progress.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/walker.h"
+#include "components/repository.h"
+#include "components/object-store-ll.h"
+#include "components/commit.h"
+#include "components/strbuf.h"
+#include "components/tree.h"
+#include "components/tree-walk.h"
+#include "components/tag.h"
+#include "components/blob.h"
+#include "components/refs.h"
+#include "components/progress.h"
 
 static struct object_id current_commit_oid;
 
@@ -28,7 +28,7 @@ void walker_say(struct walker *walker, const char *fmt, ...)
 static void report_missing(const struct object *obj)
 {
 	fprintf(stderr, "Cannot obtain needed %s %s\n",
-		obj->type ? type_name(obj->type): "object",
+		obj->type ? type_name(obj->type) : "object",
 		oid_to_hex(&obj->oid));
 	if (!is_null_oid(&current_commit_oid))
 		fprintf(stderr, "while processing commit %s.\n",
@@ -53,14 +53,13 @@ static int process_tree(struct walker *walker, struct tree *tree)
 		if (S_ISGITLINK(entry.mode))
 			continue;
 		if (S_ISDIR(entry.mode)) {
-			struct tree *tree = lookup_tree(the_repository,
-							&entry.oid);
+			struct tree *tree =
+				lookup_tree(the_repository, &entry.oid);
 			if (tree)
 				obj = &tree->object;
-		}
-		else {
-			struct blob *blob = lookup_blob(the_repository,
-							&entry.oid);
+		} else {
+			struct blob *blob =
+				lookup_blob(the_repository, &entry.oid);
 			if (blob)
 				obj = &blob->object;
 		}
@@ -72,9 +71,9 @@ static int process_tree(struct walker *walker, struct tree *tree)
 }
 
 /* Remember to update object flag allocation in object.h */
-#define COMPLETE	(1U << 0)
-#define SEEN		(1U << 1)
-#define TO_SCAN		(1U << 2)
+#define COMPLETE (1U << 0)
+#define SEEN (1U << 1)
+#define TO_SCAN (1U << 2)
 
 static struct commit_list *complete = NULL;
 
@@ -96,7 +95,8 @@ static int process_commit(struct walker *walker, struct commit *commit)
 
 	walker_say(walker, "walk %s\n", oid_to_hex(&commit->object.oid));
 
-	if (process(walker, &repo_get_commit_tree(the_repository, commit)->object))
+	if (process(walker,
+		    &repo_get_commit_tree(the_repository, commit)->object))
 		return -1;
 
 	for (parents = commit->parents; parents; parents = parents->next) {
@@ -151,8 +151,7 @@ static int process(struct walker *walker, struct object *obj)
 	if (repo_has_object_file(the_repository, &obj->oid)) {
 		/* We already have it, so we should scan it now. */
 		obj->flags |= TO_SCAN;
-	}
-	else {
+	} else {
 		if (obj->flags & COMPLETE)
 			return 0;
 		walker->prefetch(walker, obj->oid.hash);
@@ -183,7 +182,7 @@ static int loop(struct walker *walker)
 		/* If we are not scanning this object, we placed it in
 		 * the queue because we needed to fetch it first.
 		 */
-		if (! (obj->flags & TO_SCAN)) {
+		if (!(obj->flags & TO_SCAN)) {
 			if (walker->fetch(walker, obj->oid.hash)) {
 				stop_progress(&progress);
 				report_missing(obj);
@@ -202,7 +201,8 @@ static int loop(struct walker *walker)
 	return 0;
 }
 
-static int interpret_target(struct walker *walker, char *target, struct object_id *oid)
+static int interpret_target(struct walker *walker, char *target,
+			    struct object_id *oid)
 {
 	if (!get_oid_hex(target, oid))
 		return 0;
@@ -218,13 +218,11 @@ static int interpret_target(struct walker *walker, char *target, struct object_i
 	return -1;
 }
 
-static int mark_complete(const char *path UNUSED,
-			 const struct object_id *oid,
-			 int flag UNUSED,
-			 void *cb_data UNUSED)
+static int mark_complete(const char *path UNUSED, const struct object_id *oid,
+			 int flag UNUSED, void *cb_data UNUSED)
 {
-	struct commit *commit = lookup_commit_reference_gently(the_repository,
-							       oid, 1);
+	struct commit *commit =
+		lookup_commit_reference_gently(the_repository, oid, 1);
 
 	if (commit) {
 		commit->object.flags |= COMPLETE;
@@ -237,7 +235,8 @@ int walker_targets_stdin(char ***target, const char ***write_ref)
 {
 	int targets = 0, targets_alloc = 0;
 	struct strbuf buf = STRBUF_INIT;
-	*target = NULL; *write_ref = NULL;
+	*target = NULL;
+	*write_ref = NULL;
 	while (1) {
 		char *rf_one = NULL;
 		char *tg_one;
@@ -267,7 +266,7 @@ void walker_targets_free(int targets, char **target, const char **write_ref)
 	while (targets--) {
 		free(target[targets]);
 		if (write_ref)
-			free((char *) write_ref[targets]);
+			free((char *)write_ref[targets]);
 	}
 }
 
@@ -300,10 +299,12 @@ int walker_fetch(struct walker *walker, int targets, char **target,
 
 	for (i = 0; i < targets; i++) {
 		if (interpret_target(walker, target[i], oids + i)) {
-			error("Could not interpret response from server '%s' as something to pull", target[i]);
+			error("Could not interpret response from server '%s' as something to pull",
+			      target[i]);
 			goto done;
 		}
-		if (process(walker, lookup_unknown_object(the_repository, &oids[i])))
+		if (process(walker,
+			    lookup_unknown_object(the_repository, &oids[i])))
 			goto done;
 	}
 
@@ -323,10 +324,9 @@ int walker_fetch(struct walker *walker, int targets, char **target,
 			continue;
 		strbuf_reset(&refname);
 		strbuf_addf(&refname, "refs/%s", write_ref[i]);
-		if (ref_transaction_update(transaction, refname.buf,
-					   oids + i, NULL, 0,
-					   msg ? msg : "fetch (unknown)",
-					   &err)) {
+		if (ref_transaction_update(
+			    transaction, refname.buf, oids + i, NULL, 0,
+			    msg ? msg : "fetch (unknown)", &err)) {
 			error("%s", err.buf);
 			goto done;
 		}

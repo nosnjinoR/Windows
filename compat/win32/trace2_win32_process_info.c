@@ -1,7 +1,7 @@
-#include "../../git-compat-util.h"
-#include "../../json-writer.h"
-#include "../../repository.h"
-#include "../../trace2.h"
+#include "components/git-compat-util.h"
+#include "components/json-writer.h"
+#include "components/repository.h"
+#include "components/trace2.h"
 #include "lazyload.h"
 #include <psapi.h>
 #include <tlhelp32.h>
@@ -145,8 +145,8 @@ static void get_is_being_debugged(void)
  */
 static void get_peak_memory_info(void)
 {
-	DECLARE_PROC_ADDR(psapi.dll, BOOL, WINAPI, GetProcessMemoryInfo,
-			  HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+	DECLARE_PROC_ADDR(psapi.dll, BOOL, WINAPI, GetProcessMemoryInfo, HANDLE,
+			  PPROCESS_MEMORY_COUNTERS, DWORD);
 
 	if (INIT_PROC_ADDR(GetProcessMemoryInfo)) {
 		PROCESS_MEMORY_COUNTERS pmc;

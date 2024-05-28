@@ -1,24 +1,22 @@
 /*
  * Copyright (c) 2011, Google Inc.
  */
-#include "git-compat-util.h"
-#include "convert.h"
-#include "environment.h"
-#include "streaming.h"
-#include "repository.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "replace-object.h"
-#include "packfile.h"
+#include "components/git-compat-util.h"
+#include "components/convert.h"
+#include "components/environment.h"
+#include "components/streaming.h"
+#include "components/repository.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/replace-object.h"
+#include "components/packfile.h"
 
-typedef int (*open_istream_fn)(struct git_istream *,
-			       struct repository *,
-			       const struct object_id *,
-			       enum object_type *);
+typedef int (*open_istream_fn)(struct git_istream *, struct repository *,
+			       const struct object_id *, enum object_type *);
 typedef int (*close_istream_fn)(struct git_istream *);
 typedef ssize_t (*read_istream_fn)(struct git_istream *, char *, size_t);
 
-#define FILTER_BUFFER (1024*16)
+#define FILTER_BUFFER (1024 * 16)
 
 struct filtered_istream {
 	struct git_istream *upstream;
@@ -74,7 +72,6 @@ static void close_deflated_stream(struct git_istream *st)
 		git_inflate_end(&st->z);
 }
 
-
 /*****************************************************************
  *
  * Filtered stream
@@ -111,9 +108,8 @@ static ssize_t read_istream_filtered(struct git_istream *st, char *buf,
 		if (fs->i_ptr < fs->i_end) {
 			size_t to_feed = fs->i_end - fs->i_ptr;
 			size_t to_receive = FILTER_BUFFER;
-			if (stream_filter(fs->filter,
-					  fs->ibuf + fs->i_ptr, &to_feed,
-					  fs->obuf, &to_receive))
+			if (stream_filter(fs->filter, fs->ibuf + fs->i_ptr,
+					  &to_feed, fs->obuf, &to_receive))
 				return -1;
 			fs->i_ptr = fs->i_end - to_feed;
 			fs->o_end = FILTER_BUFFER - to_receive;
@@ -123,9 +119,8 @@ static ssize_t read_istream_filtered(struct git_istream *st, char *buf,
 		/* tell the filter to drain upon no more input */
 		if (fs->input_finished) {
 			size_t to_receive = FILTER_BUFFER;
-			if (stream_filter(fs->filter,
-					  NULL, NULL,
-					  fs->obuf, &to_receive))
+			if (stream_filter(fs->filter, NULL, NULL, fs->obuf,
+					  &to_receive))
 				return -1;
 			fs->o_end = FILTER_BUFFER - to_receive;
 			if (!fs->o_end)
@@ -136,7 +131,8 @@ static ssize_t read_istream_filtered(struct git_istream *st, char *buf,
 
 		/* refill the input from the upstream */
 		if (!fs->input_finished) {
-			fs->i_end = read_istream(fs->upstream, fs->ibuf, FILTER_BUFFER);
+			fs->i_end = read_istream(fs->upstream, fs->ibuf,
+						 FILTER_BUFFER);
 			if (fs->i_end < 0)
 				return -1;
 			if (fs->i_end)
@@ -206,7 +202,8 @@ static ssize_t read_istream_loose(struct git_istream *st, char *buf, size_t sz)
 			st->z_state = z_done;
 			break;
 		}
-		if (status != Z_OK && (status != Z_BUF_ERROR || total_read < sz)) {
+		if (status != Z_OK &&
+		    (status != Z_BUF_ERROR || total_read < sz)) {
 			git_inflate_end(&st->z);
 			st->z_state = z_error;
 			return -1;
@@ -257,7 +254,6 @@ error:
 	munmap(st->u.loose.mapped, st->u.loose.mapsize);
 	return -1;
 }
-
 
 /*****************************************************************
  *
@@ -340,10 +336,8 @@ static int open_istream_pack_non_delta(struct git_istream *st,
 
 	window = NULL;
 
-	in_pack_type = unpack_object_header(st->u.in_pack.pack,
-					    &window,
-					    &st->u.in_pack.pos,
-					    &st->size);
+	in_pack_type = unpack_object_header(st->u.in_pack.pack, &window,
+					    &st->u.in_pack.pos, &st->size);
 	unuse_pack(&window);
 	switch (in_pack_type) {
 	default:
@@ -360,7 +354,6 @@ static int open_istream_pack_non_delta(struct git_istream *st,
 
 	return 0;
 }
-
 
 /*****************************************************************
  *
@@ -382,14 +375,16 @@ static ssize_t read_istream_incore(struct git_istream *st, char *buf, size_t sz)
 	if (remainder <= read_size)
 		read_size = remainder;
 	if (read_size) {
-		memcpy(buf, st->u.incore.buf + st->u.incore.read_ptr, read_size);
+		memcpy(buf, st->u.incore.buf + st->u.incore.read_ptr,
+		       read_size);
 		st->u.incore.read_ptr += read_size;
 	}
 	return read_size;
 }
 
 static int open_istream_incore(struct git_istream *st, struct repository *r,
-			       const struct object_id *oid, enum object_type *type)
+			       const struct object_id *oid,
+			       enum object_type *type)
 {
 	struct object_info oi = OBJECT_INFO_INIT;
 
@@ -408,10 +403,8 @@ static int open_istream_incore(struct git_istream *st, struct repository *r,
  * static helpers variables and functions for users of streaming interface
  *****************************************************************************/
 
-static int istream_source(struct git_istream *st,
-			  struct repository *r,
-			  const struct object_id *oid,
-			  enum object_type *type)
+static int istream_source(struct git_istream *st, struct repository *r,
+			  const struct object_id *oid, enum object_type *type)
 {
 	unsigned long size;
 	int status;
@@ -459,8 +452,7 @@ ssize_t read_istream(struct git_istream *st, void *buf, size_t sz)
 
 struct git_istream *open_istream(struct repository *r,
 				 const struct object_id *oid,
-				 enum object_type *type,
-				 unsigned long *size,
+				 enum object_type *type, unsigned long *size,
 				 struct stream_filter *filter)
 {
 	struct git_istream *st = xmalloc(sizeof(*st));
@@ -492,8 +484,8 @@ struct git_istream *open_istream(struct repository *r,
 	return st;
 }
 
-int stream_blob_to_fd(int fd, const struct object_id *oid, struct stream_filter *filter,
-		      int can_seek)
+int stream_blob_to_fd(int fd, const struct object_id *oid,
+		      struct stream_filter *filter, int can_seek)
 {
 	struct git_istream *st;
 	enum object_type type;
@@ -528,7 +520,7 @@ int stream_blob_to_fd(int fd, const struct object_id *oid, struct stream_filter 
 			}
 		}
 
-		if (kept && lseek(fd, kept, SEEK_CUR) == (off_t) -1)
+		if (kept && lseek(fd, kept, SEEK_CUR) == (off_t)-1)
 			goto close_and_exit;
 		else
 			kept = 0;
@@ -537,12 +529,12 @@ int stream_blob_to_fd(int fd, const struct object_id *oid, struct stream_filter 
 		if (wrote < 0)
 			goto close_and_exit;
 	}
-	if (kept && (lseek(fd, kept - 1, SEEK_CUR) == (off_t) -1 ||
+	if (kept && (lseek(fd, kept - 1, SEEK_CUR) == (off_t)-1 ||
 		     xwrite(fd, "", 1) != 1))
 		goto close_and_exit;
 	result = 0;
 
- close_and_exit:
+close_and_exit:
 	close_istream(st);
 	return result;
 }

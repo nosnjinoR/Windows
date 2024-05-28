@@ -1,7 +1,7 @@
 #include "test-tool.h"
-#include "mem-pool.h"
-#include "mergesort.h"
-#include "strbuf.h"
+#include "components/mem-pool.h"
+#include "components/mergesort.h"
+#include "components/strbuf.h"
 
 static uint32_t minstd_rand(uint32_t *state)
 {
@@ -99,25 +99,24 @@ static void dist_shuffle(int *arr, int n, int m)
 		arr[i] = minstd_rand(&seed) % m ? (j += 2) : (k += 2);
 }
 
-#define DIST(name) { #name, dist_##name }
+#define DIST(name)                 \
+	{                          \
+#name, dist_##name \
+	}
 
 static struct dist {
 	const char *name;
 	void (*fn)(int *arr, int n, int m);
 } dist[] = {
-	DIST(sawtooth),
-	DIST(rand),
-	DIST(stagger),
-	DIST(plateau),
-	DIST(shuffle),
+	DIST(sawtooth), DIST(rand), DIST(stagger), DIST(plateau), DIST(shuffle),
 };
 
 static const struct dist *get_dist_by_name(const char *name)
 {
 	int i;
 	for (i = 0; i < ARRAY_SIZE(dist); i++) {
-	       if (!strcmp(dist[i].name, name))
-		       return &dist[i];
+		if (!strcmp(dist[i].name, name))
+			return &dist[i];
 	}
 	return NULL;
 }
@@ -219,7 +218,10 @@ static void mode_unriffle_skewed(int *arr, int n)
 	free(tmp);
 }
 
-#define MODE(name) { #name, mode_##name }
+#define MODE(name)                 \
+	{                          \
+#name, mode_##name \
+	}
 
 static struct mode {
 	const char *name;
@@ -239,8 +241,8 @@ static const struct mode *get_mode_by_name(const char *name)
 {
 	int i;
 	for (i = 0; i < ARRAY_SIZE(mode); i++) {
-	       if (!strcmp(mode[i].name, name))
-		       return &mode[i];
+		if (!strcmp(mode[i].name, name))
+			return &mode[i];
 	}
 	return NULL;
 }
@@ -344,9 +346,8 @@ static int test(const struct dist *dist, const struct mode *mode, int n, int m)
 		result = 0;
 	}
 
-	printf("%-9s %-16s %8d %8d %8d %8d %8d %s\n",
-	       dist->name, mode->name, n, m, stats.get_next, stats.set_next,
-	       stats.compare, verdict);
+	printf("%-9s %-16s %8d %8d %8d %8d %8d %s\n", dist->name, mode->name, n,
+	       m, stats.get_next, stats.set_next, stats.compare, verdict);
 
 	clear_numbers(list);
 	free(arr);
@@ -364,9 +365,8 @@ static int run_tests(int argc, const char **argv)
 	const char *argv_default[] = { "100", "1023", "1024", "1025" };
 	if (!argc)
 		return run_tests(ARRAY_SIZE(argv_default), argv_default);
-	printf("%-9s %-16s %8s %8s %8s %8s %8s %s\n",
-	       "distribut", "mode", "n", "m", "get_next", "set_next",
-	       "compare", "verdict");
+	printf("%-9s %-16s %8s %8s %8s %8s %8s %s\n", "distribut", "mode", "n",
+	       "m", "get_next", "set_next", "compare", "verdict");
 	while (argc--) {
 		int i, j, m, n = strtol(*argv++, NULL, 10);
 		for (i = 0; i < ARRAY_SIZE(dist); i++) {
@@ -392,11 +392,13 @@ int cmd__mergesort(int argc, const char **argv)
 		return sort_stdin();
 	if (argc > 1 && !strcmp(argv[1], "test"))
 		return run_tests(argc - 2, argv + 2);
-	fprintf(stderr, "usage: test-tool mergesort generate <distribution> <mode> <n> <m>\n");
+	fprintf(stderr,
+		"usage: test-tool mergesort generate <distribution> <mode> <n> <m>\n");
 	fprintf(stderr, "   or: test-tool mergesort sort\n");
 	fprintf(stderr, "   or: test-tool mergesort test [<n>...]\n");
 	fprintf(stderr, "\n");
-	for (i = 0, sep = "distributions: "; i < ARRAY_SIZE(dist); i++, sep = ", ")
+	for (i = 0, sep = "distributions: "; i < ARRAY_SIZE(dist);
+	     i++, sep = ", ")
 		fprintf(stderr, "%s%s", sep, dist[i].name);
 	fprintf(stderr, "\n");
 	for (i = 0, sep = "modes: "; i < ARRAY_SIZE(mode); i++, sep = ", ")

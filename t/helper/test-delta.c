@@ -9,8 +9,8 @@
  */
 
 #include "test-tool.h"
-#include "git-compat-util.h"
-#include "delta.h"
+#include "components/git-compat-util.h"
+#include "components/delta.h"
 
 static const char usage_str[] =
 	"test-tool delta (-d|-p) <from_file> <data_file> <out_file>";
@@ -57,19 +57,17 @@ int cmd__delta(int argc, const char **argv)
 	close(fd);
 
 	if (argv[1][1] == 'd')
-		out_buf = diff_delta(from_buf, from_size,
-				     data_buf, data_size,
+		out_buf = diff_delta(from_buf, from_size, data_buf, data_size,
 				     &out_size, 0);
 	else
-		out_buf = patch_delta(from_buf, from_size,
-				      data_buf, data_size,
+		out_buf = patch_delta(from_buf, from_size, data_buf, data_size,
 				      &out_size);
 	if (!out_buf) {
 		fprintf(stderr, "delta operation failed (returned NULL)\n");
 		goto cleanup;
 	}
 
-	fd = open (argv[4], O_WRONLY|O_CREAT|O_TRUNC, 0666);
+	fd = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (fd < 0 || write_in_full(fd, out_buf, out_size) < 0) {
 		perror(argv[4]);
 		goto cleanup;

@@ -1,17 +1,17 @@
 #include "test-tool.h"
-#include "date.h"
-#include "trace.h"
+#include "components/date.h"
+#include "components/trace.h"
 
 static const char *usage_msg = "\n"
-"  test-tool date relative [time_t]...\n"
-"  test-tool date human [time_t]...\n"
-"  test-tool date show:<format> [time_t]...\n"
-"  test-tool date parse [date]...\n"
-"  test-tool date approxidate [date]...\n"
-"  test-tool date timestamp [date]...\n"
-"  test-tool date getnanos [start-nanos]\n"
-"  test-tool date is64bit\n"
-"  test-tool date time_t-is64bit\n";
+			       "  test-tool date relative [time_t]...\n"
+			       "  test-tool date human [time_t]...\n"
+			       "  test-tool date show:<format> [time_t]...\n"
+			       "  test-tool date parse [date]...\n"
+			       "  test-tool date approxidate [date]...\n"
+			       "  test-tool date timestamp [date]...\n"
+			       "  test-tool date getnanos [start-nanos]\n"
+			       "  test-tool date is64bit\n"
+			       "  test-tool date time_t-is64bit\n";
 
 static void show_relative_dates(const char **argv)
 {
@@ -68,9 +68,9 @@ static void parse_dates(const char **argv)
 
 		strbuf_reset(&result);
 		parse_date(*argv, &result);
-		if (sscanf(result.buf, "%"PRItime" %d", &t, &tz) == 2)
-			printf("%s -> %s\n",
-			       *argv, show_date(t, tz, DATE_MODE(ISO8601)));
+		if (sscanf(result.buf, "%" PRItime " %d", &t, &tz) == 2)
+			printf("%s -> %s\n", *argv,
+			       show_date(t, tz, DATE_MODE(ISO8601)));
 		else
 			printf("%s -> bad\n", *argv);
 	}
@@ -82,7 +82,8 @@ static void parse_approxidate(const char **argv)
 	for (; *argv; argv++) {
 		timestamp_t t;
 		t = approxidate(*argv);
-		printf("%s -> %s\n", *argv, show_date(t, 0, DATE_MODE(ISO8601)));
+		printf("%s -> %s\n", *argv,
+		       show_date(t, 0, DATE_MODE(ISO8601)));
 	}
 }
 
@@ -91,7 +92,7 @@ static void parse_approx_timestamp(const char **argv)
 	for (; *argv; argv++) {
 		timestamp_t t;
 		t = approxidate(*argv);
-		printf("%s -> %"PRItime"\n", *argv, t);
+		printf("%s -> %" PRItime "\n", *argv, t);
 	}
 }
 
@@ -112,19 +113,19 @@ int cmd__date(int argc UNUSED, const char **argv)
 	if (!*argv)
 		usage(usage_msg);
 	if (!strcmp(*argv, "relative"))
-		show_relative_dates(argv+1);
+		show_relative_dates(argv + 1);
 	else if (!strcmp(*argv, "human"))
-		show_human_dates(argv+1);
+		show_human_dates(argv + 1);
 	else if (skip_prefix(*argv, "show:", &x))
-		show_dates(argv+1, x);
+		show_dates(argv + 1, x);
 	else if (!strcmp(*argv, "parse"))
-		parse_dates(argv+1);
+		parse_dates(argv + 1);
 	else if (!strcmp(*argv, "approxidate"))
-		parse_approxidate(argv+1);
+		parse_approxidate(argv + 1);
 	else if (!strcmp(*argv, "timestamp"))
-		parse_approx_timestamp(argv+1);
+		parse_approx_timestamp(argv + 1);
 	else if (!strcmp(*argv, "getnanos"))
-		getnanos(argv+1);
+		getnanos(argv + 1);
 	else if (!strcmp(*argv, "is64bit"))
 		return sizeof(timestamp_t) == 8 ? 0 : 1;
 	else if (!strcmp(*argv, "time_t-is64bit"))

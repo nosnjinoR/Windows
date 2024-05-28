@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "pack-mtimes.h"
-#include "object-file.h"
-#include "object-store-ll.h"
-#include "packfile.h"
-#include "strbuf.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/pack-mtimes.h"
+#include "components/object-file.h"
+#include "components/object-store-ll.h"
+#include "components/packfile.h"
+#include "components/strbuf.h"
 
 static char *pack_mtimes_filename(struct packed_git *p)
 {
@@ -22,8 +22,7 @@ struct mtimes_header {
 	uint32_t hash_id;
 };
 
-static int load_pack_mtimes_file(char *mtimes_file,
-				 uint32_t num_objects,
+static int load_pack_mtimes_file(char *mtimes_file, uint32_t num_objects,
 				 const uint32_t **data_p, size_t *len_p)
 {
 	int fd, ret = 0;
@@ -57,26 +56,31 @@ static int load_pack_mtimes_file(char *mtimes_file,
 	header.hash_id = ntohl(data[2]);
 
 	if (header.signature != MTIMES_SIGNATURE) {
-		ret = error(_("mtimes file %s has unknown signature"), mtimes_file);
+		ret = error(_("mtimes file %s has unknown signature"),
+			    mtimes_file);
 		goto cleanup;
 	}
 
 	if (header.version != 1) {
-		ret = error(_("mtimes file %s has unsupported version %"PRIu32),
-			    mtimes_file, header.version);
+		ret = error(
+			_("mtimes file %s has unsupported version %" PRIu32),
+			mtimes_file, header.version);
 		goto cleanup;
 	}
 
 	if (!(header.hash_id == 1 || header.hash_id == 2)) {
-		ret = error(_("mtimes file %s has unsupported hash id %"PRIu32),
-			    mtimes_file, header.hash_id);
+		ret = error(
+			_("mtimes file %s has unsupported hash id %" PRIu32),
+			mtimes_file, header.hash_id);
 		goto cleanup;
 	}
 
-
 	expected_size = MTIMES_HEADER_SIZE;
-	expected_size = st_add(expected_size, st_mult(sizeof(uint32_t), num_objects));
-	expected_size = st_add(expected_size, 2 * (header.hash_id == 1 ? GIT_SHA1_RAWSZ : GIT_SHA256_RAWSZ));
+	expected_size =
+		st_add(expected_size, st_mult(sizeof(uint32_t), num_objects));
+	expected_size = st_add(expected_size,
+			       2 * (header.hash_id == 1 ? GIT_SHA1_RAWSZ :
+							  GIT_SHA256_RAWSZ));
 
 	if (mtimes_size != expected_size) {
 		ret = error(_("mtimes file %s is corrupt"), mtimes_file);
@@ -112,9 +116,7 @@ int load_pack_mtimes(struct packed_git *p)
 		goto cleanup;
 
 	mtimes_name = pack_mtimes_filename(p);
-	ret = load_pack_mtimes_file(mtimes_name,
-				    p->num_objects,
-				    &p->mtimes_map,
+	ret = load_pack_mtimes_file(mtimes_name, p->num_objects, &p->mtimes_map,
 				    &p->mtimes_size);
 cleanup:
 	free(mtimes_name);
@@ -126,7 +128,7 @@ uint32_t nth_packed_mtime(struct packed_git *p, uint32_t pos)
 	if (!p->mtimes_map)
 		BUG("pack .mtimes file not loaded for %s", p->pack_name);
 	if (p->num_objects <= pos)
-		BUG("pack .mtimes out-of-bounds (%"PRIu32" vs %"PRIu32")",
+		BUG("pack .mtimes out-of-bounds (%" PRIu32 " vs %" PRIu32 ")",
 		    pos, p->num_objects);
 
 	return get_be32(p->mtimes_map + pos + 3);

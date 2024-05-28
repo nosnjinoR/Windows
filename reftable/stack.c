@@ -8,7 +8,7 @@ https://developers.google.com/open-source/licenses/bsd
 
 #include "stack.h"
 
-#include "../write-or-die.h"
+#include "components/write-or-die.h"
 #include "system.h"
 #include "merged.h"
 #include "reader.h"
@@ -17,15 +17,15 @@ https://developers.google.com/open-source/licenses/bsd
 #include "reftable-record.h"
 #include "reftable-merged.h"
 #include "writer.h"
-#include "tempfile.h"
+#include "components/tempfile.h"
 
 static int stack_try_add(struct reftable_stack *st,
 			 int (*write_table)(struct reftable_writer *wr,
 					    void *arg),
 			 void *arg);
 static int stack_write_compact(struct reftable_stack *st,
-			       struct reftable_writer *wr,
-			       size_t first, size_t last,
+			       struct reftable_writer *wr, size_t first,
+			       size_t last,
 			       struct reftable_log_expiry_config *config);
 static int stack_check_addition(struct reftable_stack *st,
 				const char *new_tab_name);
@@ -433,8 +433,8 @@ out:
 	 * By keeping the file descriptor open the inode number cannot be
 	 * recycled, mitigating the race.
 	 */
-	if (!err && fd >= 0 && !fstat(fd, &st->list_st) &&
-	    st->list_st.st_dev && st->list_st.st_ino) {
+	if (!err && fd >= 0 && !fstat(fd, &st->list_st) && st->list_st.st_dev &&
+	    st->list_st.st_ino) {
 		st->list_fd = fd;
 		fd = -1;
 	}
@@ -560,7 +560,10 @@ struct reftable_addition {
 	uint64_t next_update_index;
 };
 
-#define REFTABLE_ADDITION_INIT {0}
+#define REFTABLE_ADDITION_INIT \
+	{                      \
+		0              \
+	}
 
 static int reftable_stack_init_addition(struct reftable_addition *add,
 					struct reftable_stack *st)
@@ -581,7 +584,8 @@ static int reftable_stack_init_addition(struct reftable_addition *add,
 		goto done;
 	}
 	if (st->config.default_permissions) {
-		if (chmod(add->lock_file->filename.buf, st->config.default_permissions) < 0) {
+		if (chmod(add->lock_file->filename.buf,
+			  st->config.default_permissions) < 0) {
 			err = REFTABLE_IO_ERROR;
 			goto done;
 		}
@@ -812,7 +816,8 @@ int reftable_addition_add(struct reftable_addition *add,
 
 	REFTABLE_ALLOC_GROW(add->new_tables, add->new_tables_len + 1,
 			    add->new_tables_cap);
-	add->new_tables[add->new_tables_len++] = strbuf_detach(&next_name, NULL);
+	add->new_tables[add->new_tables_len++] =
+		strbuf_detach(&next_name, NULL);
 done:
 	delete_tempfile(&tab_file);
 	strbuf_release(&temp_tab_file_name);
@@ -831,8 +836,8 @@ uint64_t reftable_stack_next_update_index(struct reftable_stack *st)
 	return 1;
 }
 
-static int stack_compact_locked(struct reftable_stack *st,
-				size_t first, size_t last,
+static int stack_compact_locked(struct reftable_stack *st, size_t first,
+				size_t last,
 				struct reftable_log_expiry_config *config,
 				struct tempfile **tab_file_out)
 {
@@ -856,13 +861,14 @@ static int stack_compact_locked(struct reftable_stack *st,
 	tab_fd = get_tempfile_fd(tab_file);
 
 	if (st->config.default_permissions &&
-	    chmod(get_tempfile_path(tab_file), st->config.default_permissions) < 0) {
+	    chmod(get_tempfile_path(tab_file), st->config.default_permissions) <
+		    0) {
 		err = REFTABLE_IO_ERROR;
 		goto done;
 	}
 
-	wr = reftable_new_writer(reftable_fd_write, reftable_fd_flush,
-				 &tab_fd, &st->config);
+	wr = reftable_new_writer(reftable_fd_write, reftable_fd_flush, &tab_fd,
+				 &st->config);
 	err = stack_write_compact(st, wr, first, last, config);
 	if (err < 0)
 		goto done;
@@ -887,13 +893,13 @@ done:
 }
 
 static int stack_write_compact(struct reftable_stack *st,
-			       struct reftable_writer *wr,
-			       size_t first, size_t last,
+			       struct reftable_writer *wr, size_t first,
+			       size_t last,
 			       struct reftable_log_expiry_config *config)
 {
 	size_t subtabs_len = last - first + 1;
-	struct reftable_table *subtabs = reftable_calloc(
-		last - first + 1, sizeof(*subtabs));
+	struct reftable_table *subtabs =
+		reftable_calloc(last - first + 1, sizeof(*subtabs));
 	struct reftable_merged_table *mt = NULL;
 	struct reftable_iterator it = { NULL };
 	struct reftable_ref_record ref = { NULL };
@@ -993,8 +999,8 @@ done:
  * callers can either ignore, or they may choose to retry compaction after some
  * amount of time.
  */
-static int stack_compact_range(struct reftable_stack *st,
-			       size_t first, size_t last,
+static int stack_compact_range(struct reftable_stack *st, size_t first,
+			       size_t last,
 			       struct reftable_log_expiry_config *expiry)
 {
 	struct strbuf tables_list_buf = STRBUF_INIT;
@@ -1113,7 +1119,8 @@ static int stack_compact_range(struct reftable_stack *st,
 	 * it into place now.
 	 */
 	if (!is_empty_table) {
-		format_name(&new_table_name, st->readers[first]->min_update_index,
+		format_name(&new_table_name,
+			    st->readers[first]->min_update_index,
 			    st->readers[last]->max_update_index);
 		strbuf_addstr(&new_table_name, ".ref");
 		stack_filename(&new_table_path, st, new_table_name.buf);
@@ -1145,7 +1152,8 @@ static int stack_compact_range(struct reftable_stack *st,
 		goto done;
 	}
 
-	err = fsync_component(FSYNC_COMPONENT_REFERENCE, get_lock_file_fd(&tables_list_lock));
+	err = fsync_component(FSYNC_COMPONENT_REFERENCE,
+			      get_lock_file_fd(&tables_list_lock));
 	if (err < 0) {
 		err = REFTABLE_IO_ERROR;
 		unlink(new_table_path.buf);
@@ -1197,12 +1205,13 @@ done:
 int reftable_stack_compact_all(struct reftable_stack *st,
 			       struct reftable_log_expiry_config *config)
 {
-	return stack_compact_range(st, 0, st->merged->stack_len ?
-			st->merged->stack_len - 1 : 0, config);
+	return stack_compact_range(
+		st, 0, st->merged->stack_len ? st->merged->stack_len - 1 : 0,
+		config);
 }
 
-static int stack_compact_range_stats(struct reftable_stack *st,
-				     size_t first, size_t last,
+static int stack_compact_range_stats(struct reftable_stack *st, size_t first,
+				     size_t last,
 				     struct reftable_log_expiry_config *config)
 {
 	int err = stack_compact_range(st, first, last, config);

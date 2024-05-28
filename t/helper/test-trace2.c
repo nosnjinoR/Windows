@@ -1,10 +1,10 @@
 #include "test-tool.h"
-#include "strvec.h"
-#include "run-command.h"
-#include "exec-cmd.h"
-#include "config.h"
-#include "repository.h"
-#include "trace2.h"
+#include "components/strvec.h"
+#include "components/run-command.h"
+#include "components/exec-cmd.h"
+#include "components/config.h"
+#include "components/repository.h"
+#include "components/trace2.h"
 
 typedef int(fn_unit_test)(int argc, const char **argv);
 
@@ -213,7 +213,8 @@ static int ut_008bug(int argc UNUSED, const char **argv UNUSED)
 {
 	bug("a bug message");
 	bug("another bug message");
-	BUG_if_bug("an explicit BUG_if_bug() following bug() call(s) is nice, but not required");
+	BUG_if_bug(
+		"an explicit BUG_if_bug() following bug() call(s) is nice, but not required");
 	return 0;
 }
 
@@ -221,7 +222,8 @@ static int ut_009bug_BUG(int argc UNUSED, const char **argv UNUSED)
 {
 	bug("a bug message");
 	bug("another bug message");
-	/* The BUG_if_bug(...) isn't here, but we'll spot bug() calls on exit()! */
+	/* The BUG_if_bug(...) isn't here, but we'll spot bug() calls on exit()!
+	 */
 	return 0;
 }
 
@@ -239,8 +241,7 @@ static int ut_010bug_BUG(int argc UNUSED, const char **argv UNUSED)
  */
 static int ut_100timer(int argc, const char **argv)
 {
-	const char *usage_error =
-		"expect <count> <ms_delay>";
+	const char *usage_error = "expect <count> <ms_delay>";
 
 	int count = 0;
 	int delay = 0;
@@ -292,8 +293,7 @@ static void *ut_101timer_thread_proc(void *_ut_101_data)
  */
 static int ut_101timer(int argc, const char **argv)
 {
-	const char *usage_error =
-		"expect <count> <ms_delay> <threads>";
+	const char *usage_error = "expect <count> <ms_delay> <threads>";
 
 	struct ut_101_data data = { 0, 0 };
 	int nr_threads = 0;
@@ -312,7 +312,8 @@ static int ut_101timer(int argc, const char **argv)
 	CALLOC_ARRAY(pids, nr_threads);
 
 	for (k = 0; k < nr_threads; k++) {
-		if (pthread_create(&pids[k], NULL, ut_101timer_thread_proc, &data))
+		if (pthread_create(&pids[k], NULL, ut_101timer_thread_proc,
+				   &data))
 			die("failed to create thread[%d]", k);
 	}
 
@@ -333,8 +334,7 @@ static int ut_101timer(int argc, const char **argv)
  */
 static int ut_200counter(int argc, const char **argv)
 {
-	const char *usage_error =
-		"expect <v1> [<v2> [...]]";
+	const char *usage_error = "expect <v1> [<v2> [...]]";
 	int value;
 	int k;
 
@@ -343,8 +343,7 @@ static int ut_200counter(int argc, const char **argv)
 
 	for (k = 0; k < argc; k++) {
 		if (get_i(&value, argv[k]))
-			die("invalid value[%s] -- %s",
-			    argv[k], usage_error);
+			die("invalid value[%s] -- %s", argv[k], usage_error);
 		trace2_counter_add(TRACE2_COUNTER_ID_TEST1, value);
 	}
 
@@ -378,8 +377,7 @@ static void *ut_201counter_thread_proc(void *_ut_201_data)
 
 static int ut_201counter(int argc, const char **argv)
 {
-	const char *usage_error =
-		"expect <v1> <v2> <threads>";
+	const char *usage_error = "expect <v1> <v2> <threads>";
 
 	struct ut_201_data data = { 0, 0 };
 	int nr_threads = 0;
@@ -398,7 +396,8 @@ static int ut_201counter(int argc, const char **argv)
 	CALLOC_ARRAY(pids, nr_threads);
 
 	for (k = 0; k < nr_threads; k++) {
-		if (pthread_create(&pids[k], NULL, ut_201counter_thread_proc, &data))
+		if (pthread_create(&pids[k], NULL, ut_201counter_thread_proc,
+				   &data))
 			die("failed to create thread[%d]", k);
 	}
 

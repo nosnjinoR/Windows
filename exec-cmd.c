@@ -1,13 +1,13 @@
-#include "git-compat-util.h"
-#include "abspath.h"
-#include "environment.h"
-#include "exec-cmd.h"
-#include "gettext.h"
-#include "path.h"
-#include "run-command.h"
-#include "strvec.h"
-#include "trace.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/abspath.h"
+#include "components/environment.h"
+#include "components/exec-cmd.h"
+#include "components/gettext.h"
+#include "components/path.h"
+#include "components/run-command.h"
+#include "components/strvec.h"
+#include "components/trace.h"
+#include "components/trace2.h"
 
 #if defined(RUNTIME_PREFIX)
 
@@ -56,8 +56,9 @@ static const char *system_prefix(void)
 	    !(prefix = strip_path_suffix(executable_dirname, "git"))) {
 		prefix = FALLBACK_RUNTIME_PREFIX;
 		trace_printf("RUNTIME_PREFIX requested, "
-				"but prefix computation failed.  "
-				"Using static fallback '%s'.\n", prefix);
+			     "but prefix computation failed.  "
+			     "Using static fallback '%s'.\n",
+			     prefix);
 	}
 	return prefix;
 }

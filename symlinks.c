@@ -1,19 +1,21 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "setup.h"
-#include "symlinks.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/setup.h"
+#include "components/symlinks.h"
 
-static int threaded_check_leading_path(struct cache_def *cache, const char *name,
-				       int len, int warn_on_lstat_err);
-static int threaded_has_dirs_only_path(struct cache_def *cache, const char *name, int len, int prefix_len);
+static int threaded_check_leading_path(struct cache_def *cache,
+				       const char *name, int len,
+				       int warn_on_lstat_err);
+static int threaded_has_dirs_only_path(struct cache_def *cache,
+				       const char *name, int len,
+				       int prefix_len);
 
 /*
  * Returns the length (on a path component basis) of the longest
  * common prefix match of 'name_a' and 'name_b'.
  */
-static int longest_path_match(const char *name_a, int len_a,
-			      const char *name_b, int len_b,
-			      int *previous_slash)
+static int longest_path_match(const char *name_a, int len_a, const char *name_b,
+			      int len_b, int *previous_slash)
 {
 	int max_len, match_len = 0, match_len_prev = 0, i = 0;
 
@@ -29,9 +31,9 @@ static int longest_path_match(const char *name_a, int len_a,
 	 * Is 'name_b' a substring of 'name_a', the other way around,
 	 * or is 'name_a' and 'name_b' the exact same string?
 	 */
-	if (i >= max_len && ((len_a > len_b && name_a[len_b] == '/') ||
-			     (len_a < len_b && name_b[len_a] == '/') ||
-			     (len_a == len_b))) {
+	if (i >= max_len &&
+	    ((len_a > len_b && name_a[len_b] == '/') ||
+	     (len_a < len_b && name_b[len_a] == '/') || (len_a == len_b))) {
 		match_len_prev = match_len;
 		match_len = i;
 	}
@@ -51,11 +53,11 @@ static inline void reset_lstat_cache(struct cache_def *cache)
 	 */
 }
 
-#define FL_DIR      (1 << 0)
-#define FL_NOENT    (1 << 1)
-#define FL_SYMLINK  (1 << 2)
+#define FL_DIR (1 << 0)
+#define FL_NOENT (1 << 1)
+#define FL_SYMLINK (1 << 2)
 #define FL_LSTATERR (1 << 3)
-#define FL_ERR      (1 << 4)
+#define FL_ERR (1 << 4)
 #define FL_FULLPATH (1 << 5)
 
 /*
@@ -70,9 +72,8 @@ static inline void reset_lstat_cache(struct cache_def *cache)
  * of the prefix, where the cache should use the stat() function
  * instead of the lstat() function to test each path component.
  */
-static int lstat_cache_matchlen(struct cache_def *cache,
-				const char *name, int len,
-				int *ret_flags, int track_flags,
+static int lstat_cache_matchlen(struct cache_def *cache, const char *name,
+				int len, int *ret_flags, int track_flags,
 				int prefix_len_stat_func)
 {
 	int match_len, last_slash, last_slash_dir, previous_slash;
@@ -98,7 +99,8 @@ static int lstat_cache_matchlen(struct cache_def *cache,
 		match_len = last_slash =
 			longest_path_match(name, len, cache->path.buf,
 					   cache->path.len, &previous_slash);
-		*ret_flags = cache->flags & track_flags & (FL_NOENT|FL_SYMLINK);
+		*ret_flags = cache->flags & track_flags &
+			     (FL_NOENT | FL_SYMLINK);
 
 		if (!(track_flags & FL_FULLPATH) && match_len == len)
 			match_len = last_slash = previous_slash;
@@ -162,7 +164,7 @@ static int lstat_cache_matchlen(struct cache_def *cache,
 	 * path types, FL_NOENT, FL_SYMLINK and FL_DIR, can be cached
 	 * for the moment!
 	 */
-	save_flags = *ret_flags & track_flags & (FL_NOENT|FL_SYMLINK);
+	save_flags = *ret_flags & track_flags & (FL_NOENT | FL_SYMLINK);
 	if (save_flags && last_slash > 0) {
 		cache->path.buf[last_slash] = '\0';
 		cache->path.len = last_slash;
@@ -195,18 +197,21 @@ static int lstat_cache(struct cache_def *cache, const char *name, int len,
 {
 	int flags;
 	(void)lstat_cache_matchlen(cache, name, len, &flags, track_flags,
-			prefix_len_stat_func);
+				   prefix_len_stat_func);
 	return flags;
 }
 
-#define USE_ONLY_LSTAT  0
+#define USE_ONLY_LSTAT 0
 
 /*
  * Return non-zero if path 'name' has a leading symlink component
  */
-int threaded_has_symlink_leading_path(struct cache_def *cache, const char *name, int len)
+int threaded_has_symlink_leading_path(struct cache_def *cache, const char *name,
+				      int len)
 {
-	return lstat_cache(cache, name, len, FL_SYMLINK|FL_DIR, USE_ONLY_LSTAT) & FL_SYMLINK;
+	return lstat_cache(cache, name, len, FL_SYMLINK | FL_DIR,
+			   USE_ONLY_LSTAT) &
+	       FL_SYMLINK;
 }
 
 int has_symlink_leading_path(const char *name, int len)
@@ -229,12 +234,14 @@ int check_leading_path(const char *name, int len, int warn_on_lstat_err)
  * directory, or if we were unable to lstat() it. If warn_on_lstat_err is true,
  * also emit a warning for this error.
  */
-static int threaded_check_leading_path(struct cache_def *cache, const char *name,
-				       int len, int warn_on_lstat_err)
+static int threaded_check_leading_path(struct cache_def *cache,
+				       const char *name, int len,
+				       int warn_on_lstat_err)
 {
 	int flags;
 	int match_len = lstat_cache_matchlen(cache, name, len, &flags,
-			   FL_SYMLINK|FL_NOENT|FL_DIR, USE_ONLY_LSTAT);
+					     FL_SYMLINK | FL_NOENT | FL_DIR,
+					     USE_ONLY_LSTAT);
 	int saved_errno = errno;
 
 	if (flags & FL_NOENT)
@@ -252,7 +259,8 @@ static int threaded_check_leading_path(struct cache_def *cache, const char *name
 
 int has_dirs_only_path(const char *name, int len, int prefix_len)
 {
-	return threaded_has_dirs_only_path(&default_cache, name, len, prefix_len);
+	return threaded_has_dirs_only_path(&default_cache, name, len,
+					   prefix_len);
 }
 
 /*
@@ -262,7 +270,9 @@ int has_dirs_only_path(const char *name, int len, int prefix_len)
  * 'prefix_len', thus we then allow for symlinks in the prefix part as
  * long as those points to real existing directories.
  */
-static int threaded_has_dirs_only_path(struct cache_def *cache, const char *name, int len, int prefix_len)
+static int threaded_has_dirs_only_path(struct cache_def *cache,
+				       const char *name, int len,
+				       int prefix_len)
 {
 	/*
 	 * Note: this function is used by the checkout machinery, which also
@@ -271,9 +281,8 @@ static int threaded_has_dirs_only_path(struct cache_def *cache, const char *name
 	 * anything else besides FL_DIR, remember to also invalidate the cache
 	 * when creating or deleting paths that might be in the cache.
 	 */
-	return lstat_cache(cache, name, len,
-			   FL_DIR|FL_FULLPATH, prefix_len) &
-		FL_DIR;
+	return lstat_cache(cache, name, len, FL_DIR | FL_FULLPATH, prefix_len) &
+	       FL_DIR;
 }
 
 static struct strbuf removal = STRBUF_INIT;
@@ -300,11 +309,10 @@ void schedule_dir_for_removal(const char *name, int len)
 
 	if (startup_info->original_cwd &&
 	    !strcmp(name, startup_info->original_cwd))
-		return;	/* Do not remove the current working directory */
+		return; /* Do not remove the current working directory */
 
-	match_len = last_slash = i =
-		longest_path_match(name, len, removal.buf, removal.len,
-				   &previous_slash);
+	match_len = last_slash = i = longest_path_match(
+		name, len, removal.buf, removal.len, &previous_slash);
 	/* Find last slash inside 'name' */
 	while (i < len) {
 		if (name[i] == '/')

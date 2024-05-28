@@ -1,10 +1,10 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "fsmonitor-ll.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/fsmonitor-ll.h"
 #include "fsm-health.h"
-#include "fsmonitor--daemon.h"
-#include "gettext.h"
-#include "simple-ipc.h"
+#include "components/fsmonitor--daemon.h"
+#include "components/gettext.h"
+#include "components/simple-ipc.h"
 
 /*
  * Every minute wake up and test our health.
@@ -15,25 +15,19 @@
  * State machine states for each of the interval functions
  * used for polling our health.
  */
-enum interval_fn_ctx {
-	CTX_INIT = 0,
-	CTX_TERM,
-	CTX_TIMER
-};
+enum interval_fn_ctx { CTX_INIT = 0, CTX_TERM, CTX_TIMER };
 
-typedef int (interval_fn)(struct fsmonitor_daemon_state *state,
-			  enum interval_fn_ctx ctx);
+typedef int(interval_fn)(struct fsmonitor_daemon_state *state,
+			 enum interval_fn_ctx ctx);
 
-struct fsm_health_data
-{
+struct fsm_health_data {
 	HANDLE hEventShutdown;
 
 	HANDLE hHandles[1]; /* the array does not own these handles */
 #define HEALTH_SHUTDOWN 0
 	int nr_handles; /* number of active event handles */
 
-	struct wt_moved
-	{
+	struct wt_moved {
 		wchar_t wpath[MAX_LONG_PATH + 1];
 		BY_HANDLE_FILE_INFORMATION bhfi;
 	} wt_moved;
@@ -44,12 +38,11 @@ struct fsm_health_data
  * we get to an inode number, but this also contains volume info,
  * so it is a little stronger.
  */
-static int lookup_bhfi(wchar_t *wpath,
-		       BY_HANDLE_FILE_INFORMATION *bhfi)
+static int lookup_bhfi(wchar_t *wpath, BY_HANDLE_FILE_INFORMATION *bhfi)
 {
 	DWORD desired_access = FILE_LIST_DIRECTORY;
-	DWORD share_mode =
-		FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE;
+	DWORD share_mode = FILE_SHARE_WRITE | FILE_SHARE_READ |
+			   FILE_SHARE_DELETE;
 	HANDLE hDir;
 
 	hDir = CreateFileW(wpath, desired_access, share_mode, NULL,
@@ -167,13 +160,11 @@ static int has_worktree_moved(struct fsmonitor_daemon_state *state,
 		return 0;
 
 	default:
-		die(_("unhandled case in 'has_worktree_moved': %d"),
-		    (int)ctx);
+		die(_("unhandled case in 'has_worktree_moved': %d"), (int)ctx);
 	}
 
 	return 0;
 }
-
 
 int fsm_health__ctor(struct fsmonitor_daemon_state *state)
 {
@@ -208,8 +199,7 @@ void fsm_health__dtor(struct fsmonitor_daemon_state *state)
  * A table of the polling functions.
  */
 static interval_fn *table[] = {
-	has_worktree_moved,
-	NULL, /* must be last */
+	has_worktree_moved, NULL, /* must be last */
 };
 
 /*
@@ -244,9 +234,8 @@ void fsm_health__loop(struct fsmonitor_daemon_state *state)
 		goto force_shutdown;
 
 	for (;;) {
-		DWORD dwWait = WaitForMultipleObjects(data->nr_handles,
-						      data->hHandles,
-						      FALSE, WAIT_FREQ_MS);
+		DWORD dwWait = WaitForMultipleObjects(
+			data->nr_handles, data->hHandles, FALSE, WAIT_FREQ_MS);
 
 		if (dwWait == WAIT_OBJECT_0 + HEALTH_SHUTDOWN)
 			goto clean_shutdown;
@@ -260,8 +249,7 @@ void fsm_health__loop(struct fsmonitor_daemon_state *state)
 			continue;
 		}
 
-		error(_("health thread wait failed [GLE %ld]"),
-		      GetLastError());
+		error(_("health thread wait failed [GLE %ld]"), GetLastError());
 		goto force_error_stop;
 	}
 

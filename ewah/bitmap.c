@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-#include "git-compat-util.h"
+#include "components/git-compat-util.h"
 #include "ewok.h"
 
 #define EWAH_MASK(x) ((eword_t)1 << (x % BITS_IN_EWORD))
@@ -70,7 +70,7 @@ int bitmap_get(struct bitmap *self, size_t pos)
 {
 	size_t block = EWAH_BLOCK(pos);
 	return block < self->word_alloc &&
-		(self->words[block] & EWAH_MASK(pos)) != 0;
+	       (self->words[block] & EWAH_MASK(pos)) != 0;
 }
 
 struct ewah_bitmap *bitmap_to_ewah(struct bitmap *bitmap)
@@ -121,7 +121,8 @@ struct bitmap *ewah_to_bitmap(struct ewah_bitmap *ewah)
 void bitmap_and_not(struct bitmap *self, struct bitmap *other)
 {
 	const size_t count = (self->word_alloc < other->word_alloc) ?
-		self->word_alloc : other->word_alloc;
+				     self->word_alloc :
+				     other->word_alloc;
 
 	size_t i;
 
@@ -150,7 +151,7 @@ void bitmap_or_ewah(struct bitmap *self, struct ewah_bitmap *other)
 		self->word_alloc = other_final;
 		REALLOC_ARRAY(self->words, self->word_alloc);
 		memset(self->words + original_size, 0x0,
-			(self->word_alloc - original_size) * sizeof(eword_t));
+		       (self->word_alloc - original_size) * sizeof(eword_t));
 	}
 
 	ewah_iterator_init(&it, other);

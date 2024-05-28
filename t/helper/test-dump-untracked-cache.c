@@ -1,10 +1,10 @@
 #define USE_THE_INDEX_VARIABLE
 #include "test-tool.h"
-#include "dir.h"
-#include "hex.h"
-#include "read-cache-ll.h"
-#include "repository.h"
-#include "setup.h"
+#include "components/dir.h"
+#include "components/hex.h"
+#include "components/read-cache-ll.h"
+#include "components/repository.h"
+#include "components/setup.h"
 
 static int compare_untracked(const void *a_, const void *b_)
 {
@@ -27,8 +27,7 @@ static void dump(struct untracked_cache_dir *ucd, struct strbuf *base)
 	QSORT(ucd->dirs, ucd->dirs_nr, compare_dir);
 	len = base->len;
 	strbuf_addf(base, "%s/", ucd->name);
-	printf("%s %s", base->buf,
-	       oid_to_hex(&ucd->exclude_oid));
+	printf("%s %s", base->buf, oid_to_hex(&ucd->exclude_oid));
 	if (ucd->recurse)
 		fputs(" recurse", stdout);
 	if (ucd->check_only)

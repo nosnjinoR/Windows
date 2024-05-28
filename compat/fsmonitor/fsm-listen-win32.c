@@ -1,11 +1,11 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "fsmonitor-ll.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/fsmonitor-ll.h"
 #include "fsm-listen.h"
-#include "fsmonitor--daemon.h"
-#include "gettext.h"
-#include "simple-ipc.h"
-#include "trace2.h"
+#include "components/fsmonitor--daemon.h"
+#include "components/gettext.h"
+#include "components/simple-ipc.h"
+#include "components/trace2.h"
 
 /*
  * The documentation of ReadDirectoryChangesW() states that the maximum
@@ -19,10 +19,9 @@
  * we get an error.
  */
 #define MAX_RDCW_BUF_FALLBACK (65536)
-#define MAX_RDCW_BUF          (65536 * 8)
+#define MAX_RDCW_BUF (65536 * 8)
 
-struct one_watch
-{
+struct one_watch {
 	char buffer[MAX_RDCW_BUF];
 	DWORD buf_len;
 	DWORD count;
@@ -57,8 +56,7 @@ struct one_watch
 	wchar_t dotgit_shortname[16]; /* for 8.3 name */
 };
 
-struct fsm_listen_data
-{
+struct fsm_listen_data {
 	struct one_watch *watch_worktree;
 	struct one_watch *watch_gitdir;
 
@@ -96,8 +94,7 @@ static int normalize_path_in_utf8(wchar_t *wpath, DWORD wpath_len,
 	strbuf_grow(normalized_path, reserve);
 
 	for (;;) {
-		len = WideCharToMultiByte(CP_UTF8, 0,
-					  wpath, wpath_len,
+		len = WideCharToMultiByte(CP_UTF8, 0, wpath, wpath_len,
 					  normalized_path->buf,
 					  strbuf_avail(normalized_path) - 1,
 					  NULL, NULL);
@@ -192,10 +189,10 @@ enum get_relative_result {
  *
  * `wpath_len` is in WCHARS not bytes.
  */
-static enum get_relative_result get_relative_longname(
-	struct one_watch *watch,
-	const wchar_t *wpath, DWORD wpath_len,
-	wchar_t *wpath_longname, size_t bufsize_wpath_longname)
+static enum get_relative_result
+get_relative_longname(struct one_watch *watch, const wchar_t *wpath,
+		      DWORD wpath_len, wchar_t *wpath_longname,
+		      size_t bufsize_wpath_longname)
 {
 	wchar_t buf_in[2 * MAX_LONG_PATH + 1];
 	wchar_t buf_out[MAX_LONG_PATH + 1];
@@ -294,8 +291,8 @@ static struct one_watch *create_watch(const char *path)
 {
 	struct one_watch *watch = NULL;
 	DWORD desired_access = FILE_LIST_DIRECTORY;
-	DWORD share_mode =
-		FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE;
+	DWORD share_mode = FILE_SHARE_WRITE | FILE_SHARE_READ |
+			   FILE_SHARE_DELETE;
 	HANDLE hDir;
 	DWORD len_longname;
 	wchar_t wpath[MAX_LONG_PATH + 1];
@@ -306,13 +303,13 @@ static struct one_watch *create_watch(const char *path)
 		return NULL;
 	}
 
-	hDir = CreateFileW(wpath,
-			   desired_access, share_mode, NULL, OPEN_EXISTING,
+	hDir = CreateFileW(wpath, desired_access, share_mode, NULL,
+			   OPEN_EXISTING,
 			   FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 			   NULL);
 	if (hDir == INVALID_HANDLE_VALUE) {
-		error(_("[GLE %ld] could not watch '%s'"),
-		      GetLastError(), path);
+		error(_("[GLE %ld] could not watch '%s'"), GetLastError(),
+		      path);
 		return NULL;
 	}
 
@@ -364,12 +361,9 @@ static void destroy_watch(struct one_watch *watch)
 static int start_rdcw_watch(struct one_watch *watch)
 {
 	DWORD dwNotifyFilter =
-		FILE_NOTIFY_CHANGE_FILE_NAME |
-		FILE_NOTIFY_CHANGE_DIR_NAME |
-		FILE_NOTIFY_CHANGE_ATTRIBUTES |
-		FILE_NOTIFY_CHANGE_SIZE |
-		FILE_NOTIFY_CHANGE_LAST_WRITE |
-		FILE_NOTIFY_CHANGE_CREATION;
+		FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME |
+		FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE |
+		FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_CREATION;
 
 	ResetEvent(watch->hEvent);
 
@@ -383,9 +377,10 @@ static int start_rdcw_watch(struct one_watch *watch)
 	 * The return value here just means that we successfully queued it.
 	 * We won't know if the Read...() actually produces data until later.
 	 */
-	watch->is_active = ReadDirectoryChangesW(
-		watch->hDir, watch->buffer, watch->buf_len, TRUE,
-		dwNotifyFilter, &watch->count, &watch->overlapped, NULL);
+	watch->is_active = ReadDirectoryChangesW(watch->hDir, watch->buffer,
+						 watch->buf_len, TRUE,
+						 dwNotifyFilter, &watch->count,
+						 &watch->overlapped, NULL);
 
 	if (watch->is_active)
 		return 0;
@@ -477,12 +472,11 @@ static void cancel_rdcw_watch(struct one_watch *watch)
  * Process a single relative pathname event.
  * Return 1 if we should shutdown.
  */
-static int process_1_worktree_event(
-	struct string_list *cookie_list,
-	struct fsmonitor_batch **batch,
-	const struct strbuf *path,
-	enum fsmonitor_path_type t,
-	DWORD info_action)
+static int process_1_worktree_event(struct string_list *cookie_list,
+				    struct fsmonitor_batch **batch,
+				    const struct strbuf *path,
+				    enum fsmonitor_path_type t,
+				    DWORD info_action)
 {
 	const char *slash;
 
@@ -492,8 +486,7 @@ static int process_1_worktree_event(
 
 		/* Use just the filename of the cookie file. */
 		slash = find_last_dir_sep(path->buf);
-		string_list_append(cookie_list,
-				   slash ? slash + 1 : path->buf);
+		string_list_append(cookie_list, slash ? slash + 1 : path->buf);
 		break;
 
 	case IS_INSIDE_DOT_GIT:
@@ -505,8 +498,7 @@ static int process_1_worktree_event(
 		if ((info_action == FILE_ACTION_REMOVED) ||
 		    (info_action == FILE_ACTION_RENAMED_OLD_NAME)) {
 			trace2_data_string("fsmonitor", NULL,
-					   "fsm-listen/dotgit",
-					   "removed");
+					   "fsm-listen/dotgit", "removed");
 			return 1;
 		}
 		break;
@@ -522,8 +514,8 @@ static int process_1_worktree_event(
 	case IS_INSIDE_GITDIR:
 	case IS_INSIDE_GITDIR_WITH_COOKIE_PREFIX:
 	default:
-		BUG("unexpected path classification '%d' for '%s'",
-		    t, path->buf);
+		BUG("unexpected path classification '%d' for '%s'", t,
+		    path->buf);
 	}
 
 	return 0;
@@ -614,7 +606,8 @@ static int process_worktree_events(struct fsmonitor_daemon_state *state)
 						    wpath_longname,
 						    ARRAY_SIZE(wpath_longname));
 			switch (grr) {
-			case GRR_NO_CONVERSION_NEEDED: /* use info buffer as is */
+			case GRR_NO_CONVERSION_NEEDED: /* use info buffer as is
+							*/
 				break;
 			case GRR_HAVE_CONVERSION:
 				wpath = wpath_longname;
@@ -626,18 +619,18 @@ static int process_worktree_events(struct fsmonitor_daemon_state *state)
 			}
 		}
 
-normalize_it:
+	normalize_it:
 		if (normalize_path_in_utf8(wpath, wpath_len, &path) == -1)
 			goto skip_this_path;
 
 		t = fsmonitor_classify_path_workdir_relative(path.buf);
 
-process_it:
+	process_it:
 		if (process_1_worktree_event(&cookie_list, &batch, &path, t,
 					     info->Action))
 			goto force_shutdown;
 
-skip_this_path:
+	skip_this_path:
 		if (!info->NextEntryOffset)
 			break;
 		p += info->NextEntryOffset;
@@ -688,10 +681,9 @@ static int process_gitdir_events(struct fsmonitor_daemon_state *state)
 		const char *slash;
 		enum fsmonitor_path_type t;
 
-		if (normalize_path_in_utf8(
-			    info->FileName,
-			    info->FileNameLength / sizeof(WCHAR),
-			    &path) == -1)
+		if (normalize_path_in_utf8(info->FileName,
+					   info->FileNameLength / sizeof(WCHAR),
+					   &path) == -1)
 			goto skip_this_path;
 
 		t = fsmonitor_classify_path_gitdir_relative(path.buf);
@@ -710,11 +702,11 @@ static int process_gitdir_events(struct fsmonitor_daemon_state *state)
 			goto skip_this_path;
 
 		default:
-			BUG("unexpected path classification '%d' for '%s'",
-			    t, path.buf);
+			BUG("unexpected path classification '%d' for '%s'", t,
+			    path.buf);
 		}
 
-skip_this_path:
+	skip_this_path:
 		if (!info->NextEntryOffset)
 			break;
 		p += info->NextEntryOffset;
@@ -737,14 +729,13 @@ void fsm_listen__loop(struct fsmonitor_daemon_state *state)
 	if (start_rdcw_watch(data->watch_worktree) == -1)
 		goto force_error_stop;
 
-	if (data->watch_gitdir &&
-	    start_rdcw_watch(data->watch_gitdir) == -1)
+	if (data->watch_gitdir && start_rdcw_watch(data->watch_gitdir) == -1)
 		goto force_error_stop;
 
 	for (;;) {
 		dwWait = WaitForMultipleObjects(data->nr_listener_handles,
-						data->hListener,
-						FALSE, INFINITE);
+						data->hListener, FALSE,
+						INFINITE);
 
 		if (dwWait == WAIT_OBJECT_0 + LISTENER_HAVE_DATA_WORKTREE) {
 			result = recv_rdcw_watch(data->watch_worktree);
@@ -754,7 +745,8 @@ void fsm_listen__loop(struct fsmonitor_daemon_state *state)
 			}
 			if (result == -2) {
 				/* retryable error */
-				if (start_rdcw_watch(data->watch_worktree) == -1)
+				if (start_rdcw_watch(data->watch_worktree) ==
+				    -1)
 					goto force_error_stop;
 				continue;
 			}

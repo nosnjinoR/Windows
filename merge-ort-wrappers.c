@@ -1,12 +1,12 @@
-#include "git-compat-util.h"
-#include "gettext.h"
-#include "hash.h"
-#include "merge-ort.h"
-#include "merge-ort-wrappers.h"
-#include "read-cache-ll.h"
-#include "tree.h"
+#include "components/git-compat-util.h"
+#include "components/gettext.h"
+#include "components/hash.h"
+#include "components/merge-ort.h"
+#include "components/merge-ort-wrappers.h"
+#include "components/read-cache-ll.h"
+#include "components/tree.h"
 
-#include "commit.h"
+#include "components/commit.h"
 
 static int unclean(struct merge_options *opt, struct tree *head)
 {
@@ -23,10 +23,8 @@ static int unclean(struct merge_options *opt, struct tree *head)
 	return 0;
 }
 
-int merge_ort_nonrecursive(struct merge_options *opt,
-			   struct tree *head,
-			   struct tree *merge,
-			   struct tree *merge_base)
+int merge_ort_nonrecursive(struct merge_options *opt, struct tree *head,
+			   struct tree *merge, struct tree *merge_base)
 {
 	struct merge_result result;
 
@@ -45,10 +43,8 @@ int merge_ort_nonrecursive(struct merge_options *opt,
 	return result.clean;
 }
 
-int merge_ort_recursive(struct merge_options *opt,
-			struct commit *side1,
-			struct commit *side2,
-			struct commit_list *merge_bases,
+int merge_ort_recursive(struct merge_options *opt, struct commit *side1,
+			struct commit *side2, struct commit_list *merge_bases,
 			struct commit **result)
 {
 	struct tree *head = repo_get_commit_tree(opt->repo, side1);

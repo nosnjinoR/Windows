@@ -1,11 +1,11 @@
-#include "git-compat-util.h"
-#include "config.h"
-#include "repository.h"
-#include "run-command.h"
-#include "sigchain.h"
-#include "thread-utils.h"
-#include "trace.h"
-#include "trace2.h"
+#include "components/git-compat-util.h"
+#include "components/config.h"
+#include "components/repository.h"
+#include "components/run-command.h"
+#include "components/sigchain.h"
+#include "components/thread-utils.h"
+#include "components/trace.h"
+#include "components/trace2.h"
 #include "trace2/tr2_cfg.h"
 #include "trace2/tr2_cmd_name.h"
 #include "trace2/tr2_ctr.h"
@@ -259,9 +259,8 @@ static const char *redact_arg(const char *arg)
 	const char *p, *colon;
 	size_t at;
 
-	if (!trace2_redact ||
-	    (!skip_prefix(arg, "https://", &p) &&
-	     !skip_prefix(arg, "http://", &p)))
+	if (!trace2_redact || (!skip_prefix(arg, "https://", &p) &&
+			       !skip_prefix(arg, "http://", &p)))
 		return arg;
 
 	at = strcspn(p, "@/");
@@ -405,7 +404,8 @@ void trace2_cmd_path_fl(const char *file, int line, const char *pathname)
 			tgt_j->pfn_command_path_fl(file, line, pathname);
 }
 
-void trace2_cmd_ancestry_fl(const char *file, int line, const char **parent_names)
+void trace2_cmd_ancestry_fl(const char *file, int line,
+			    const char **parent_names)
 {
 	struct tr2_tgt *tgt_j;
 	int j;
@@ -415,7 +415,8 @@ void trace2_cmd_ancestry_fl(const char *file, int line, const char **parent_name
 
 	for_each_wanted_builtin (j, tgt_j)
 		if (tgt_j->pfn_command_ancestry_fl)
-			tgt_j->pfn_command_ancestry_fl(file, line, parent_names);
+			tgt_j->pfn_command_ancestry_fl(file, line,
+						       parent_names);
 }
 
 void trace2_cmd_name_fl(const char *file, int line, const char *name)
@@ -570,8 +571,7 @@ void trace2_child_exit_fl(const char *file, int line, struct child_process *cmd,
 }
 
 void trace2_child_ready_fl(const char *file, int line,
-			   struct child_process *cmd,
-			   const char *ready)
+			   struct child_process *cmd, const char *ready)
 {
 	struct tr2_tgt *tgt_j;
 	int j;
@@ -595,8 +595,7 @@ void trace2_child_ready_fl(const char *file, int line,
 			tgt_j->pfn_child_ready_fl(file, line,
 						  us_elapsed_absolute,
 						  cmd->trace2_child_id,
-						  cmd->pid,
-						  ready,
+						  cmd->pid, ready,
 						  us_elapsed_child);
 }
 
@@ -649,7 +648,8 @@ void trace2_exec_result_fl(const char *file, int line, int exec_id, int code)
 				file, line, us_elapsed_absolute, exec_id, code);
 }
 
-void trace2_thread_start_fl(const char *file, int line, const char *thread_base_name)
+void trace2_thread_start_fl(const char *file, int line,
+			    const char *thread_base_name)
 {
 	struct tr2_tgt *tgt_j;
 	int j;
@@ -823,14 +823,14 @@ void trace2_region_enter_printf_va_fl(const char *file, int line,
 }
 
 void trace2_region_enter_fl(const char *file, int line, const char *category,
-			    const char *label, const struct repository *repo, ...)
+			    const char *label, const struct repository *repo,
+			    ...)
 {
 	va_list ap;
 	va_start(ap, repo);
 	trace2_region_enter_printf_va_fl(file, line, category, label, repo,
 					 NULL, ap);
 	va_end(ap);
-
 }
 
 void trace2_region_enter_printf_fl(const char *file, int line,
@@ -886,7 +886,8 @@ void trace2_region_leave_printf_va_fl(const char *file, int line,
 }
 
 void trace2_region_leave_fl(const char *file, int line, const char *category,
-			    const char *label, const struct repository *repo, ...)
+			    const char *label, const struct repository *repo,
+			    ...)
 {
 	va_list ap;
 	va_start(ap, repo);

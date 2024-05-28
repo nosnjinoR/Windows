@@ -1,13 +1,13 @@
 #include "test-tool.h"
-#include "commit.h"
-#include "commit-reach.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-name.h"
-#include "ref-filter.h"
-#include "setup.h"
-#include "string-list.h"
-#include "tag.h"
+#include "components/commit.h"
+#include "components/commit-reach.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-name.h"
+#include "components/ref-filter.h"
+#include "components/setup.h"
+#include "components/string-list.h"
+#include "components/tag.h"
 
 static void print_sorted_commit_ids(struct commit_list *list)
 {
@@ -75,31 +75,31 @@ int cmd__reach(int ac, const char **av)
 			    buf.buf, oid_to_hex(&oid));
 
 		switch (buf.buf[0]) {
-			case 'A':
-				oidcpy(&oid_A, &oid);
-				A = c;
-				break;
+		case 'A':
+			oidcpy(&oid_A, &oid);
+			A = c;
+			break;
 
-			case 'B':
-				oidcpy(&oid_B, &oid);
-				B = c;
-				break;
+		case 'B':
+			oidcpy(&oid_B, &oid);
+			B = c;
+			break;
 
-			case 'X':
-				commit_list_insert(c, &X);
-				ALLOC_GROW(X_array, X_nr + 1, X_alloc);
-				X_array[X_nr++] = c;
-				add_object_array(orig, NULL, &X_obj);
-				break;
+		case 'X':
+			commit_list_insert(c, &X);
+			ALLOC_GROW(X_array, X_nr + 1, X_alloc);
+			X_array[X_nr++] = c;
+			add_object_array(orig, NULL, &X_obj);
+			break;
 
-			case 'Y':
-				commit_list_insert(c, &Y);
-				ALLOC_GROW(Y_array, Y_nr + 1, Y_alloc);
-				Y_array[Y_nr++] = c;
-				break;
+		case 'Y':
+			commit_list_insert(c, &Y);
+			ALLOC_GROW(Y_array, Y_nr + 1, Y_alloc);
+			Y_array[Y_nr++] = c;
+			break;
 
-			default:
-				die("unexpected start of line: %c", buf.buf[0]);
+		default:
+			die("unexpected start of line: %c", buf.buf[0]);
 		}
 	}
 	strbuf_release(&buf);
@@ -111,14 +111,13 @@ int cmd__reach(int ac, const char **av)
 		       repo_in_merge_bases(the_repository, A, B));
 	else if (!strcmp(av[1], "in_merge_bases_many"))
 		printf("%s(A,X):%d\n", av[1],
-		       repo_in_merge_bases_many(the_repository, A, X_nr, X_array, 0));
+		       repo_in_merge_bases_many(the_repository, A, X_nr,
+						X_array, 0));
 	else if (!strcmp(av[1], "is_descendant_of"))
 		printf("%s(A,X):%d\n", av[1], repo_is_descendant_of(r, A, X));
 	else if (!strcmp(av[1], "get_merge_bases_many")) {
 		struct commit_list *list = NULL;
-		if (repo_get_merge_bases_many(the_repository,
-					      A, X_nr,
-					      X_array,
+		if (repo_get_merge_bases_many(the_repository, A, X_nr, X_array,
 					      &list) < 0)
 			exit(128);
 		printf("%s(A,X):\n", av[1]);
@@ -137,7 +136,8 @@ int cmd__reach(int ac, const char **av)
 			iter = iter->next;
 		}
 
-		printf("%s(X,_,_,0,0):%d\n", av[1], can_all_from_reach_with_flag(&X_obj, 2, 4, 0, 0));
+		printf("%s(X,_,_,0,0):%d\n", av[1],
+		       can_all_from_reach_with_flag(&X_obj, 2, 4, 0, 0));
 	} else if (!strcmp(av[1], "commit_contains")) {
 		struct ref_filter filter = REF_FILTER_INIT;
 		struct contains_cache cache;
@@ -148,14 +148,14 @@ int cmd__reach(int ac, const char **av)
 		else
 			filter.with_commit_tag_algo = 0;
 
-		printf("%s(_,A,X,_):%d\n", av[1], commit_contains(&filter, A, X, &cache));
+		printf("%s(_,A,X,_):%d\n", av[1],
+		       commit_contains(&filter, A, X, &cache));
 	} else if (!strcmp(av[1], "get_reachable_subset")) {
 		const int reachable_flag = 1;
 		int i, count = 0;
 		struct commit_list *current;
-		struct commit_list *list = get_reachable_subset(X_array, X_nr,
-								Y_array, Y_nr,
-								reachable_flag);
+		struct commit_list *list = get_reachable_subset(
+			X_array, X_nr, Y_array, Y_nr, reachable_flag);
 		printf("get_reachable_subset(X,Y)\n");
 		for (current = list; current; current = current->next) {
 			if (!(list->item->object.flags & reachable_flag))

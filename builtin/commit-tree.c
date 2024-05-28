@@ -3,17 +3,17 @@
  *
  * Copyright (C) Linus Torvalds, 2005
  */
-#include "builtin.h"
-#include "config.h"
-#include "gettext.h"
-#include "hex.h"
-#include "object-name.h"
-#include "object-store-ll.h"
-#include "repository.h"
-#include "commit.h"
-#include "parse-options.h"
+#include "components/builtin.h"
+#include "components/config.h"
+#include "components/gettext.h"
+#include "components/hex.h"
+#include "components/object-name.h"
+#include "components/object-store-ll.h"
+#include "components/repository.h"
+#include "components/commit.h"
+#include "components/parse-options.h"
 
-static const char * const commit_tree_usage[] = {
+static const char *const commit_tree_usage[] = {
 	N_("git commit-tree <tree> [(-p <parent>)...]"),
 	N_("git commit-tree [(-p <parent>)...] [-S[<keyid>]] [(-m <message>)...]\n"
 	   "                [(-F <file>)...] <tree>"),
@@ -28,7 +28,8 @@ static void new_parent(struct commit *parent, struct commit_list **parents_p)
 	struct commit_list *parents;
 	for (parents = *parents_p; parents; parents = parents->next) {
 		if (parents->item == parent) {
-			error(_("duplicate parent %s ignored"), oid_to_hex(oid));
+			error(_("duplicate parent %s ignored"),
+			      oid_to_hex(oid));
 			return;
 		}
 		parents_p = &parents->next;
@@ -36,8 +37,8 @@ static void new_parent(struct commit *parent, struct commit_list **parents_p)
 	commit_list_insert(parent, parents_p);
 }
 
-static int parse_parent_arg_callback(const struct option *opt,
-		const char *arg, int unset)
+static int parse_parent_arg_callback(const struct option *opt, const char *arg,
+				     int unset)
 {
 	struct object_id oid;
 	struct commit_list **parents = opt->value;
@@ -52,8 +53,8 @@ static int parse_parent_arg_callback(const struct option *opt,
 	return 0;
 }
 
-static int parse_message_arg_callback(const struct option *opt,
-		const char *arg, int unset)
+static int parse_message_arg_callback(const struct option *opt, const char *arg,
+				      int unset)
 {
 	struct strbuf *buf = opt->value;
 
@@ -67,8 +68,8 @@ static int parse_message_arg_callback(const struct option *opt,
 	return 0;
 }
 
-static int parse_file_arg_callback(const struct option *opt,
-		const char *arg, int unset)
+static int parse_file_arg_callback(const struct option *opt, const char *arg,
+				   int unset)
 {
 	int fd;
 	struct strbuf *buf = opt->value;
@@ -99,16 +100,17 @@ int cmd_commit_tree(int argc, const char **argv, const char *prefix)
 
 	struct option options[] = {
 		OPT_CALLBACK_F('p', NULL, &parents, N_("parent"),
-			N_("id of a parent commit object"), PARSE_OPT_NONEG,
-			parse_parent_arg_callback),
+			       N_("id of a parent commit object"),
+			       PARSE_OPT_NONEG, parse_parent_arg_callback),
 		OPT_CALLBACK_F('m', NULL, &buffer, N_("message"),
-			N_("commit message"), PARSE_OPT_NONEG,
-			parse_message_arg_callback),
+			       N_("commit message"), PARSE_OPT_NONEG,
+			       parse_message_arg_callback),
 		OPT_CALLBACK_F('F', NULL, &buffer, N_("file"),
-			N_("read commit log message from file"), PARSE_OPT_NONEG,
-			parse_file_arg_callback),
+			       N_("read commit log message from file"),
+			       PARSE_OPT_NONEG, parse_file_arg_callback),
 		{ OPTION_STRING, 'S', "gpg-sign", &sign_commit, N_("key-id"),
-			N_("GPG sign commit"), PARSE_OPT_OPTARG, NULL, (intptr_t) "" },
+		  N_("GPG sign commit"), PARSE_OPT_OPTARG, NULL,
+		  (intptr_t) "" },
 		OPT_END()
 	};
 

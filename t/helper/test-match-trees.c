@@ -1,10 +1,10 @@
 #include "test-tool.h"
-#include "hex.h"
-#include "match-trees.h"
-#include "object-name.h"
-#include "repository.h"
-#include "setup.h"
-#include "tree.h"
+#include "components/hex.h"
+#include "components/match-trees.h"
+#include "components/object-name.h"
+#include "components/repository.h"
+#include "components/setup.h"
+#include "components/tree.h"
 
 int cmd__match_trees(int ac UNUSED, const char **av)
 {
@@ -24,7 +24,8 @@ int cmd__match_trees(int ac UNUSED, const char **av)
 	if (!two)
 		die("not a tree-ish %s", av[2]);
 
-	shift_tree(the_repository, &one->object.oid, &two->object.oid, &shifted, -1);
+	shift_tree(the_repository, &one->object.oid, &two->object.oid, &shifted,
+		   -1);
 	printf("shifted: %s\n", oid_to_hex(&shifted));
 
 	return 0;

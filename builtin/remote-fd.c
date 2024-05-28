@@ -1,8 +1,7 @@
-#include "builtin.h"
-#include "transport.h"
+#include "components/builtin.h"
+#include "components/transport.h"
 
-static const char usage_msg[] =
-	"git remote-fd <remote> <url>";
+static const char usage_msg[] = "git remote-fd <remote> <url>";
 
 /*
  * URL syntax:
@@ -43,8 +42,7 @@ static void command_loop(int input_fd, int output_fd)
 		} else if (starts_with(buffer, "connect ")) {
 			printf("\n");
 			fflush(stdout);
-			if (bidirectional_transfer_loop(input_fd,
-				output_fd))
+			if (bidirectional_transfer_loop(input_fd, output_fd))
 				die("Copying data between file descriptors failed");
 			return;
 		} else {
