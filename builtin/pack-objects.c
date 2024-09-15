@@ -549,7 +549,7 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 		hdrlen += sizeof(dheader) - pos;
 		if (delta_file) {
 			fprintf(delta_file, "\t\t\t\"delta_type\" : \"OFS\",\n");
-			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", ofs);
+			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", (uintmax_t)ofs);
 			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
 		}
 	} else if (type == OBJ_REF_DELTA) {
@@ -668,7 +668,7 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 
 		if (delta_file) {
 			fprintf(delta_file, "\t\t\t\"delta_type\" : \"OFS\",\n");
-			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", ofs);
+			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", (uintmax_t)ofs);
 			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
 		}
 	} else if (type == OBJ_REF_DELTA) {
