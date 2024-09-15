@@ -413,9 +413,9 @@ static void survey_report_object_sizes(const char *title,
 
 	for (size_t i = 0; i < summary_nr; i++) {
 		insert_table_rowv(&table, xstrdup(summary[i].label),
-				  xstrfmt("%"PRIuMAX, summary[i].nr),
-				  xstrfmt("%"PRIuMAX, summary[i].disk_size),
-				  xstrfmt("%"PRIuMAX, summary[i].inflated_size),
+				  xstrfmt("%"PRIuMAX, (uintmax_t)summary[i].nr),
+				  xstrfmt("%"PRIuMAX, (uintmax_t)summary[i].disk_size),
+				  xstrfmt("%"PRIuMAX, (uintmax_t)summary[i].inflated_size),
 				  NULL);
 	}
 
