@@ -343,22 +343,22 @@ static void survey_report_plaintext_refs(struct survey_context *ctx)
 	strvec_push(&table.header, _("Count"));
 
 	if (ctx->opts.refs.want_all_refs || ctx->opts.refs.want_branches) {
-		char *fmt = xstrfmt("%"PRIuMAX"", refs->branches_nr);
+		char *fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)refs->branches_nr);
 		insert_table_rowv(&table, _("Branches"), fmt, NULL);
 		free(fmt);
 	}
 
 	if (ctx->opts.refs.want_all_refs || ctx->opts.refs.want_remotes) {
-		char *fmt = xstrfmt("%"PRIuMAX"", refs->remote_refs_nr);
+		char *fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)refs->remote_refs_nr);
 		insert_table_rowv(&table, _("Remote refs"), fmt, NULL);
 		free(fmt);
 	}
 
 	if (ctx->opts.refs.want_all_refs || ctx->opts.refs.want_tags) {
-		char *fmt = xstrfmt("%"PRIuMAX"", refs->tags_nr);
+		char *fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)refs->tags_nr);
 		insert_table_rowv(&table, _("Tags (all)"), fmt, NULL);
 		free(fmt);
-		fmt = xstrfmt("%"PRIuMAX"", refs->tags_annotated_nr);
+		fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)refs->tags_annotated_nr);
 		insert_table_rowv(&table, _("Tags (annotated)"), fmt, NULL);
 		free(fmt);
 	}
