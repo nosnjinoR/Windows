@@ -186,7 +186,8 @@ struct survey_report {
 #define REPORT_TYPE_COMMIT 0
 #define REPORT_TYPE_TREE 1
 #define REPORT_TYPE_BLOB 2
-#define REPORT_TYPE_COUNT 3
+#define REPORT_TYPE_TAG 3
+#define REPORT_TYPE_COUNT 4
 
 struct survey_context {
 	/* Options that control what is done. */
@@ -703,6 +704,10 @@ static void increment_object_totals(struct survey_context *ctx,
 	increment_totals(ctx, oids, &summary);
 
 	switch (type) {
+	case OBJ_TAG:
+		total = &ctx->report.by_type[REPORT_TYPE_TAG];
+		break;
+
 	case OBJ_COMMIT:
 		total = &ctx->report.by_type[REPORT_TYPE_COMMIT];
 		break;
