@@ -610,7 +610,7 @@ static void survey_phase_refs(struct survey_context *ctx)
 
 	ctx->report.refs.refs_nr = ctx->ref_array.nr;
 	for (size_t i = 0; i < ctx->ref_array.nr; i++) {
-		size_t size;
+		unsigned long size;
 		struct ref_array_item *item = ctx->ref_array.items[i];
 
 		switch (item->kind) {
