@@ -14,6 +14,7 @@
 #include "revision.h"
 #include "string-list.h"
 #include "strmap.h"
+#include "tag.h"
 #include "trace2.h"
 #include "tree.h"
 #include "tree-walk.h"
@@ -81,6 +82,10 @@ static int add_children(struct path_walk_context *ctx,
 
 		/* Skip submodules. */
 		if (S_ISGITLINK(entry.mode))
+			continue;
+
+		/* If the caller doesn't want blobs, then don't bother. */
+		if (!ctx->info->blobs && type == OBJ_BLOB)
 			continue;
 
 		if (type == OBJ_TREE) {
@@ -156,9 +161,11 @@ static int walk_path(struct path_walk_context *ctx,
 
 	list = strmap_get(&ctx->paths_to_lists, path);
 
-	/* Evaluate function pointer on this data. */
-	ret = ctx->info->path_fn(path, &list->oids, list->type,
-				 ctx->info->path_fn_data);
+	/* Evaluate function pointer on this data, if requested. */
+	if ((list->type == OBJ_TREE && ctx->info->trees) ||
+	    (list->type == OBJ_BLOB && ctx->info->blobs))
+		ret = ctx->info->path_fn(path, &list->oids, list->type,
+					ctx->info->path_fn_data);
 
 	/* Expand data for children. */
 	if (list->type == OBJ_TREE) {
@@ -200,6 +207,7 @@ int walk_objects_by_path(struct path_walk_info *info)
 	size_t commits_nr = 0, paths_nr = 0;
 	struct commit *c;
 	struct type_and_oid_list *root_tree_list;
+	struct type_and_oid_list *commit_list;
 	struct path_walk_context ctx = {
 		.repo = info->revs->repo,
 		.revs = info->revs,
@@ -208,29 +216,107 @@ int walk_objects_by_path(struct path_walk_info *info)
 		.paths_to_lists = STRMAP_INIT
 	};
 
+	struct oid_array tagged_tree_list = OID_ARRAY_INIT;
+	struct oid_array tagged_blob_list = OID_ARRAY_INIT;
+
 	trace2_region_enter("path-walk", "commit-walk", info->revs->repo);
+
+	CALLOC_ARRAY(commit_list, 1);
+	commit_list->type = OBJ_COMMIT;
 
 	/* Insert a single list for the root tree into the paths. */
 	CALLOC_ARRAY(root_tree_list, 1);
 	root_tree_list->type = OBJ_TREE;
 	strmap_put(&ctx.paths_to_lists, root_path, root_tree_list);
-
 	if (prepare_revision_walk(info->revs))
 		die(_("failed to setup revision walk"));
 
 	while ((c = get_revision(info->revs))) {
-		struct object_id *oid = get_commit_tree_oid(c);
-		struct tree *t = lookup_tree(info->revs->repo, oid);
+		struct object_id *oid;
+		struct tree *t;
 		commits_nr++;
+
+		if (info->commits)
+			oid_array_append(&commit_list->oids,
+					 &c->object.oid);
+
+		/* If we only care about commits, then skip trees. */
+		if (!info->trees && !info->blobs)
+			continue;
+
+		oid = get_commit_tree_oid(c);
+		t = lookup_tree(info->revs->repo, oid);
 
 		if (t)
 			oid_array_append(&root_tree_list->oids, oid);
 		else
 			warning("could not find tree %s", oid_to_hex(oid));
+
 	}
 
 	trace2_data_intmax("path-walk", ctx.repo, "commits", commits_nr);
 	trace2_region_leave("path-walk", "commit-walk", info->revs->repo);
+
+	/* Track all commits. */
+	if (info->commits)
+		ret = info->path_fn("", &commit_list->oids, OBJ_COMMIT,
+				    info->path_fn_data);
+	oid_array_clear(&commit_list->oids);
+	free(commit_list);
+
+	if (info->tags) {
+		struct oid_array tags = OID_ARRAY_INIT;
+
+		trace2_region_enter("path-walk", "tag-walk", info->revs->repo);
+
+		/*
+		 * Walk any pending objects at this point, but they should only
+		 * be tags.
+		 */
+		for (size_t i = 0; i < info->revs->pending.nr; i++) {
+			struct object_array_entry *pending = info->revs->pending.objects + i;
+			struct object *obj = pending->item;
+
+			while (obj->type == OBJ_TAG) {
+				struct tag *tag = lookup_tag(info->revs->repo,
+							     &obj->oid);
+				oid_array_append(&tags, &obj->oid);
+				obj = tag->tagged;
+			}
+
+			switch (obj->type) {
+			case OBJ_TREE:
+				oid_array_append(&tagged_tree_list, &obj->oid);
+				break;
+
+			case OBJ_BLOB:
+				oid_array_append(&tagged_blob_list, &obj->oid);
+				break;
+
+			case OBJ_COMMIT:
+				/* skip */
+				break;
+
+			default:
+				BUG("should not see any other type here");
+			}
+		}
+
+		info->path_fn("initial", &tags, OBJ_TAG, info->path_fn_data);
+
+		if (tagged_tree_list.nr)
+			info->path_fn("tagged-trees", &tagged_tree_list, OBJ_TREE,
+				      info->path_fn_data);
+		if (tagged_blob_list.nr)
+			info->path_fn("tagged-blobs", &tagged_blob_list, OBJ_BLOB,
+				      info->path_fn_data);
+
+		trace2_data_intmax("path-walk", ctx.repo, "tags", tags.nr);
+		trace2_region_leave("path-walk", "tag-walk", info->revs->repo);
+		oid_array_clear(&tags);
+		oid_array_clear(&tagged_tree_list);
+		oid_array_clear(&tagged_blob_list);
+	}
 
 	string_list_append(&ctx.path_stack, root_path);
 
