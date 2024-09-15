@@ -524,7 +524,7 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 			fprintf(delta_file, ",\n");
 		fprintf(delta_file, "\t\t{\n");
 		fprintf(delta_file, "\t\t\t\"oid\" : \"%s\",\n", oid_to_hex(&entry->idx.oid));
-		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", datalen);
+		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", (uintmax_t)datalen);
 	}
 
 	if (type == OBJ_OFS_DELTA) {
@@ -648,7 +648,7 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 			fprintf(delta_file, ",\n");
 		fprintf(delta_file, "\t\t{\n");
 		fprintf(delta_file, "\t\t\t\"oid\" : \"%s\",\n", oid_to_hex(&entry->idx.oid));
-		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", entry_size);
+		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", (uintmax_t)entry_size);
 	}
 
 	if (type == OBJ_OFS_DELTA) {
