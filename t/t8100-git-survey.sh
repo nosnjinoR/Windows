@@ -29,6 +29,20 @@ test_expect_success 'git survey (default)' '
 	git survey --all-refs >out 2>err &&
 	test_line_count = 0 err &&
 
+	test_oid_cache <<-EOF &&
+	commits_size_on_disk sha1:     1523
+	commits_size_on_disk sha256:     1811
+
+	commits_size sha1:         2153
+	commits_size sha256:         2609
+
+	trees_size_on_disk sha1:      495
+	trees_size_on_disk sha256:      635
+
+	trees_size sha1:         1706
+	trees_size sha256:         2366
+
+	EOF
 	cat >expect <<-EOF &&
 	GIT SURVEY for "$(pwd)"
 	-----------------------------------------------------
@@ -55,8 +69,8 @@ test_expect_success 'git survey (default)' '
 	===============================================
 	Object Type | Count | Disk Size | Inflated Size
 	------------+-------+-----------+--------------
-	    Commits |    10 |      1523 |          2153
-	      Trees |    10 |       495 |          1706
+	    Commits |    10 | $(test_oid commits_size_on_disk) | $(test_oid commits_size)
+	      Trees |    10 | $(test_oid trees_size_on_disk) | $(test_oid trees_size)
 	      Blobs |    10 |       191 |           101
 	EOF
 
