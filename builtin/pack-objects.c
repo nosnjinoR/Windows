@@ -50,6 +50,9 @@
  */
 static struct packing_data to_pack;
 
+static FILE *delta_file;
+static int delta_file_nr;
+
 static inline struct object_entry *oe_delta(
 		const struct packing_data *pack,
 		const struct object_entry *e)
@@ -270,6 +273,14 @@ struct configured_exclusion {
 static struct oidmap configured_exclusions;
 
 static struct oidset excluded_by_config;
+static int use_full_name_hash;
+
+static inline uint32_t pack_name_hash_fn(const char *name)
+{
+	if (use_full_name_hash)
+		return pack_full_name_hash(name);
+	return pack_name_hash(name);
+}
 
 /*
  * stats
@@ -508,6 +519,14 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 	hdrlen = encode_in_pack_object_header(header, sizeof(header),
 					      type, size);
 
+	if (delta_file) {
+		if (delta_file_nr++)
+			fprintf(delta_file, ",\n");
+		fprintf(delta_file, "\t\t{\n");
+		fprintf(delta_file, "\t\t\t\"oid\" : \"%s\",\n", oid_to_hex(&entry->idx.oid));
+		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", datalen);
+	}
+
 	if (type == OBJ_OFS_DELTA) {
 		/*
 		 * Deltas with relative base contain an additional
@@ -528,6 +547,11 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 		hashwrite(f, header, hdrlen);
 		hashwrite(f, dheader + pos, sizeof(dheader) - pos);
 		hdrlen += sizeof(dheader) - pos;
+		if (delta_file) {
+			fprintf(delta_file, "\t\t\t\"delta_type\" : \"OFS\",\n");
+			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", ofs);
+			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
+		}
 	} else if (type == OBJ_REF_DELTA) {
 		/*
 		 * Deltas with a base reference contain
@@ -542,6 +566,10 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 		hashwrite(f, header, hdrlen);
 		hashwrite(f, DELTA(entry)->idx.oid.hash, hashsz);
 		hdrlen += hashsz;
+		if (delta_file) {
+			fprintf(delta_file, "\t\t\t\"delta_type\" : \"REF\",\n");
+			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
+		}
 	} else {
 		if (limit && hdrlen + datalen + hashsz >= limit) {
 			if (st)
@@ -551,6 +579,10 @@ static unsigned long write_no_reuse_object(struct hashfile *f, struct object_ent
 		}
 		hashwrite(f, header, hdrlen);
 	}
+
+	if (delta_file)
+		fprintf(delta_file, "\t\t\t\"reused\" : false\n\t\t}");
+
 	if (st) {
 		datalen = write_large_blob_data(st, f, &entry->idx.oid);
 		close_istream(st);
@@ -611,6 +643,14 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 		return write_no_reuse_object(f, entry, limit, usable_delta);
 	}
 
+	if (delta_file) {
+		if (delta_file_nr++)
+			fprintf(delta_file, ",\n");
+		fprintf(delta_file, "\t\t{\n");
+		fprintf(delta_file, "\t\t\t\"oid\" : \"%s\",\n", oid_to_hex(&entry->idx.oid));
+		fprintf(delta_file, "\t\t\t\"size\" : %"PRIuMAX",\n", entry_size);
+	}
+
 	if (type == OBJ_OFS_DELTA) {
 		off_t ofs = entry->idx.offset - DELTA(entry)->idx.offset;
 		unsigned pos = sizeof(dheader) - 1;
@@ -625,6 +665,12 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 		hashwrite(f, dheader + pos, sizeof(dheader) - pos);
 		hdrlen += sizeof(dheader) - pos;
 		reused_delta++;
+
+		if (delta_file) {
+			fprintf(delta_file, "\t\t\t\"delta_type\" : \"OFS\",\n");
+			fprintf(delta_file, "\t\t\t\"offset\" : %"PRIuMAX",\n", ofs);
+			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
+		}
 	} else if (type == OBJ_REF_DELTA) {
 		if (limit && hdrlen + hashsz + datalen + hashsz >= limit) {
 			unuse_pack(&w_curs);
@@ -634,6 +680,10 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 		hashwrite(f, DELTA(entry)->idx.oid.hash, hashsz);
 		hdrlen += hashsz;
 		reused_delta++;
+		if (delta_file) {
+			fprintf(delta_file, "\t\t\t\"delta_type\" : \"REF\",\n");
+			fprintf(delta_file, "\t\t\t\"delta_base\" : \"%s\",\n", oid_to_hex(&DELTA(entry)->idx.oid));
+		}
 	} else {
 		if (limit && hdrlen + datalen + hashsz >= limit) {
 			unuse_pack(&w_curs);
@@ -644,6 +694,10 @@ static off_t write_reuse_object(struct hashfile *f, struct object_entry *entry,
 	copy_pack_data(f, p, &w_curs, offset, datalen);
 	unuse_pack(&w_curs);
 	reused++;
+
+	if (delta_file)
+		fprintf(delta_file, "\t\t\t\"reused\" : true\n\t\t}");
+
 	return hdrlen + datalen;
 }
 
@@ -1256,6 +1310,11 @@ static void write_pack_file(void)
 	ALLOC_ARRAY(written_list, to_pack.nr_objects);
 	write_order = compute_write_order();
 
+	if (delta_file) {
+		fprintf(delta_file, "{\n\t\"num_objects\" : %"PRIu32",\n", to_pack.nr_objects);
+		fprintf(delta_file, "\t\"objects\" : [\n");
+	}
+
 	do {
 		unsigned char hash[GIT_MAX_RAWSZ];
 		char *pack_tmp_name = NULL;
@@ -1404,6 +1463,9 @@ static void write_pack_file(void)
 		    written, nr_result);
 	trace2_data_intmax("pack-objects", the_repository,
 			   "write_pack_file/wrote", nr_result);
+
+	if (delta_file)
+		fprintf(delta_file, "\n\t]\n}");
 }
 
 static int no_try_delta(const char *path)
@@ -1674,7 +1736,7 @@ static int add_object_entry(const struct object_id *oid, enum object_type type,
 		return 0;
 	}
 
-	create_object_entry(oid, type, pack_name_hash(name),
+	create_object_entry(oid, type, pack_name_hash_fn(name),
 			    exclude, name && no_try_delta(name),
 			    found_pack, found_offset);
 	return 1;
@@ -1888,7 +1950,7 @@ static void add_preferred_base_object(const char *name)
 {
 	struct pbase_tree *it;
 	size_t cmplen;
-	unsigned hash = pack_name_hash(name);
+	unsigned hash = pack_name_hash_fn(name);
 
 	if (!num_preferred_base || check_pbase_path(hash))
 		return;
@@ -3405,7 +3467,7 @@ static void show_object_pack_hint(struct object *object, const char *name,
 	 * here using a now in order to perhaps improve the delta selection
 	 * process.
 	 */
-	oe->hash = pack_name_hash(name);
+	oe->hash = pack_name_hash_fn(name);
 	oe->no_try_delta = name && no_try_delta(name);
 
 	stdin_packs_hints_nr++;
@@ -3555,7 +3617,7 @@ static void add_cruft_object_entry(const struct object_id *oid, enum object_type
 	entry = packlist_find(&to_pack, oid);
 	if (entry) {
 		if (name) {
-			entry->hash = pack_name_hash(name);
+			entry->hash = pack_name_hash_fn(name);
 			entry->no_try_delta = no_try_delta(name);
 		}
 	} else {
@@ -3578,7 +3640,7 @@ static void add_cruft_object_entry(const struct object_id *oid, enum object_type
 			return;
 		}
 
-		entry = create_object_entry(oid, type, pack_name_hash(name),
+		entry = create_object_entry(oid, type, pack_name_hash_fn(name),
 					    0, name && no_try_delta(name),
 					    pack, offset);
 	}
@@ -4421,6 +4483,7 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	struct string_list keep_pack_list = STRING_LIST_INIT_NODUP;
 	struct list_objects_filter_options filter_options =
 		LIST_OBJECTS_FILTER_INIT;
+	const char *delta_file_name = NULL;
 
 	struct option pack_objects_options[] = {
 		OPT_CALLBACK_F('q', "quiet", &progress, NULL,
@@ -4525,6 +4588,11 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 		OPT_STRING_LIST(0, "uri-protocol", &uri_protocols,
 				N_("protocol"),
 				N_("exclude any configured uploadpack.blobpackfileuri with this protocol")),
+		OPT_BOOL(0, "full-name-hash", &use_full_name_hash,
+			 N_("optimize delta compression across identical path names over time")),
+		OPT_STRING(0, "delta-file", &delta_file_name,
+				N_("filename"),
+				N_("output delta compression details to the given file")),
 		OPT_END(),
 	};
 
@@ -4562,6 +4630,12 @@ int cmd_pack_objects(int argc, const char **argv, const char *prefix)
 	if (pack_to_stdout != !base_name || argc)
 		usage_with_options(pack_usage, pack_objects_options);
 
+	if (delta_file_name) {
+		delta_file = fopen(delta_file_name, "w");
+		if (!delta_file)
+			die_errno("failed to open '%s'", delta_file_name);
+		trace2_printf("opened '%s' for writing deltas", delta_file_name);
+	}
 	if (depth < 0)
 		depth = 0;
 	if (depth >= (1 << OE_DEPTH_BITS)) {
@@ -4784,6 +4858,11 @@ cleanup:
 	clear_packing_data(&to_pack);
 	list_objects_filter_release(&filter_options);
 	strvec_clear(&rp);
+
+	if (delta_file) {
+		fflush(delta_file);
+		fclose(delta_file);
+	}
 
 	return 0;
 }
