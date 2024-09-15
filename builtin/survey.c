@@ -378,19 +378,19 @@ static void survey_report_plaintext_reachable_object_summary(struct survey_conte
 	strvec_push(&table.header, _("Object Type"));
 	strvec_push(&table.header, _("Count"));
 
-	fmt = xstrfmt("%"PRIuMAX"", objs->tags_nr);
+	fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)objs->tags_nr);
 	insert_table_rowv(&table, _("Tags"), fmt, NULL);
 	free(fmt);
 
-	fmt = xstrfmt("%"PRIuMAX"", objs->commits_nr);
+	fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)objs->commits_nr);
 	insert_table_rowv(&table, _("Commits"), fmt, NULL);
 	free(fmt);
 
-	fmt = xstrfmt("%"PRIuMAX"", objs->trees_nr);
+	fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)objs->trees_nr);
 	insert_table_rowv(&table, _("Trees"), fmt, NULL);
 	free(fmt);
 
-	fmt = xstrfmt("%"PRIuMAX"", objs->blobs_nr);
+	fmt = xstrfmt("%"PRIuMAX"", (uintmax_t)objs->blobs_nr);
 	insert_table_rowv(&table, _("Blobs"), fmt, NULL);
 	free(fmt);
 
