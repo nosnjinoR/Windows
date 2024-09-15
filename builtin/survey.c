@@ -810,6 +810,7 @@ static void initialize_report(struct survey_context *ctx)
 	const int top_limit = 100;
 
 	CALLOC_ARRAY(ctx->report.by_type, REPORT_TYPE_COUNT);
+	ctx->report.by_type[REPORT_TYPE_TAG].label = xstrdup(_("Tags"));
 	ctx->report.by_type[REPORT_TYPE_COMMIT].label = xstrdup(_("Commits"));
 	ctx->report.by_type[REPORT_TYPE_TREE].label = xstrdup(_("Trees"));
 	ctx->report.by_type[REPORT_TYPE_BLOB].label = xstrdup(_("Blobs"));
