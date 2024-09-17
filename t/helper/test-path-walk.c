@@ -22,7 +22,7 @@ static int callback_fn(const char *path,
 		       void *data)
 {
 	printf("visiting path '%s' (count: %"PRIuMAX") of type '%s'\n",
-		path, list->nr, type_name(type));
+		path, (uintmax_t)list->nr, type_name(type));
 	if (verbose)
 		for (size_t i = 0; i < list->nr; i++)
 			printf("\t%s\n", oid_to_hex(list->oid + i));
