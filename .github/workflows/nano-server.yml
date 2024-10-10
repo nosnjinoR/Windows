@@ -47,7 +47,7 @@ jobs:
               # powershell quirk when defining nested arrays like this)
 
               $executables_to_test = @(
-                  ("C:\test\git.exe", "", 1 ),
+                  ("C:\test\git.exe", "version", 1 ),
                   ("C:\test\scalar.exe", "version", 0 )
               )
 
