@@ -63,7 +63,7 @@
 #   fast-forward                     |  快进
 #   fetch                            |  获取
 #   file system                      |  文件系统
-#   fork                             |  派生
+#   fork                             |  复刻
 #   Git archive                      |  仓库（对于 arch 用户）
 #   gitfile                          |  gitfile（仓库链接文件）
 #   grafts                           |  （提交）移植
